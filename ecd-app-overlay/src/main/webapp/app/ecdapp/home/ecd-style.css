@@ -1,0 +1,20 @@
+/* Styles for ECOMP Controller Dashboard */
+
+.ecd-error-message {
+	font-size: 14px;
+	font-weight: bold;
+	color: red;
+}
+
+.ecd-icon-display {
+	font-size: 18px;
+}
+
+.ecd-icon-action {
+	font-size: 18px;
+}
+
+.ecd-icon-action:hover {
+	color: red;
+	text-decoration: none;
+}

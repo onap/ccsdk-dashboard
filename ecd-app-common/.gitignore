@@ -1,0 +1,8 @@
+.classpath
+.project
+.settings/
+/bin/
+/target/
+/catalina.base_IS_UNDEFINED/
+/debug-logs/
+/logs/

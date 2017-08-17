@@ -1,0 +1,87 @@
+<div id="page-content">
+
+	<h1 class="heading-page" id="blueprints-page">TOSCA Models</h1>
+	
+   	<!-- show progress indicator -->
+	<div ng-show="ecdapp.isDataLoading">
+		<div class="span" style="margin-bottom:20px;">
+    		<i class="icon-primary-spinner small" role="img" aria-label="Please wait while the content loads"></i>
+    		Please wait while the content loads.
+	    </div>
+	</div>
+
+	<div ng-hide="ecdapp.isDataLoading">
+		
+		<div id="button-search-row">
+			<div style="float:right;">
+		           <div class="form-field form-field__small"> 
+					<input 
+						type="text"
+						placeholder="Search TOSCA Models"
+						ng-model="ecdapp.searchString"/>
+				</div>
+			</div>
+		</div>
+
+		<div ng-show="ecdapp.isRequestFailed">
+			<span class="ecd-error-message">{{ecdapp.errMsg}}</span>
+		</div>
+	
+		<div ng-hide="ecdapp.isRequestFailed">
+	
+	    	<div 
+	    		b2b-table 
+	    		id="tosca-table"
+	    		class="b2b-table-div" 
+	    		table-data="ecdapp.tableData" 
+	    		search-string="ecdapp.searchString" 
+	    		current-page="ecdapp.currentPageIgnored"
+	    		next-sort="ecdapp.nextSortIgnored">
+	
+		        <table>
+		        
+		            <thead b2b-table-row type="header">	
+						<tr id="th-header-row">
+							<th b2b-table-header key="id">ID</th>
+							<th b2b-table-header key="name">Name</th>
+							<th b2b-table-header key="description">Description</th>
+							<th b2b-table-header key="created_at">Created Date</th>
+							<th b2b-table-header key="updated_at">Updated Date</th>
+				  			<th b2b-table-header sortable="false"><i class="icon-controls-gear ecd-icon-display"></i></th>
+						</tr>
+					</thead>
+					
+		            <tbody b2b-table-row type="body" row-repeat="rowData in ecdapp.tableData">
+						<tr id="tr-rowData">
+							<td b2b-table-body
+								ng-bind="rowData.id"/>
+							<td b2b-table-body
+								ng-bind="rowData.main_file_name"/>
+							<td b2b-table-body
+								ng-bind="rowData.description"/>
+							<td b2b-table-body
+								ng-bind="rowData.created_at"/>
+							<td b2b-table-body
+								ng-bind="rowData.updated_at"/>						
+							<td b2b-table-body> 
+						    	<div ng-click="ecdapp.deleteToscaModalPopup(rowData);">
+						    		<a href="" title="Delete TOSCA model" class="icon-misc-trash ecd-icon-action"></a>
+						    	</div>
+					     	</td>
+						</tr>
+					</tbody>
+				</table>
+			</div> 
+		
+		<div b2b-pagination="" total-pages="ecdapp.totalPages" 
+						current-page="ecdapp.currentPageNum" click-handler="pageChangeHandler"
+						role="navigation">
+		</div>
+							
+		<div style="height: 10px;">
+			<!-- space between page number and black footer -->
+		</div>
+		
+	</div><!-- loading -->
+	
+</div><!-- page content -->

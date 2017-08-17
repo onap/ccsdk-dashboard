@@ -1,0 +1,207 @@
+<script type="text/ng-template" id="service_register_popup.html">
+
+	<div class="b2b-modal-header ng-scope">
+		<h2 id="myModalLabel" modal-title="">{{ecdapp.label}}</h2>
+		<div class="corner-button in">
+			<button type="button" class="close" aria-label="Close"
+				ng-click="$dismiss('cancel')"></button>
+		</div>
+	</div>
+
+	<div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
+		role="region" aria-label="Modal body content">
+
+		<div class="row-nowrap">
+			<div class="span12">
+				<div class="form-row">
+					<label for="serviceName">*Service Name</label>
+					<div class="field-group">
+						<input id="serviceName" class="span12" type="text" data-ng-model="ecdapp.editRequest.service_name" autofocus />
+					</div>
+				</div>
+			</div> 
+			<div class="span12">
+				<div class="form-row">
+					<label for="checkEndpoint">*Endpoint URL</label>
+					<div class="field-group">
+						<input id="checkEndpoint" class="span12" type="text" data-ng-model="ecdapp.editRequest.check_endpoint"/>
+					</div>
+				</div>
+			</div> 
+		</div>			
+			
+		<div class="row-nowrap">
+			<div class="span12">
+				<div class="form-row">
+					<label for="serviceId">*Service ID</label>
+					<div class="field-group">
+						<input id="serviceId" class="span12" type="text" data-ng-model="ecdapp.editRequest.service_id"/>
+					</div>
+				</div>			
+			</div>
+			<div class="span12">
+				<div class="form-row">
+					<label for="checkInterval">*Interval</label>
+					<div class="field-group">
+						<input id="checkInterval" class="span12" type="text" data-ng-model="ecdapp.editRequest.check_interval"/>
+					</div>
+				</div>
+			</div> 
+		</div>
+
+		<div class="row-nowrap">
+			<div class="span12">
+				<div class="form-row">
+					<label for="serviceAddress">*Address</label>
+					<div class="field-group">
+						<input id="serviceAddress" class="span12" type="text" data-ng-model="ecdapp.editRequest.service_address"/>
+					</div>
+				</div>			
+			</div>
+			<div class="span12">
+				<div class="form-row">
+					<label for="checkDescription">Description</label>
+					<div class="field-group">
+						<input id="checkDescription" class="span12" type="text" data-ng-model="ecdapp.editRequest.check_description"/>
+					</div>
+				</div>
+			</div> 
+		</div>
+
+		<div class="row-nowrap">
+			<div class="span12">
+				<div class="form-row">
+					<label for="servicePort">*Port</label>
+					<div class="field-group">
+						<input id="servicePort" class="span12" type="text" data-ng-model="ecdapp.editRequest.service_port"/>
+					</div>
+				</div>			
+			</div>
+			<div class="span12">
+				<div class="form-row">
+					<label for="checkName">Name</label>
+					<div class="field-group">
+						<input id="checkName" class="span12" type="text" data-ng-model="ecdapp.editRequest.check_name"/>
+					</div>
+				</div>
+			</div> 
+		</div>
+
+	</div>
+
+	<div class="b2b-modal-footer ng-scope ng-isolate-scope">
+		<div class="cta-button-group in">
+			<button class="btn btn-alt btn-small" type="button"
+					ng-click="ecdapp.registerService(ecdapp.editRequest);">
+				Save
+			</button>
+			<button class="btn btn-small" type="button"
+				ng-click="$dismiss('cancel')">
+				Cancel
+			</button>
+		</div>
+	</div>
+
+</script>
+
+<script type="text/ng-template" id="service_history_popup.html">
+
+	<div class="b2b-modal-header ng-scope">
+		<h2 id="myModalLabel" modal-title="">{{ecdapp.label}}</h2>
+		<div class="corner-button in">
+			<button type="button" class="close" aria-label="Close"
+				ng-click="$dismiss('cancel')"></button>
+		</div>
+	</div>
+
+	<div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
+		role="region" aria-label="Modal body content">
+
+		<div class="row-nowrap">
+			<div class="span12">
+				<div class="form-row">
+					<label for="startDateTime">*Start Date</label>
+					<div class="field-group">
+                  		<div class="datepicker-container" >   
+		                     <input id="startDateTime" name="startDateTime" class="span12" type="text" ng-model="ecdapp.startDateTime" b2b-datepicker>
+                  		</div>
+					</div>
+				</div>
+			</div>
+			<div class="span12">
+				<div class="form-row">
+					<label for="endDateTime">*End Date</label>
+					<div class="field-group">
+                  		<div class="datepicker-container" >   
+		                     <input id="endDateTime" name="endDateTime" class="span12" type="text" ng-model="ecdapp.endDateTime" b2b-datepicker>
+                  		</div>
+					</div>
+				</div>
+			</div>
+			<div class="span12">
+				<div class="form-row">
+					<label for="submit">&nbsp;</label>
+					<div class="field-group">
+						<button id="submit" 
+							class="btn btn-alt btn-small" 
+							type="submit"
+							ng-disabled="ecdapp.startDateTime === '' || ecdapp.endDateTime === '' "
+							ng-click="ecdapp.showHistory();">
+							Search
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- show progress indicator -->
+		<div ng-show="ecdapp.isDataLoading">
+			<div class="span" style="margin-bottom: 20px;">
+				<i class="icon-primary-spinner small" role="img"
+					aria-label="Please wait while the content loads"></i> Please wait
+				while the content loads.
+			</div>
+		</div>
+
+		<div ng-show="ecdapp.isRequestFailed">
+			<span class="ecd-error-message">{{ecdapp.errMsg}}</span>
+		</div>
+
+		<div ng-hide="ecdapp.isRequestFailed">
+			<div b2b-table id="consul-services-history-table" class="b2b-table-div"
+				table-data="ecdapp.tableData" search-string="ecdapp.searchString"
+				current-page="ecdapp.currentPageIgnored"
+				next-sort="ecdapp.nextSortIgnored">
+				<table>
+					<thead b2b-table-row type="header">
+						<tr id="th-header-row">
+							<th b2b-table-header key="status">Status</th>
+							<th b2b-table-header key="output">Output</th>
+							<th b2b-table-header key="notes">Date</th>
+						</tr>
+					</thead>
+
+					<tbody b2b-table-row type="body"
+						row-repeat="rowData in ecdapp.tableData">
+						<tr id="tr-rowData">
+							<td b2b-table-body ng-bind="rowData.status" />
+							<td b2b-table-body ng-bind="rowData.output" />
+							<td b2b-table-body ng-bind="rowData.date" />
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div> <!--hide-->
+
+	</div>
+
+	<div class="b2b-modal-footer ng-scope ng-isolate-scope">
+		<div class="cta-button-group in">
+			<button class="btn btn-alt btn-small" type="button"
+					ng-click="$dismiss();">
+				Close
+			</button>
+		</div>
+	</div>
+
+</script>

@@ -1,0 +1,170 @@
+<script type="text/ng-template" id="deployment_execute_popup.html">
+
+	<style>
+	.ecd-parameter-table
+	{
+	    border:   0px;
+    	overflow: auto;
+	}
+	.ecd-parameter-table th 
+	{
+		font-size: 1.4rem;
+	}
+	</style>
+
+	<div class="b2b-modal-header ng-scope">
+		<h2 id="myModalLabel" modal-title="">{{ecdapp.label}}</h2>
+		<div class="corner-button in">
+			<button type="button" class="close" aria-label="Close"
+				ng-click="$dismiss('cancel')"></button>
+		</div>
+	</div>
+
+	<div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
+		role="region" aria-label="Modal body content">
+
+		<div class="row-nowrap">
+			<div class="span12">
+				<div class="form-row">
+					<label for="blueprintId">Deployment ID</label>
+					<div class="field-group">
+						<!--autofocus is HTML5 attribute; doesn't work in Firefox-->
+						<input id="blueprintId" class="span12" type="text" data-ng-model="ecdapp.editRequest.deployment_id" autofocus/>
+					</div>
+				</div>
+			</div> 
+			<div class="span12">
+				<div class="form-row">
+					<label for="allowCustom">&nbsp;</label>
+					<div class="field-group">
+	                	<label for="allowCustomParameters" class="checkbox">
+    	                	<input id="allowCustomParameters" type="checkbox" ng-model="ecdapp.editRequest.allow_custom_parameter" />
+							<i class="skin"></i><span>Allow Custom Parameters</span>
+            	    	</label>
+					</div>
+				</div>
+			</div> 
+		</div>			
+			
+		<div class="row-nowrap">
+			<div class="span12">
+				<div class="form-row">
+					<label for="workflowName">Workflow Name</label>
+					<div class="field-group">
+						<select b2b-dropdown id="workflowName" name="workflowName" ng-model="ecdapp.editRequest.workflow_name.value" ng-change="selectWorkflowName()">
+							<option b2b-dropdown-list option-repeat="w in ecdapp.editRequest.workflow_list" value="{{w}}">
+								{{w}}
+							</option>
+						</select>
+					</div>
+				</div>			
+			</div>
+			<div class="span12">
+				<div class="form-row">
+					<label for="force">&nbsp;</label>
+					<div class="field-group">
+	                	<label for="force" class="checkbox">
+    	                	<input id="force" type="checkbox" ng-model="ecdapp.editRequest.force" />
+							<i class="skin"></i><span>Force</span>
+            	    	</label>
+					</div>
+				</div>
+			</div> 
+		</div>
+
+		<div class="row-nowrap">
+			<div class="span12">
+				<div class="form-row">
+					<label for="parameters">*Parameters</label>
+    				<div b2b-file-drop file-model="ecdapp.editRequest.fileModel" on-drop="handleFileSelect()" align="center">
+	    					<span b2b-file-link file-model="ecdapp.editRequest.fileModel" on-file-select="handleFileSelect()" >
+    						Drag &amp; drop a parameters YAML file here, or click to browse.
+    						</span>
+			        </div>
+		        </div>
+				<div class="ecd-parameter-table">
+					<table id="parameters">
+						<tr id="ecd-table-header">
+							<th width="40%">Name</th>
+							<th width="60%">Value</th>
+						</tr>
+		            	<tbody ng-repeat="(pkey, pval) in ecdapp.editRequest.parmFileDict">
+							<tr id="tr-rowData">
+								<td ng-bind="pkey"/>
+								<td ng-bind="pval"/>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+	<div class="b2b-modal-footer ng-scope ng-isolate-scope">
+		<div class="cta-button-group in">
+			<button class="btn btn-alt btn-small" type="button"
+					ng-click="ecdapp.executeDeployment(ecdapp.editRequest);">
+				Save
+			</button>
+			<button class="btn btn-small" type="button"
+				ng-click="$dismiss('cancel')">
+				Cancel
+			</button>
+		</div>
+	</div>
+
+</script>
+
+<script type="text/ng-template" id="deployment_delete_popup.html">
+	
+
+	<div class="b2b-modal-header ng-scope">
+		<h2 id="myModalLabel" modal-title="">{{ecdapp.label}}</h2>
+		<div class="corner-button in">
+			<button type="button" class="close" aria-label="Close"
+				ng-click="$dismiss('cancel')"></button>
+		</div>
+	</div>
+
+	<div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
+		role="region" aria-label="Modal body content">
+ 
+		<div class="span12">
+			<div class="form-row">					
+				<div class="field-group">
+					<label>
+						Delete deployment with ID '{{ecdapp.deploymentId}}'?
+					</label>
+				</div>
+			</div>
+		</div>
+
+		<div class="span12">
+			<div class="form-row">
+				<label for="ignoreLiveNodesCheck">&nbsp;</label>
+				<div class="field-group">
+                	<label for="ignoreLiveNodes" class="checkbox">
+   	                	<input id="ignoreLiveNodes" type="checkbox" ng-model="ecdapp.ignoreLiveNodes" />
+						<i class="skin"></i><span>Ignore Live Nodes</span>
+           	    	</label>
+				</div>
+			</div>
+		</div> 
+
+	</div>
+
+	<div class="b2b-modal-footer ng-scope ng-isolate-scope">
+		<div class="cta-button-group in">
+			<button class="btn btn-alt btn-small" type="button"
+					ng-click="ecdapp.deleteDeploymentById(deployment);">
+				Delete
+			</button>
+			<button class="btn btn-small" type="button"
+				ng-click="$dismiss('cancel')">
+				Cancel
+			</button>
+		</div>
+	</div>
+
+</script>

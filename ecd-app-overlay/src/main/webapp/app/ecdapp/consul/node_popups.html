@@ -1,0 +1,67 @@
+<script type="text/ng-template" id="node_services_popup.html">
+
+	<div class="b2b-modal-header ng-scope">
+		<h2 id="myModalLabel" modal-title="">{{ecdapp.label}}</h2>
+		<div class="corner-button in">
+			<button type="button" class="close" aria-label="Close"
+				ng-click="$dismiss('cancel')"></button>
+		</div>
+	</div>
+
+	<!-- show progress indicator -->
+	<div ng-show="ecdapp.isDataLoading">
+		<div class="span" style="margin-bottom: 20px;">
+			<i class="icon-primary-spinner small" role="img"
+				aria-label="Please wait while the content loads"></i> Please wait
+			while the content loads.
+		</div>
+	</div>
+
+	<div ng-hide="ecdapp.isDataLoading">
+
+		<div ng-show="ecdapp.isRequestFailed">
+			<span class="ecd-error-message">{{ecdapp.errMsg}}</span>
+		</div>
+
+		<div ng-hide="ecdapp.isRequestFailed">
+
+			<div b2b-table id="consul-node-services-table" class="b2b-table-div"
+				table-data="ecdapp.tableData" search-string="ecdapp.searchStringIgnored"
+				current-page="ecdapp.currentPageIgnored" next-sort="ecdapp.nextSortIgnored">
+
+				<table>
+					<thead b2b-table-row type="header">
+						<tr id="th-header-row">
+							<th b2b-table-header key="serviceName">Service Name</th>
+							<th b2b-table-header key="serviceID">Service ID</th>
+							<th b2b-table-header key="status">Status</th>
+							<th b2b-table-header key="notes">Notes</th>
+							<th b2b-table-header key="output">Output</th>
+						</tr>
+					</thead>
+					<tbody b2b-table-row type="body"
+						row-repeat="rowData in ecdapp.tableData">
+						<tr id="tr-rowData">
+							<td b2b-table-body ng-bind="rowData.serviceName" />
+							<td b2b-table-body ng-bind="rowData.serviceID" />
+							<td b2b-table-body ng-bind="rowData.status" />
+							<td b2b-table-body ng-bind="rowData.notes" />
+							<td b2b-table-body ng-bind="rowData.output" />
+						</tr>
+					</tbody>
+				</table>
+
+			</div> <!--table-->
+		</div> <!--failed-->
+	</div> <!--hide-->
+
+	<div class="b2b-modal-footer ng-scope ng-isolate-scope">
+		<div class="cta-button-group in">
+			<button class="btn btn-alt btn-small" type="button"
+				ng-click="$dismiss('cancel')">
+				Close
+			</button>
+		</div>
+	</div>
+
+</script>
