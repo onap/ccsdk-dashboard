@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a437d4f_b12bd393",
+        "filename": "pom.xml",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 681
+      },
+      "writtenOn": "2017-08-18T13:34:49Z",
+      "side": 1,
+      "message": "Where is property onap.nexus.release-url defined?",
+      "revId": "64bd954b2ced5fc555f5af5bd16090a219dc4f52",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": false
+    }
+  ]
+}
