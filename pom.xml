@@ -30,7 +30,20 @@
         <version>0</version>
         <packaging>pom</packaging>
         <name>ONAP Operations Manager Dashboard project</name>
-        
+
+        <distributionManagement>
+                <repository>
+                        <id>onap-releases</id>
+                        <name>onap-repository-releases</name>
+                        <url>${onap.nexus.release-url}</url>
+                </repository>
+                <snapshotRepository>
+                        <id>onap-snapshots</id>
+                        <name>onap-repository-snapshots</name>
+                        <url>${onap.nexus.snapshot-url}</url>
+                </snapshotRepository>
+        </distributionManagement>
+
         <modules>
                 <module>ecd-app-common</module>
                 <module>ecd-app-overlay</module>
