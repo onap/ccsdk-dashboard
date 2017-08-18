@@ -4,16 +4,16 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<!-- Maven parent project for convenience of building and cleaning -->
-	<groupId>org.openecomp.controller.dashboard</groupId>
-	<artifactId>ecd-app-parent</artifactId>
+	<groupId>org.onap.oom.dashboard</groupId>
+	<artifactId>oom-app-parent</artifactId>
 	<version>0</version>
 	<packaging>pom</packaging>
 	<name>ONAP Operations Manager Dashboard project</name>
 
 	<modules>
-		<module>ecd-app-common</module>
-		<module>ecd-app-overlay</module>
-		<module>ecd-app-os</module>
+		<module>oom-app-common</module>
+		<module>oom-app-overlay</module>
+		<module>oom-app-os</module>
 	</modules>
 
 	<build>

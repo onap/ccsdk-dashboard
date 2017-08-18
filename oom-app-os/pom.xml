@@ -1,0 +1,167 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.onap.oom.dashboard</groupId>
+	<artifactId>oom-app-os</artifactId>
+	<version>1.1.0-SNAPSHOT</version>
+	<packaging>war</packaging>
+	<name>ONAP Operations Manager Dashboard app</name>
+	<description>OOM Dashboard Web Application for external release</description>
+
+	<properties>
+		<encoding>UTF-8</encoding>
+		<springframework.version>4.2.0.RELEASE</springframework.version>
+		<hibernate.version>4.3.11.Final</hibernate.version>
+		<epsdk.version>1.1.0</epsdk.version>
+		<oom.version>1.1.0-SNAPSHOT</oom.version>
+		<nexusproxy>https://nexus.onap.org</nexusproxy>
+		<snapshotNexusPath>/content/repositories/snapshots/</snapshotNexusPath>
+		<releaseNexusPath>/content/repositories/releases/</releaseNexusPath>
+		<!-- supplied by Jenkins server -->
+		<build.version>${project.version}</build.version>
+		<!-- Tests usually require some setup that maven cannot do, so skip. -->
+		<skiptests>true</skiptests>
+	</properties>
+
+	<repositories>
+		<repository>
+			<!-- Releases repository has ECOMP release artifacts -->
+			<id>ecomp-releases</id>
+			<name>OpenECOMP - Release Repository</name>
+			<url>${nexusproxy}/${releaseNexusPath}</url>
+		</repository>
+		<repository>
+			<!-- Snapshots repository has ECOMP snapshot artifacts -->
+			<id>ecomp-snapshots</id>
+			<name>OpenECOMP - Snapshot Repository</name>
+			<url>${nexusproxy}/${snapshotNexusPath}</url>
+		</repository>
+	</repositories>
+
+	<build>
+
+		<!-- War files are labeled with build information, not POM version -->
+		<finalName>${project.artifactId}-${build.version}</finalName>
+
+		<plugins>
+			<!-- Compile to Java 1.8 class output format -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>3.0.0</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+						</manifest>
+						<manifestEntries>
+							<Build-Number>${build.version}</Build-Number>
+							<Build-Time>${maven.build.timestamp}</Build-Time>
+						</manifestEntries>
+					</archive>
+					<overlays>
+						<overlay>
+							<groupId>org.onap.oom.dashboard</groupId>
+							<artifactId>oom-app-overlay</artifactId>
+						</overlay>
+						<overlay>
+							<groupId>org.openecomp.ecompsdkos</groupId>
+							<artifactId>epsdk-app-overlay</artifactId>
+							<excludes>
+								<exclude>app/fusionapp/**</exclude>
+								<exclude>app/fusion/ase/**</exclude>
+								<exclude>app/fusion/external/angular-1.5/**</exclude>
+								<exclude>app/fusion/external/gis/**</exclude>
+								<exclude>app/fusion/external/leaflet-0.7.3/**</exclude>
+								<exclude>app/fusion/external/lodash/**</exclude>
+								<exclude>app/fusion/external/samples/**</exclude>
+								<exclude>app/fusion/external/showdown/**</exclude>
+								<exclude>app/fusion/notebook-integration/**</exclude>
+							</excludes>
+						</overlay>
+					</overlays>
+				</configuration>
+			</plugin>
+			<!-- no deployment needed -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<version>2.8</version>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<!-- ECD webapp resources -->
+		<dependency>
+			<groupId>org.onap.oom.dashboard</groupId>
+			<artifactId>oom-app-overlay</artifactId>
+			<version>${oom.version}</version>
+			<type>war</type>
+		</dependency>
+		<!-- ECD webapp controllers -->
+		<dependency>
+			<groupId>org.onap.oom.dashboard</groupId>
+			<artifactId>oom-app-common</artifactId>
+			<version>${oom.version}</version>
+		</dependency>
+		<!-- SDK webapp resources -->
+		<dependency>
+			<groupId>org.openecomp.ecompsdkos</groupId>
+			<artifactId>epsdk-app-overlay</artifactId>
+			<version>${epsdk.version}</version>
+			<type>war</type>
+		</dependency>
+		<!-- SDK webapp controllers -->
+		<dependency>
+			<groupId>org.openecomp.ecompsdkos</groupId>
+			<artifactId>epsdk-app-common</artifactId>
+			<version>${epsdk.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.openecomp.ecompsdkos</groupId>
+					<artifactId>epsdk-analytics</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.openecomp.ecompsdkos</groupId>
+					<artifactId>epsdk-workflow</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>mysql</groupId>
+					<artifactId>mysql-connector-java</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.elasticsearch</groupId>
+					<artifactId>elasticsearch</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.quartz-scheduler</groupId>
+					<artifactId>quartz</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.drools</groupId>
+					<artifactId>drools-compiler</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>io.searchbox</groupId>
+					<artifactId>jest</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+	</dependencies>
+</project>

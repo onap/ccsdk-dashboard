@@ -1,0 +1,24 @@
+<!-- Included bootstrap files at a page level to avoid issues with DS2 library -->
+<script src="app/oom/external/bootstrap.min.js"></script>	
+<link rel="stylesheet" href="app/oom/external/bootstrap.min.css"/>
+
+<div id="page-content">
+	
+	<org-chart data=orgChartData status="status" showOrgTable="showOrgTable" get-call="ecdapp.loadTable" modal-call="ecdapp.showEcompCInstancesModalPopup">
+	</org-chart>			
+	<div ng-show="ecdapp.isDataLoading">
+		<div class="text-center" style="margin-bottom:20px;">
+    		<i class="icon-primary-spinner small" role="img" aria-label="Please wait while the content loads"></i>
+    		Please wait while the content loads.
+	    </div>
+	</div>
+	<div ng-hide="ecdapp.isDataLoading">
+		<div ng-if="orgChartData.length == 1" class="col-xs-12 text-center" style="position:relative;">
+			<b>No components found</b>
+		</div>
+	</div>
+	<div ng-show="ecdapp.isRequestFailed">
+		<span class="ecd-error-message">{{ecdapp.errMsg}}</span>
+	</div>	
+
+</div>
