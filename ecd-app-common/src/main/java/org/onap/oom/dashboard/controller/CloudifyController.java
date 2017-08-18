@@ -31,6 +31,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.onap.oom.dashboard.exception.OOMDashboardException;
 import org.onap.oom.dashboard.model.CloudifyBlueprint;
 import org.onap.oom.dashboard.model.CloudifyBlueprintUpload;
 import org.onap.oom.dashboard.model.CloudifyDeployment;
@@ -123,7 +124,7 @@ public class CloudifyController extends DashboardRestrictedBaseController {
 	 * @param pageSize
 	 *            Number of items per browser page
 	 * @return JSON block as String, see above.
-	 * @throws Exception
+	 * @throws OOMDashboardException
 	 *             On any error; e.g., Network failure.
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -141,7 +142,7 @@ public class CloudifyController extends DashboardRestrictedBaseController {
 			Collections.sort(itemList, deploymentComparator);
 			break;
 		default:
-			throw new Exception("getItemListForPage failed: unimplemented case: " + option.name());
+			throw new OOMDashboardException("getItemListForPage failed: unimplemented case: " + option.name());
 		}
 
 		// Shrink if needed
@@ -169,7 +170,7 @@ public class CloudifyController extends DashboardRestrictedBaseController {
 		try {
 			User appUser = UserUtils.getUserSession(request);
 			if (appUser == null || appUser.getLoginId() == null || appUser.getLoginId().length() == 0)
-				throw new Exception("getItemListForPageWrapper: Failed to get application user");
+				throw new OOMDashboardException("getItemListForPageWrapper: Failed to get application user");
 			int pageNum = getRequestPageNumber(request);
 			int pageSize = getRequestPageSize(request);
 			outboundJson = getItemListForPage(appUser.getId(), option, pageNum, pageSize);

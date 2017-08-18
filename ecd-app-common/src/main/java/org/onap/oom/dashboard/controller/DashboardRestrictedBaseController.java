@@ -28,6 +28,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import org.onap.oom.dashboard.domain.ControllerEndpoint;
+import org.onap.oom.dashboard.exception.OOMDashboardException;
 import org.onap.oom.dashboard.model.ControllerEndpointCredentials;
 import org.onap.oom.dashboard.rest.ControllerRestClientImpl;
 import org.onap.oom.dashboard.rest.ControllerRestClientMockImpl;
@@ -237,7 +238,7 @@ public class DashboardRestrictedBaseController extends RestrictedBaseController 
 	protected IControllerRestClient getControllerRestClient(HttpServletRequest request) throws Exception {
 		User appUser = UserUtils.getUserSession(request);
 		if (appUser == null || appUser.getLoginId() == null || appUser.getLoginId().length() == 0)
-			throw new Exception("getControllerRestClient: Failed to get application user");
+			throw new OOMDashboardException("getControllerRestClient: Failed to get application user");
 		return getControllerRestClient(appUser.getId());
 	}
 

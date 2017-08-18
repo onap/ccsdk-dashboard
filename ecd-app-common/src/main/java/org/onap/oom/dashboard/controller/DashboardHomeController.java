@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import javax.servlet.http.HttpServletRequest;
 
 import org.onap.oom.dashboard.domain.ControllerEndpoint;
+import org.onap.oom.dashboard.exception.OOMDashboardException;
 import org.onap.oom.dashboard.model.ControllerEndpointCredentials;
 import org.onap.oom.dashboard.model.ControllerEndpointTransport;
 import org.onap.oom.dashboard.model.RestResponseError;
@@ -106,7 +107,7 @@ public class DashboardHomeController extends DashboardRestrictedBaseController {
 		try {
 			User appUser = UserUtils.getUserSession(request);
 			if (appUser == null || appUser.getLoginId() == null || appUser.getLoginId().length() == 0)
-				throw new Exception("getControllers: Failed to get application user");
+				throw new OOMDashboardException("getControllers: Failed to get application user");
 			ControllerEndpointCredentials selectedInDb = getOrSetControllerEndpointSelection(appUser.getId());
 			// Built result from properties
 			ArrayList<ControllerEndpointTransport> list = new ArrayList<>();
@@ -147,7 +148,7 @@ public class DashboardHomeController extends DashboardRestrictedBaseController {
 		String outboundJson = null;
 		User appUser = UserUtils.getUserSession(request);
 		if (appUser == null || appUser.getLoginId() == null || appUser.getLoginId().length() == 0)
-			throw new Exception("setControllerSelection: Failed to get application user");
+			throw new OOMDashboardException("setControllerSelection: Failed to get application user");
 		ControllerEndpoint dbEntry = new ControllerEndpoint(appUser.getId(), endpoint.getName(), endpoint.getUrl());
 		controllerEndpointService.updateControllerEndpointSelection(dbEntry);
 		RestResponseSuccess success = new RestResponseSuccess("Updated selection to " + endpoint.getName());

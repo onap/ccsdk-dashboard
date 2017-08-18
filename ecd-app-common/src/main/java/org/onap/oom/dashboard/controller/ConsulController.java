@@ -31,6 +31,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.onap.oom.dashboard.exception.OOMDashboardException;
 import org.onap.oom.dashboard.model.ConsulHealthServiceRegistration;
 import org.onap.oom.dashboard.model.ConsulNodeInfo;
 import org.onap.oom.dashboard.model.ConsulServiceHealth;
@@ -134,7 +135,7 @@ public class ConsulController extends DashboardRestrictedBaseController {
 			itemList = restClient.getDatacenters();
 			break;
 		default:
-			throw new Exception("getItemListForPage failed: unimplemented case: " + option.name());
+			throw new OOMDashboardException("getItemListForPage failed: unimplemented case: " + option.name());
 		}
 
 		// Shrink if needed
@@ -161,7 +162,7 @@ public class ConsulController extends DashboardRestrictedBaseController {
 		try {
 			User appUser = UserUtils.getUserSession(request);
 			if (appUser == null || appUser.getLoginId() == null || appUser.getLoginId().length() == 0)
-				throw new Exception("getItemListForPageWrapper: Failed to get application user");
+				throw new OOMDashboardException("getItemListForPageWrapper: Failed to get application user");
 			int pageNum = getRequestPageNumber(request);
 			int pageSize = getRequestPageSize(request);
 			outboundJson = getItemListForPage(appUser.getId(), option, pageNum, pageSize);

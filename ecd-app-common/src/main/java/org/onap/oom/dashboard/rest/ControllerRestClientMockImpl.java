@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import org.onap.oom.dashboard.exception.OOMDashboardException;
 import org.onap.oom.dashboard.model.CloudifyBlueprintContent;
 import org.onap.oom.dashboard.model.CloudifyBlueprintList;
 import org.onap.oom.dashboard.model.CloudifyBlueprintUpload;
@@ -73,7 +74,7 @@ public class ControllerRestClientMockImpl implements IControllerRestClient {
 		try {
 			InputStream is = getClass().getResourceAsStream(path);
 			if (is == null)
-				throw new Exception("Failed to find resource at path " + path);
+				throw new OOMDashboardException("Failed to find resource at path " + path);
 			Scanner scanner = new Scanner(is, "UTF-8");
 			result = scanner.useDelimiter("\\A").next();
 			scanner.close();
@@ -303,7 +304,7 @@ public class ControllerRestClientMockImpl implements IControllerRestClient {
 		List<ConsulServiceHealthHistory> list9 = client.getServiceHealthHistory("mock", Instant.now(), Instant.now());
 		if (list1 == null || list2 == null || list3 == null || list4 == null || list5 == null || list6 == null
 				|| list7 == null || list8 == null || list9 == null)
-			throw new Exception("Failed");
+			throw new OOMDashboardException("Failed");
 		System.out.println("Pass.");
 	}
 
