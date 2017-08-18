@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a437d4f_8ec78e12",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2017-08-18T00:40:38Z",
+      "side": 1,
+      "message": "Should not exceed 120 characters. Not blocking this time.",
+      "range": {
+        "startLine": 9,
+        "startChar": 71,
+        "endLine": 9,
+        "endChar": 83
+      },
+      "revId": "9015d0d86d23a83e578ded1bd95485d467515208",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a437d4f_6ecc6a36",
+        "filename": "README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2017-08-18T00:40:38Z",
+      "side": 1,
+      "message": "Extraneous spaces should be eliminated. Not blocking this time.",
+      "range": {
+        "startLine": 3,
+        "startChar": 11,
+        "endLine": 3,
+        "endChar": 12
+      },
+      "revId": "9015d0d86d23a83e578ded1bd95485d467515208",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a437d4f_4ed1a6cc",
+        "filename": "README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2017-08-18T00:40:38Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 5,
+        "startChar": 84,
+        "endLine": 5,
+        "endChar": 85
+      },
+      "revId": "9015d0d86d23a83e578ded1bd95485d467515208",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a437d4f_2ed662c6",
+        "filename": "README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2017-08-18T00:40:38Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 2
+      },
+      "revId": "9015d0d86d23a83e578ded1bd95485d467515208",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a437d4f_0edb9eee",
+        "filename": "ecd-app-common/src/main/java/org/onap/fusionapp/model/Result.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2017-08-18T00:40:38Z",
+      "side": 1,
+      "message": "Tabs should be spaces according to ONAP Style guide. Not blocking this time.",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 1
+      },
+      "revId": "9015d0d86d23a83e578ded1bd95485d467515208",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a437d4f_eed73abe",
+        "filename": "ecd-app-common/src/main/java/org/onap/oom/dashboard/controller/CloudifyController.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2017-08-18T00:40:38Z",
+      "side": 1,
+      "message": "Should probably create a specific child class exception for these exceptions and then catch that.",
+      "range": {
+        "startLine": 172,
+        "startChar": 14,
+        "endLine": 172,
+        "endChar": 23
+      },
+      "revId": "9015d0d86d23a83e578ded1bd95485d467515208",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a437d4f_cee476ae",
+        "filename": "ecd-app-common/src/main/java/org/onap/oom/dashboard/controller/CloudifyController.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2017-08-18T00:40:38Z",
+      "side": 1,
+      "message": "Overly broad exception. Bad practice and will create critical sonar issues.",
+      "range": {
+        "startLine": 176,
+        "startChar": 11,
+        "endLine": 176,
+        "endChar": 23
+      },
+      "revId": "9015d0d86d23a83e578ded1bd95485d467515208",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a437d4f_aee1329c",
+        "filename": "ecd-app-common/src/main/java/org/onap/oom/dashboard/controller/DashboardRestrictedBaseController.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 667
+      },
+      "writtenOn": "2017-08-18T00:40:38Z",
+      "side": 1,
+      "message": "Tabs should be four space per ONAP style guide",
+      "range": {
+        "startLine": 177,
+        "startChar": 0,
+        "endLine": 177,
+        "endChar": 3
+      },
+      "revId": "9015d0d86d23a83e578ded1bd95485d467515208",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": false
+    }
+  ]
+}
