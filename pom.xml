@@ -8,7 +8,7 @@
 	<artifactId>oom-app-parent</artifactId>
 	<version>0</version>
 	<packaging>pom</packaging>
-	<name>ONAP Operations Manager Dashboard project</name>
+	<name>ccsdk-dashboard</name>
 
 	<modules>
 		<module>oom-app-common</module>
