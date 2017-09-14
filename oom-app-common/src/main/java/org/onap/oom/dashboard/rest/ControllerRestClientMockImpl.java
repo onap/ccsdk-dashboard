@@ -21,15 +21,8 @@
  *******************************************************************************/
 package org.onap.oom.dashboard.rest;
 
-import java.io.InputStream;
-import java.net.URI;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
-
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.onap.oom.dashboard.exception.DashboardControllerException;
 import org.onap.oom.dashboard.model.CloudifyBlueprintContent;
 import org.onap.oom.dashboard.model.CloudifyBlueprintList;
@@ -48,8 +41,14 @@ import org.onap.oom.dashboard.model.ConsulServiceInfo;
 import org.onap.oom.dashboard.model.ECTransportModel;
 import org.openecomp.portalsdk.core.logging.logic.EELFLoggerDelegate;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.InputStream;
+import java.net.URI;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
 
 /**
  * Provides mock implementations that return contents of files on the classpath.
@@ -245,12 +244,14 @@ public class ControllerRestClientMockImpl implements IControllerRestClient {
 		TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
 		};
 		HashMap<String, Object> map = null;
+		ArrayList<ConsulServiceInfo> result = new ArrayList<>();
 		try {
 			map = objectMapper.readValue(json, typeRef);
 		} catch (Exception ex) {
 			logger.error(EELFLoggerDelegate.errorLogger, "getNode failed", ex);
+			return result;
 		}
-		ArrayList<ConsulServiceInfo> result = new ArrayList<>();
+
 		for (Map.Entry<String, Object> entry : map.entrySet()) {
 			final String service = entry.getKey();
 			@SuppressWarnings("unchecked")
