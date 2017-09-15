@@ -1743,7 +1743,7 @@ Utils = (function() {
   };
 
   Utils.getStringFromFile = function(path, callback) {
-    var data, fs, j, len1, name, ref, req, xhr;
+    var data, fs, j, len1, name, ref, req, xhr, undefined;
     if (callback == null) {
       callback = null;
     }
