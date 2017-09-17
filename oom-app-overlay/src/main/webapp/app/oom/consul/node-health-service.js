@@ -72,7 +72,7 @@ appDS2.factory('NodeHealthService', function ($http, $q, $log) {
 				$log.error('serviceHealthService.getNodeServicesHealth failed: ' + JSON.stringify(error));
 				return $q.reject(error.statusText);
 			});
-		},
+		}
 		
 	};
 });

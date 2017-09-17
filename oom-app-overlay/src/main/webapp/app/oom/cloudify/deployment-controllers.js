@@ -96,7 +96,7 @@ appDS2.controller('deploymentTableController', function(
 			resolve : {
 				message : function() {
 					var dataForPopup = {
-						deployment : deployment,
+						deployment : deployment
 					};
 					return dataForPopup;
 				}
@@ -131,7 +131,7 @@ appDS2.controller('deploymentTableController', function(
 			resolve : {
 				message : function() {
 					var dataForPopup = {
-						deployment : deployment,
+						deployment : deployment
 					};
 					return dataForPopup;
 				}

@@ -105,6 +105,6 @@ appDS2.factory('ExecutionService', function ($http, $q, $log) {
 				$log.error('ExecutionService.cancelExecution failed: ' + JSON.stringify(error));
 				return $q.reject(error.statusText);
 			});
-		},
+		}
 	};
 });

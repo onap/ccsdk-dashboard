@@ -180,7 +180,7 @@
                                 	
                drawOrgChart(data);
 
-            },
+            }
         };
     };
 })();

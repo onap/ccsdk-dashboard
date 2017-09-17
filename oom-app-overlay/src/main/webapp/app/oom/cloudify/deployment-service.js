@@ -84,6 +84,6 @@ appDS2.factory('DeploymentService', function ($http, $q, $log) {
 				$log.error('DeploymentService.deleteDeployment failed: ' + JSON.stringify(error));
 				return $q.reject(error.statusText);
 			});
-		},
+		}
 	};
 });

@@ -45,7 +45,7 @@ appDS2.factory('DatacenterHealthService', function ($http, $q, $log) {
 				$log.error('DatacenterService.getDatacentersHealth failed: ' + JSON.stringify(error));
 				return $q.reject(error.statusText);
 			});
-		},
+		}
 		
 	};
 });

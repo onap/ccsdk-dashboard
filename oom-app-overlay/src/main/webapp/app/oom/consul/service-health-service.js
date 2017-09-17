@@ -139,7 +139,7 @@ appDS2.factory('ServiceHealthService', function ($http, $q, $log) {
 				$log.error('ServiceHealthService.deregisterService failed: ' + JSON.stringify(error));
 				return $q.reject(error.statusText);
 			});
-		},		
+		}
 
 	};
 });

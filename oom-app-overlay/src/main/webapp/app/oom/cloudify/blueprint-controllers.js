@@ -121,7 +121,7 @@ appDS2.controller('blueprintTableController', function(
 				message : function() {
 					var dataForPopup = {
 						blueprint : $scope.ecdapp.editBlueprint,
-						blueprintList : $scope.ecdapp.tableData,
+						blueprintList : $scope.ecdapp.tableData
 					};
 					return dataForPopup;
 				}
@@ -159,7 +159,7 @@ appDS2.controller('blueprintTableController', function(
 			resolve : {
 				message : function() {
 					var dataForPopup = {
-						blueprint : blueprint,
+						blueprint : blueprint
 					};
 					return dataForPopup;
 				}

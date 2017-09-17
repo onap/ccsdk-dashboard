@@ -108,7 +108,7 @@ appDS2.factory('BlueprintService', function ($http, $q, $log) {
 				$log.error('BlueprintService.deleteBlueprint failed: ' + JSON.stringify(error));
 				return $q.reject(error.statusText);
 			});
-		},		
+		}
 		
 	};
 });
