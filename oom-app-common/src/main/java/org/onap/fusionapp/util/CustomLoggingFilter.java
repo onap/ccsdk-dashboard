@@ -44,7 +44,7 @@ public class CustomLoggingFilter extends Filter<ILoggingEvent> {
 	public FilterReply decide(ILoggingEvent event) {
 		try {
 			if ((event.getLevel() != Level.ERROR || event.getLevel() != Level.WARN)
-					&& (event.getThreadName().equalsIgnoreCase("UEBConsumerThread"))
+					&& ("UEBConsumerThread".equalsIgnoreCase(event.getThreadName()))
 					&& (event.getLoggerName().contains("com.att.nsa")
 							|| event.getLoggerName().contains("org.apache.http"))) {
 				return FilterReply.DENY;

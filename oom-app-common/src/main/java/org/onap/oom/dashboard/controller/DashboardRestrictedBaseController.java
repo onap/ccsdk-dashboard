@@ -182,7 +182,7 @@ public class DashboardRestrictedBaseController extends RestrictedBaseController 
 					DashboardProperties.CONTROLLER_SUBKEY_USERNAME);
 			final String pass = appProperties.getControllerProperty(key,
 					DashboardProperties.CONTROLLER_SUBKEY_PASSWORD);
-			final boolean encr = new Boolean(
+			final boolean encr = Boolean.parseBoolean (
 					appProperties.getControllerProperty(key, DashboardProperties.CONTROLLER_SUBKEY_ENCRYPTED));
 			logger.debug(EELFLoggerDelegate.debugLogger, "getConfiguredControllers: key {} yields url {}", key, url);
 			controllers[i] = new ControllerEndpointCredentials(false, name, url, user, pass, encr);

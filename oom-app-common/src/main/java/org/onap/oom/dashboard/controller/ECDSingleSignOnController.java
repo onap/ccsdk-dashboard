@@ -98,8 +98,8 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
 	public ModelAndView singleSignOnLogin(HttpServletRequest request, HttpServletResponse response)
 			throws DashboardControllerException, PortalAPIException, UnsupportedEncodingException {
 
-		Map<String, String> model = new HashMap<String, String>();
-		HashMap<String, String> additionalParamsMap = new HashMap<String, String>();
+		Map<String, String> model = new HashMap<>();
+		HashMap<String, String> additionalParamsMap = new HashMap<>();
 		LoginBean commandBean = new LoginBean();
 
 		// SessionTimeoutInterceptor sets these parameters
@@ -186,7 +186,7 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
 					 * is the controller for the single_signon.htm page, so the replace should
 					 * always find the specified token.
 					 */
-					returnToAppUrl = ((HttpServletRequest) request).getRequestURL().toString()
+					returnToAppUrl = request.getRequestURL().toString()
 							.replace("single_signon.htm", forwardURL);
 					logger.debug(EELFLoggerDelegate.debugLogger, "singleSignOnLogin: computed redirectURL {}",
 							returnToAppUrl);
@@ -260,10 +260,12 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
 		return request.getSession().getId();
 	}
 
+	@Override
 	public String getViewName() {
 		return viewName;
 	}
 
+	@Override
 	public void setViewName(String viewName) {
 		this.viewName = viewName;
 	}
