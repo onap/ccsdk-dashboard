@@ -86,32 +86,17 @@ public class CloudifyController extends DashboardRestrictedBaseController {
 	/**
 	 * Supports sorting blueprints by ID
 	 */
-	private static Comparator<CloudifyBlueprint> blueprintComparator = new Comparator<CloudifyBlueprint>() {
-		@Override
-		public int compare(CloudifyBlueprint o1, CloudifyBlueprint o2) {
-			return o1.id.compareTo(o2.id);
-		}
-	};
+	private static Comparator<CloudifyBlueprint> blueprintComparator = (o1, o2) -> o1.id.compareTo(o2.id);
 
 	/**
 	 * Supports sorting deployments by ID
 	 */
-	private static Comparator<CloudifyDeployment> deploymentComparator = new Comparator<CloudifyDeployment>() {
-		@Override
-		public int compare(CloudifyDeployment o1, CloudifyDeployment o2) {
-			return o1.id.compareTo(o2.id);
-		}
-	};
+	private static Comparator<CloudifyDeployment> deploymentComparator = (o1, o2) -> o1.id.compareTo(o2.id);
 
 	/**
 	 * Supports sorting executions by ID
 	 */
-	private static Comparator<CloudifyExecution> executionComparator = new Comparator<CloudifyExecution>() {
-		@Override
-		public int compare(CloudifyExecution o1, CloudifyExecution o2) {
-			return o1.id.compareTo(o2.id);
-		}
-	};
+	private static Comparator<CloudifyExecution> executionComparator = (o1, o2) -> o1.id.compareTo(o2.id);
 
 	/**
 	 * Gets one page of objects and supporting information via the REST client.
@@ -497,7 +482,7 @@ public class CloudifyController extends DashboardRestrictedBaseController {
 		logger.setRequestBasedDefaultsIntoGlobalLoggingContext(request, APP_NAME);
 		ECTransportModel result = null;
 		try {
-			List<CloudifyExecution> itemList = new ArrayList<CloudifyExecution>();
+			List<CloudifyExecution> itemList = new ArrayList<>();
 			IControllerRestClient restClient = getControllerRestClient(request);
 			List<String> depIds = new ArrayList<>();
 			if (deployment_id == null) {
