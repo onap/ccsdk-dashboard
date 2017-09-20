@@ -6,7 +6,7 @@ This is the web UI for the ONAP Operations Manager, also known as the OOM Dashbo
 It consists of the following Maven projects:
 - oom-app-common:  Java classes that run in a web container like Tomcat
 - oom-app-overlay: CSS, HTML and Javascript resources for the web application
-- oom-app-os:      Web application project with featurers for ONAP use
+- oom-app-os:      Web application project with features for ONAP use
 
 ### Prerequites
 
