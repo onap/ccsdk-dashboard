@@ -97,10 +97,10 @@ public class ControllerRestClientMockImpl implements IControllerRestClient {
 	 * @return Instance of modelClass
 	 */
 	private ECTransportModel getMockData(final Class<? extends ECTransportModel> modelClass, final String path) {
-		ECTransportModel result = null;
+        ECTransportModel result;
 		String json = getMockDataContent(path);
 		try {
-			result = (ECTransportModel) objectMapper.readValue(json, modelClass);
+            result = objectMapper.readValue(json, modelClass);
 		} catch (Exception ex) {
 			logger.error("getMockData failed", ex);
 			throw new RuntimeException(ex);
@@ -121,8 +121,7 @@ public class ControllerRestClientMockImpl implements IControllerRestClient {
 	@Override
 	public CloudifyBlueprintContent viewBlueprint(final String id) {
 		String yaml = getMockDataContent("/blueprintContent.yaml");
-		CloudifyBlueprintContent cbc = new CloudifyBlueprintContent(id, yaml);
-		return cbc;
+        return new CloudifyBlueprintContent(id, yaml);
 	}
 
 	@Override
@@ -251,12 +250,13 @@ public class ControllerRestClientMockImpl implements IControllerRestClient {
 			logger.error(EELFLoggerDelegate.errorLogger, "getNode failed", ex);
 		}
 		ArrayList<ConsulServiceInfo> result = new ArrayList<>();
-		for (Map.Entry<String, Object> entry : map.entrySet()) {
-			final String service = entry.getKey();
-			@SuppressWarnings("unchecked")
-			final List<String> addrs = (List<String>) entry.getValue();
-			result.add(new ConsulServiceInfo(service, addrs));
-		}
+        if (map != null) {
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                final String service = entry.getKey();
+                @SuppressWarnings("unchecked") final List<String> addrs = (List<String>) entry.getValue();
+                result.add(new ConsulServiceInfo(service, addrs));
+            }
+        }
 		return result;
 	}
 
@@ -291,7 +291,7 @@ public class ControllerRestClientMockImpl implements IControllerRestClient {
 	 *             On any failure
 	 */
 	public static void main(String[] args) throws DashboardControllerException {
-		System.out.println("Testing paths and parsing mock data");
+        logger.info("Testing paths and parsing mock data");
 		ControllerRestClientMockImpl client = new ControllerRestClientMockImpl();
 		CloudifyBlueprintList list1 = client.getBlueprints();
 		CloudifyBlueprintList list2 = client.getBlueprint("mock");
@@ -305,7 +305,7 @@ public class ControllerRestClientMockImpl implements IControllerRestClient {
 		if (list1 == null || list2 == null || list3 == null || list4 == null || list5 == null || list6 == null
 				|| list7 == null || list8 == null || list9 == null)
 			throw new DashboardControllerException("Failed");
-		System.out.println("Pass.");
+        logger.info("Pass.");
 	}
 
 }

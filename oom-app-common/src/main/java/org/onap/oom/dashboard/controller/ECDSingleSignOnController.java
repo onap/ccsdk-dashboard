@@ -1,7 +1,3 @@
-package org.onap.oom.dashboard.controller;
-
-import java.io.UnsupportedEncodingException;
-
 /*-
  * ================================================================================
  * ECOMP Portal SDK
@@ -21,6 +17,10 @@ import java.io.UnsupportedEncodingException;
  * limitations under the License.
  * ================================================================================
  */
+
+package org.onap.oom.dashboard.controller;
+
+import java.io.UnsupportedEncodingException;
 
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -68,6 +68,7 @@ import org.springframework.web.util.WebUtils;
 public class ECDSingleSignOnController extends UnRestrictedBaseController {
 
 	private EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(ECDSingleSignOnController.class);
+    private static final String REDIRECT = "redirect:";
 
 	@Autowired
 	private LoginService loginService;
@@ -132,7 +133,7 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
 							+ "?noUserError=Yes";
 					logger.debug(EELFLoggerDelegate.debugLogger, "singleSignOnLogin: user is null, redirect URL is {}",
 							redirectUrl);
-					return new ModelAndView("redirect:" + redirectUrl);
+                    return new ModelAndView(REDIRECT + redirectUrl);
 				} else {
 					// store the user's information in the session
 					String loginMethod;
@@ -149,14 +150,14 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
 					logger.debug(EELFLoggerDelegate.debugLogger,
 							"singleSignOnLogin: create new user session for expired user {}; user {} exists in the system",
 							userId, commandBean.getUser().getOrgUserId());
-					return new ModelAndView("redirect:" + forwardURL);
+                    return new ModelAndView(REDIRECT + forwardURL);
 				}
 			} // user is null or session is null
 			else {
 				// both user and session are non-null.
 				logger.info(EELFLoggerDelegate.debugLogger, "singleSignOnLogin: redirecting to the forwardURL {}",
 						forwardURL);
-				return new ModelAndView("redirect:" + forwardURL);
+                return new ModelAndView(REDIRECT + forwardURL);
 			}
 		} else {
 			/*
@@ -201,7 +202,7 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
 						+ encodedReturnToAppUrl;
 				logger.debug(EELFLoggerDelegate.debugLogger, "singleSignOnLogin: portal-bound redirect URL is {}",
 						redirectUrl);
-				return new ModelAndView("redirect:" + redirectUrl);
+                return new ModelAndView(REDIRECT + redirectUrl);
 			} // portal is available
 
 			else {

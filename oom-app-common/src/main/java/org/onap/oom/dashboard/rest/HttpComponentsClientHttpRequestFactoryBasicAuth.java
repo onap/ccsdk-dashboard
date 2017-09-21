@@ -52,9 +52,10 @@ public class HttpComponentsClientHttpRequestFactoryBasicAuth extends HttpCompone
 		this.host = host;
 	}
 
-	protected HttpContext createHttpContext(HttpMethod httpMethod, URI uri) {
-		return createHttpContext();
-	}
+    @Override
+    protected HttpContext createHttpContext(HttpMethod httpMethod, URI uri) {
+        return createHttpContext();
+    }
 
 	private HttpContext createHttpContext() {
 		// Create AuthCache instance

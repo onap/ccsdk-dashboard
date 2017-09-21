@@ -70,6 +70,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class ControllerRestClientImpl implements IControllerRestClient {
 
 	private static EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(ControllerRestClientImpl.class);
+    private static final String DEPLOYMENT_ID = "deployment_id";
 
 	private final String baseUrl;
 	private final RestTemplate restTemplate;
@@ -158,9 +159,8 @@ public class ControllerRestClientImpl implements IControllerRestClient {
 		ResponseEntity<CloudifyBlueprintList> response = restTemplate.exchange(url, HttpMethod.GET, null,
 				new ParameterizedTypeReference<CloudifyBlueprintList>() {
 				});
-		CloudifyBlueprintList result = response.getBody();
-		return result;
-	}
+        return response.getBody();
+    }
 
 	@Override
 	public CloudifyBlueprintList getBlueprint(final String id) {
@@ -169,8 +169,7 @@ public class ControllerRestClientImpl implements IControllerRestClient {
 		ResponseEntity<CloudifyBlueprintList> response = restTemplate.exchange(url, HttpMethod.GET, null,
 				new ParameterizedTypeReference<CloudifyBlueprintList>() {
 				});
-		CloudifyBlueprintList result = response.getBody();
-		return result;
+        return response.getBody();
 	}
 
 	@Override
@@ -179,16 +178,14 @@ public class ControllerRestClientImpl implements IControllerRestClient {
 		logger.debug(EELFLoggerDelegate.debugLogger, "viewBlueprint: url {}", url);
 		ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, null, String.class);
 		String yaml = response.getBody();
-		CloudifyBlueprintContent result = new CloudifyBlueprintContent(id, yaml);
-		return result;
+        return new CloudifyBlueprintContent(id, yaml);
 	}
 
 	@Override
 	public CloudifyBlueprintList uploadBlueprint(CloudifyBlueprintUpload blueprint) {
 		String url = buildUrl(new String[] { baseUrl, blueprintsPath }, null);
 		logger.debug(EELFLoggerDelegate.debugLogger, "uploadBlueprint: url {}", url);
-		CloudifyBlueprintList result = restTemplate.postForObject(url, blueprint, CloudifyBlueprintList.class);
-		return result;
+        return restTemplate.postForObject(url, blueprint, CloudifyBlueprintList.class);
 	}
 
 	@Override
@@ -208,8 +205,7 @@ public class ControllerRestClientImpl implements IControllerRestClient {
 		ResponseEntity<CloudifyDeploymentList> response = restTemplate.exchange(url, HttpMethod.GET, null,
 				new ParameterizedTypeReference<CloudifyDeploymentList>() {
 				});
-		CloudifyDeploymentList list = response.getBody();
-		return list;
+        return response.getBody();
 	}
 
 	@Override
@@ -218,17 +214,15 @@ public class ControllerRestClientImpl implements IControllerRestClient {
 		logger.debug(EELFLoggerDelegate.debugLogger, "getDeployment: url {}", url);
 		ResponseEntity<CloudifyDeploymentList> response = restTemplate.exchange(url, HttpMethod.GET, null,
 				new ParameterizedTypeReference<CloudifyDeploymentList>() {
-				});
-		CloudifyDeploymentList list = response.getBody();
-		return list;
+            });
+        return response.getBody();
 	}
 
 	@Override
 	public CloudifyDeploymentList createDeployment(CloudifyDeploymentRequest deployment) {
 		String url = buildUrl(new String[] { baseUrl, deploymentsPath }, null);
 		logger.debug(EELFLoggerDelegate.debugLogger, "createDeployment: url {}", url);
-		CloudifyDeploymentList result = restTemplate.postForObject(url, deployment, CloudifyDeploymentList.class);
-		return result;
+        return restTemplate.postForObject(url, deployment, CloudifyDeploymentList.class);
 	}
 
 	@Override
@@ -244,39 +238,36 @@ public class ControllerRestClientImpl implements IControllerRestClient {
 
 	@Override
 	public CloudifyExecutionList getExecutions(final String deploymentId) {
-		String url = buildUrl(new String[] { baseUrl, executionsPath }, new String[] { "deployment_id", deploymentId });
+        String url = buildUrl(new String[]{baseUrl, executionsPath}, new String[]{DEPLOYMENT_ID, deploymentId});
 		logger.debug(EELFLoggerDelegate.debugLogger, "getExecutions: url {}", url);
 		ResponseEntity<CloudifyExecutionList> response = restTemplate.exchange(url, HttpMethod.GET, null,
 				new ParameterizedTypeReference<CloudifyExecutionList>() {
 				});
-		CloudifyExecutionList list = response.getBody();
-		return list;
+        return response.getBody();
 	}
 
 	@Override
 	public CloudifyExecutionList getExecution(String executionId, String deploymentId) {
 		String url = buildUrl(new String[] { baseUrl, executionsPath, executionId },
-				new String[] { "deployment_id", deploymentId });
+            new String[]{DEPLOYMENT_ID, deploymentId});
 		logger.debug(EELFLoggerDelegate.debugLogger, "getExecution: url {}", url);
 		ResponseEntity<CloudifyExecutionList> response = restTemplate.exchange(url, HttpMethod.GET, null,
 				new ParameterizedTypeReference<CloudifyExecutionList>() {
 				});
-		CloudifyExecutionList list = response.getBody();
-		return list;
+        return response.getBody();
 	}
 
 	@Override
 	public CloudifyExecution startExecution(CloudifyExecutionRequest execution) {
 		String url = buildUrl(new String[] { baseUrl, executionsPath }, null);
 		logger.debug(EELFLoggerDelegate.debugLogger, "startExecution: url {}", url);
-		CloudifyExecution result = restTemplate.postForObject(url, execution, CloudifyExecution.class);
-		return result;
+        return restTemplate.postForObject(url, execution, CloudifyExecution.class);
 	}
 
 	@Override
 	public int cancelExecution(final String executionId, final String deploymentId, final String action) {
 		String url = buildUrl(new String[] { baseUrl, executionsPath, executionId },
-				new String[] { "deployment_id", deploymentId, "action", action });
+            new String[]{DEPLOYMENT_ID, deploymentId, "action", action});
 		logger.debug(EELFLoggerDelegate.debugLogger, "deleteExecution: url {}", url);
 		ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, null,
 				new ParameterizedTypeReference<String>() {
@@ -288,8 +279,7 @@ public class ControllerRestClientImpl implements IControllerRestClient {
 	public URI registerService(ConsulHealthServiceRegistration registration) {
 		String url = buildUrl(new String[] { baseUrl, healthServicesPath, "register" }, null);
 		logger.debug(EELFLoggerDelegate.debugLogger, "registerService: url {}", url);
-		URI uri = restTemplate.postForLocation(url, registration);
-		return uri;
+        return restTemplate.postForLocation(url, registration);
 	}
 
 	@Override
@@ -318,7 +308,7 @@ public class ControllerRestClientImpl implements IControllerRestClient {
 		List<ConsulServiceInfo> list = new ArrayList<>();
 		for (Map.Entry<String, Object> entry : serviceInfo.entrySet()) {
 			// Be defensive
-			List<String> addrs = null;
+            List<String> addrs;
 			if (entry.getValue() instanceof List<?>)
 				addrs = (List<String>) entry.getValue();
 			else
@@ -335,8 +325,7 @@ public class ControllerRestClientImpl implements IControllerRestClient {
 		ResponseEntity<List<ConsulServiceHealth>> response = restTemplate.exchange(url, HttpMethod.GET, null,
 				new ParameterizedTypeReference<List<ConsulServiceHealth>>() {
 				});
-		List<ConsulServiceHealth> list = response.getBody();
-		return list;
+        return response.getBody();
 	}
 
 	@Override
@@ -368,8 +357,7 @@ public class ControllerRestClientImpl implements IControllerRestClient {
 		ResponseEntity<List<ConsulNodeInfo>> response = restTemplate.exchange(url, HttpMethod.GET, null,
 				new ParameterizedTypeReference<List<ConsulNodeInfo>>() {
 				});
-		List<ConsulNodeInfo> list = response.getBody();
-		return list;
+        return response.getBody();
 	}
 
 	@Override
@@ -378,9 +366,8 @@ public class ControllerRestClientImpl implements IControllerRestClient {
 		logger.debug(EELFLoggerDelegate.debugLogger, "getNodeServicesHealth: url {}", url);
 		ResponseEntity<List<ConsulServiceHealth>> response = restTemplate.exchange(url, HttpMethod.GET, null,
 				new ParameterizedTypeReference<List<ConsulServiceHealth>>() {
-				});
-		List<ConsulServiceHealth> list = response.getBody();
-		return list;
+            });
+        return response.getBody();
 	}
 
 	@Override
@@ -411,14 +398,14 @@ public class ControllerRestClientImpl implements IControllerRestClient {
 		ControllerRestClientImpl client = new ControllerRestClientImpl("http://localhost:8081/controller", "dbus_user",
 				"dbus_pass");
 		final String id = args[0];
-		System.out.println("Requesting blueprint for " + id);
+        logger.info("Requesting blueprint for " + id);
 		CloudifyBlueprintList list = client.getBlueprint(id);
 		if (list == null)
-			System.err.println("Received null");
+            logger.error("Received null");
 		else
 			for (int i = 0; i < list.items.size(); ++i) {
-				System.out.println("Blueprint " + Integer.toString(i));
-				System.out.println(list.items.get(i).toString());
+                logger.info("Blueprint " + Integer.toString(i));
+                logger.info(list.items.get(i).toString());
 			}
 	}
 
