@@ -81,32 +81,17 @@ public class ConsulController extends DashboardRestrictedBaseController {
 	/**
 	 * Supports sorting results by node name
 	 */
-	private static Comparator<ConsulNodeInfo> nodeHealthComparator = new Comparator<ConsulNodeInfo>() {
-		@Override
-		public int compare(ConsulNodeInfo o1, ConsulNodeInfo o2) {
-			return o1.node.compareTo(o2.node);
-		}
-	};
+	private static Comparator<ConsulNodeInfo> nodeHealthComparator = (o1, o2) -> o1.node.compareTo(o2.node);
 
 	/**
 	 * Supports sorting results by service name
 	 */
-	private static Comparator<ConsulServiceHealth> serviceHealthComparator = new Comparator<ConsulServiceHealth>() {
-		@Override
-		public int compare(ConsulServiceHealth o1, ConsulServiceHealth o2) {
-			return o1.serviceName.compareTo(o2.serviceName);
-		}
-	};
+	private static Comparator<ConsulServiceHealth> serviceHealthComparator = (o1, o2) -> o1.serviceName.compareTo(o2.serviceName);
 
 	/**
 	 * Supports sorting results by service name
 	 */
-	private static Comparator<ConsulServiceInfo> serviceInfoComparator = new Comparator<ConsulServiceInfo>() {
-		@Override
-		public int compare(ConsulServiceInfo o1, ConsulServiceInfo o2) {
-			return o1.name.compareTo(o2.name);
-		}
-	};
+	private static Comparator<ConsulServiceInfo> serviceInfoComparator = (o1, o2) -> o1.name.compareTo(o2.name);
 
 	/**
 	 * Gets one page of objects and supporting information via the REST client. On
