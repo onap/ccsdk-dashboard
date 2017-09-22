@@ -72,7 +72,7 @@ public class HealthCheckController extends UnRestrictedBaseController {
 			@SuppressWarnings("unchecked")
 			// Get the single app.
 			List<App> list = dataAccessService.getList(App.class, null);
-			if (list.size() > 0)
+			if (!list.isEmpty())
 				healthStatus = new HealthStatus(200, SystemProperties.getProperty(SystemProperties.APP_DISPLAY_NAME) + " health check succeeded");
 			else
 				healthStatus = new HealthStatus(500, SystemProperties.getProperty(SystemProperties.APP_DISPLAY_NAME) + " health check failed to run db query");
