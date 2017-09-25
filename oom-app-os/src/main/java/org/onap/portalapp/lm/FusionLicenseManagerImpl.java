@@ -40,18 +40,22 @@ public class FusionLicenseManagerImpl implements FusionLicenseManager {
 	 * An implementation of the KeyStoreParam interface that returns the
 	 * information required to work with the keystore containing the private key.
 	 */
+	@Override
 	public void initKeyStoreParam() {
 	}
 
+	@Override
 	public void initCipherParam() {
 	}
 
 	/**
 	 * Create/populate the "licenseParm" field.
 	 */
+	@Override
 	public void initLicenseParam() {
 	}
 
+	@Override
 	public void doInitWork() {
 	}
 
@@ -61,10 +65,12 @@ public class FusionLicenseManagerImpl implements FusionLicenseManager {
 	 * 
 	 * @return true if the license installed properly, false otherwise.
 	 */
+	@Override
 	public int installLicense() {
 		return INVALID_LICENSE;
 	}
 
+	@Override
 	public synchronized int verifyLicense(ServletContext context) {
 
 		return INVALID_LICENSE;
@@ -79,10 +85,12 @@ public class FusionLicenseManagerImpl implements FusionLicenseManager {
 		return (s == null) ? "" : s;
 	}
 
+	@Override
 	public Date getExpiredDate() {
 		return expiredDate;
 	}
 
+	@Override
 	public void setExpiredDate(Date expiredDate) {
 		this.expiredDate = expiredDate;
 	}
