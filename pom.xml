@@ -21,6 +21,16 @@
         <module>oom-app-overlay</module>
         <module>oom-app-os</module>
     </modules>
+  <distributionManagement>
+    <repository>
+      <id>ecomp-releases</id>
+      <url>${onap.nexus.url}/content/repositories/releases</url>
+    </repository>
+    <snapshotRepository>
+      <id>ecomp-snapshots</id>
+      <url>${onap.nexus.url}/content/repositories/snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
 
     <build>
         <plugins>
