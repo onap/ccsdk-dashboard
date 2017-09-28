@@ -42,6 +42,7 @@ public class AdminAuthExtension implements IAdminAuthExtension {
 	 * (non-Javadoc)
 	 * @see org.openecomp.portalapp.service.IAdminAuthExtension#saveUserExtension(org.openecomp.portalsdk.core.domain.User)
 	 */
+	@Override
 	public void saveUserExtension(User user) {
 		logger.debug("saveUserExtension");
 	}
@@ -50,6 +51,7 @@ public class AdminAuthExtension implements IAdminAuthExtension {
 	 * (non-Javadoc)
 	 * @see org.openecomp.portalapp.service.IAdminAuthExtension#editUserExtension(org.openecomp.portalsdk.core.domain.User)
 	 */
+	@Override
 	public void editUserExtension(User user) {
 		logger.debug("editUserExtension");
 	}
@@ -58,6 +60,7 @@ public class AdminAuthExtension implements IAdminAuthExtension {
 	 * (non-Javadoc)
 	 * @see org.openecomp.portalapp.service.IAdminAuthExtension#saveUserRoleExtension(java.util.Set, org.openecomp.portalsdk.core.domain.User)
 	 */
+	@Override
 	public void saveUserRoleExtension(Set<Role> roles, User user) {
 		logger.debug("saveUserRoleExtension");
 	}
