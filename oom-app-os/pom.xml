@@ -89,6 +89,8 @@
 								<exclude>app/fusion/external/samples/**</exclude>
 								<exclude>app/fusion/external/showdown/**</exclude>
 								<exclude>app/fusion/notebook-integration/**</exclude>
+								<exclude>static/fusion/sample/**</exclude>
+								<exclude>static/fusion/raptor/**</exclude>
 							</excludes>
 						</overlay>
 					</overlays>
