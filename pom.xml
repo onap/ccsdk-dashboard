@@ -10,16 +10,16 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
     <!-- Maven parent project for convenience of building and cleaning -->
-    <groupId>org.onap.oom.dashboard</groupId>
-    <artifactId>oom-app-parent</artifactId>
+    <groupId>org.onap.ccsdk.dashboard</groupId>
+    <artifactId>ccsdk-app-parent</artifactId>
     <version>0</version>
     <packaging>pom</packaging>
     <name>ccsdk-dashboard</name>
 
     <modules>
-        <module>oom-app-common</module>
-        <module>oom-app-overlay</module>
-        <module>oom-app-os</module>
+        <module>ccsdk-app-common</module>
+        <module>ccsdk-app-overlay</module>
+        <module>ccsdk-app-os</module>
     </modules>
   <distributionManagement>
     <repository>
