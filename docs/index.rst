@@ -11,22 +11,23 @@ Architecture
 ------------
 Dashboard Project consists of the following Maven projects:
 
-*oom-app-common: Java classes that run in a web container like Tomcat
-*oom-app-overlay: CSS, HTML and Javascript resources for the web application
-*oom-app-os: Web application project with features for ONAP use
+- oom-app-common: Java classes that run in a web container like Tomcat
+- oom-app-overlay: CSS, HTML and Javascript resources for the web application
+- oom-app-os: Web application project with features for ONAP use
 
 Prerequites
 -----------
 The web application requires these resources:
-*Java version 8
-*Apache Tomcat version 8.0 or 8.5
-*A Postgresql database, version 9.2 or later
+
+- Java version 8
+- Apache Tomcat version 8.0 or 8.5
+- A Postgresql database, version 9.2 or later
 
 Build
 -----
 Build all artifacts by invoking maven in this directory::
 
-mvn package
+    mvn package
 
 Deployment steps
 ----------------
