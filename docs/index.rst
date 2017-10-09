@@ -18,6 +18,7 @@ Dashboard Project consists of the following Maven projects:
 Prerequites
 -----------
 The web application requires these resources:
+
 - Java version 8
 - Apache Tomcat version 8.0 or 8.5
 - A Postgresql database, version 9.2 or later
@@ -26,7 +27,7 @@ Build
 -----
 Build all artifacts by invoking maven in this directory::
 
-mvn package
+    mvn package
 
 Deployment steps
 ----------------
