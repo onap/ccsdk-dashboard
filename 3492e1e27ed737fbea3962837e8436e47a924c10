@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a93c517_2544a4b5",
+        "filename": "INFO.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 481
+      },
+      "writtenOn": "2018-02-27T06:32:17Z",
+      "side": 1,
+      "message": "Please confirm this timezone, couldn\u0027t find it in the wiki",
+      "range": {
+        "startLine": 30,
+        "startChar": 8,
+        "endLine": 30,
+        "endChar": 20
+      },
+      "revId": "3492e1e27ed737fbea3962837e8436e47a924c10",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a93c517_c514e0a1",
+        "filename": "INFO.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 481
+      },
+      "writtenOn": "2018-02-27T06:32:17Z",
+      "side": 1,
+      "message": "Please confirm this data, couldn\u0027t find it in the wiki",
+      "range": {
+        "startLine": 38,
+        "startChar": 8,
+        "endLine": 38,
+        "endChar": 19
+      },
+      "revId": "3492e1e27ed737fbea3962837e8436e47a924c10",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a93c517_054728bd",
+        "filename": "INFO.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 481
+      },
+      "writtenOn": "2018-02-27T06:32:17Z",
+      "side": 1,
+      "message": "Please confirm this timezone, couldn\u0027t find it in the wiki",
+      "range": {
+        "startLine": 40,
+        "startChar": 8,
+        "endLine": 40,
+        "endChar": 20
+      },
+      "revId": "3492e1e27ed737fbea3962837e8436e47a924c10",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": false
+    }
+  ]
+}
