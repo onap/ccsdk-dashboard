@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "5a93c517_ce2ddd96",
+        "filename": "INFO.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 87
+      },
+      "writtenOn": "2018-02-28T15:33:31Z",
+      "side": 1,
+      "message": "Ryan is with Inocybe Technologies",
+      "parentUuid": "5a93c517_c514e0a1",
+      "range": {
+        "startLine": 38,
+        "startChar": 8,
+        "endLine": 38,
+        "endChar": 19
+      },
+      "revId": "3492e1e27ed737fbea3962837e8436e47a924c10",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a93c517_054728bd",
         "filename": "INFO.yaml",
         "patchSetId": 1
