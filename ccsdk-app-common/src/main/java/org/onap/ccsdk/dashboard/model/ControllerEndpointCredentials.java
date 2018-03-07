@@ -22,8 +22,8 @@
 package org.onap.ccsdk.dashboard.model;
 
 import org.onap.ccsdk.dashboard.exception.DashboardControllerException;
-import org.openecomp.portalsdk.core.logging.logic.EELFLoggerDelegate;
-import org.openecomp.portalsdk.core.onboarding.util.CipherUtil;
+import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
+import org.onap.portalsdk.core.onboarding.util.CipherUtil;
 
 /**
  * Model with Controller username and password for use only within the back end;

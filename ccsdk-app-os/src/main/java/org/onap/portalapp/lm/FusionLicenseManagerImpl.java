@@ -27,8 +27,28 @@ import java.util.Map;
 
 import javax.servlet.ServletContext;
 
-import org.openecomp.portalsdk.core.lm.FusionLicenseManager;
+//import org.onap.portalsdk.core.lm.FusionLicenseManager;
+interface FusionLicenseManager {
+	public void initKeyStoreParam();
 
+	public void initCipherParam();
+
+	public void initLicenseParam();
+
+	public int installLicense();
+
+	public int verifyLicense(ServletContext context);
+
+	public void setExpiredDate(Date expiredDate);
+
+	public void doInitWork();
+
+	public void generateLicense(Map<String, String> clientInfoMap, List<String> ipAddressList) throws Exception;
+
+	public String nvl(String s);
+
+	public Date getExpiredDate();
+}
 public class FusionLicenseManagerImpl implements FusionLicenseManager {
 
 	private Date expiredDate;
@@ -67,13 +87,15 @@ public class FusionLicenseManagerImpl implements FusionLicenseManager {
 	 */
 	@Override
 	public int installLicense() {
-		return INVALID_LICENSE;
+		//return INVALID_LICENSE;
+		return -1;
 	}
 
 	@Override
 	public synchronized int verifyLicense(ServletContext context) {
 
-		return INVALID_LICENSE;
+		//return INVALID_LICENSE;
+		return -1;
 	}
 
 	@Override

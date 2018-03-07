@@ -21,7 +21,7 @@
  *******************************************************************************/
 package org.onap.ccsdk.dashboard.domain;
 
-import org.openecomp.portalsdk.core.domain.support.DomainVo;
+import org.onap.portalsdk.core.domain.support.DomainVo;
 
 /**
  * Model for controller endpoint information stored in database. A single row

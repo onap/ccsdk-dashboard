@@ -26,10 +26,10 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 import org.onap.fusion.core.MockApplicationContextTestSuite;
-import org.openecomp.portalsdk.core.domain.Profile;
-import org.openecomp.portalsdk.core.domain.User;
-import org.openecomp.portalsdk.core.service.ProfileService;
-import org.openecomp.portalsdk.core.service.UserProfileService;
+import org.onap.portalsdk.core.domain.Profile;
+import org.onap.portalsdk.core.domain.User;
+import org.onap.portalsdk.core.service.ProfileService;
+import org.onap.portalsdk.core.service.UserProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 
@@ -42,7 +42,7 @@ public class ProfileServiceTest extends MockApplicationContextTestSuite {
 	UserProfileService userProfileService;
 	
 	@Test
-	public void testFindAll() {
+    public void testFindAll() throws Exception {
 		
 		List<Profile> profiles = service.findAll();
 		Assert.assertTrue(profiles.size() > 0);

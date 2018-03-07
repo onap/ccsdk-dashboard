@@ -24,7 +24,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import org.openecomp.portalsdk.core.conf.HibernateMappingLocatable;
+import org.onap.portalsdk.core.conf.HibernateMappingLocatable;
 
 @Component
 @Profile("src")
@@ -32,8 +32,8 @@ public class HibernateMappingLocations implements HibernateMappingLocatable {
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.openecomp.portalsdk.core.conf.HibernateMappingLocatable#
+	 *
+	 * @see org.onap.portalsdk.core.conf.HibernateMappingLocatable#
 	 * getMappingLocations()
 	 */
 	@Override
@@ -50,8 +50,8 @@ public class HibernateMappingLocations implements HibernateMappingLocatable {
 
 	/*
 	 * (non-Javadoc)
-	 * 
-	 * @see org.openecomp.portalsdk.core.conf.HibernateMappingLocatable#
+	 *
+	 * @see org.onap.portalsdk.core.conf.HibernateMappingLocatable#
 	 * getPackagesToScan()
 	 */
 	@Override

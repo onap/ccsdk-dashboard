@@ -35,10 +35,10 @@ import org.onap.ccsdk.dashboard.rest.IControllerRestClient;
 import org.onap.ccsdk.dashboard.util.DashboardProperties;
 import org.onap.ccsdk.dashboard.model.ControllerEndpointCredentials;
 import org.onap.ccsdk.dashboard.rest.ControllerRestClientImpl;
-import org.openecomp.portalsdk.core.controller.RestrictedBaseController;
-import org.openecomp.portalsdk.core.domain.User;
-import org.openecomp.portalsdk.core.logging.logic.EELFLoggerDelegate;
-import org.openecomp.portalsdk.core.web.support.UserUtils;
+import org.onap.portalsdk.core.controller.RestrictedBaseController;
+import org.onap.portalsdk.core.domain.User;
+import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
+import org.onap.portalsdk.core.web.support.UserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.annotation.JsonInclude;

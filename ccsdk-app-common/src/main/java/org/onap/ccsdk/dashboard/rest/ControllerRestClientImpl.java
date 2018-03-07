@@ -50,7 +50,7 @@ import org.onap.ccsdk.dashboard.model.ConsulNodeInfo;
 import org.onap.ccsdk.dashboard.model.ConsulServiceHealth;
 import org.onap.ccsdk.dashboard.model.ConsulServiceHealthHistory;
 import org.onap.ccsdk.dashboard.model.ConsulServiceInfo;
-import org.openecomp.portalsdk.core.logging.logic.EELFLoggerDelegate;
+import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;

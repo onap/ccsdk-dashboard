@@ -26,11 +26,11 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import org.onap.ccsdk.dashboard.model.HealthStatus;
-import org.openecomp.portalsdk.core.controller.UnRestrictedBaseController;
-import org.openecomp.portalsdk.core.domain.App;
-import org.openecomp.portalsdk.core.logging.logic.EELFLoggerDelegate;
-import org.openecomp.portalsdk.core.service.DataAccessService;
-import org.openecomp.portalsdk.core.util.SystemProperties;
+import org.onap.portalsdk.core.controller.UnRestrictedBaseController;
+import org.onap.portalsdk.core.domain.App;
+import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
+import org.onap.portalsdk.core.service.DataAccessService;
+import org.onap.portalsdk.core.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;

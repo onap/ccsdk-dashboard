@@ -24,12 +24,12 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.openecomp.portalsdk.core.auth.LoginStrategy;
-import org.openecomp.portalsdk.core.logging.logic.EELFLoggerDelegate;
-import org.openecomp.portalsdk.core.onboarding.exception.PortalAPIException;
-import org.openecomp.portalsdk.core.onboarding.util.CipherUtil;
-import org.openecomp.portalsdk.core.onboarding.util.PortalApiConstants;
-import org.openecomp.portalsdk.core.onboarding.util.PortalApiProperties;
+import org.onap.portalsdk.core.auth.LoginStrategy;
+import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
+import org.onap.portalsdk.core.onboarding.exception.PortalAPIException;
+import org.onap.portalsdk.core.onboarding.util.CipherUtil;
+import org.onap.portalsdk.core.onboarding.util.PortalApiConstants;
+import org.onap.portalsdk.core.onboarding.util.PortalApiProperties;
 import org.springframework.web.servlet.ModelAndView;
 
 public class LoginStrategyImpl extends LoginStrategy {
@@ -66,8 +66,8 @@ public class LoginStrategyImpl extends LoginStrategy {
 				if (cookie.getName().equals(USER_ID))
 					userIdcookie = cookie;
 		if (userIdcookie != null) {
-			userId = CipherUtil.decrypt(userIdcookie.getValue(),
-					PortalApiProperties.getProperty(PortalApiConstants.Decryption_Key));
+			userId = ""; //CipherUtil.decrypt(userIdcookie.getValue(),
+			//PortalApiProperties.getProperty(PortalApiConstants.Decryption_Key));
 		}
 		return userId;
 

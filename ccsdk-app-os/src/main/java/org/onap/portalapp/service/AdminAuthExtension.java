@@ -21,10 +21,10 @@ package org.onap.portalapp.service;
 
 import java.util.Set;
 
-import org.openecomp.portalapp.service.IAdminAuthExtension;
-import org.openecomp.portalsdk.core.domain.Role;
-import org.openecomp.portalsdk.core.domain.User;
-import org.openecomp.portalsdk.core.logging.logic.EELFLoggerDelegate;
+import org.onap.portalapp.service.IAdminAuthExtension;
+import org.onap.portalsdk.core.domain.Role;
+import org.onap.portalsdk.core.domain.User;
+import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,7 +40,7 @@ public class AdminAuthExtension implements IAdminAuthExtension {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.openecomp.portalapp.service.IAdminAuthExtension#saveUserExtension(org.openecomp.portalsdk.core.domain.User)
+	 * @see org.onap.portalapp.service.IAdminAuthExtension#saveUserExtension(org.onap.portalsdk.core.domain.User)
 	 */
 	@Override
 	public void saveUserExtension(User user) {
@@ -49,7 +49,7 @@ public class AdminAuthExtension implements IAdminAuthExtension {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.openecomp.portalapp.service.IAdminAuthExtension#editUserExtension(org.openecomp.portalsdk.core.domain.User)
+	 * @see org.onap.portalapp.service.IAdminAuthExtension#editUserExtension(org.onap.portalsdk.core.domain.User)
 	 */
 	@Override
 	public void editUserExtension(User user) {
@@ -58,7 +58,7 @@ public class AdminAuthExtension implements IAdminAuthExtension {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.openecomp.portalapp.service.IAdminAuthExtension#saveUserRoleExtension(java.util.Set, org.openecomp.portalsdk.core.domain.User)
+	 * @see org.onap.portalapp.service.IAdminAuthExtension#saveUserRoleExtension(java.util.Set, org.onap.portalsdk.core.domain.User)
 	 */
 	@Override
 	public void saveUserRoleExtension(Set<Role> roles, User user) {

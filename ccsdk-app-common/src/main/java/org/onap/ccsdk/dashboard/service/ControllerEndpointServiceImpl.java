@@ -22,7 +22,7 @@
 package org.onap.ccsdk.dashboard.service;
 
 import org.onap.ccsdk.dashboard.domain.ControllerEndpoint;
-import org.openecomp.portalsdk.core.service.DataAccessService;
+import org.onap.portalsdk.core.service.DataAccessService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

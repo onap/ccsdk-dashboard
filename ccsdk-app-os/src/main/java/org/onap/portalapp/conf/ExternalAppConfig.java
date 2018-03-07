@@ -24,23 +24,23 @@ import java.util.List;
 
 import org.onap.portalapp.lm.FusionLicenseManagerImpl;
 import org.onap.portalapp.login.LoginStrategyImpl;
-import org.openecomp.portalapp.controller.core.SingleSignOnController;
-import org.openecomp.portalapp.controller.sample.ElasticSearchController;
-import org.openecomp.portalapp.controller.sample.PostDroolsController;
-import org.openecomp.portalapp.scheduler.LogRegistry;
-import org.openecomp.portalsdk.core.auth.LoginStrategy;
-import org.openecomp.portalsdk.core.conf.AppConfig;
-import org.openecomp.portalsdk.core.conf.Configurable;
-import org.openecomp.portalsdk.core.lm.FusionLicenseManager;
-import org.openecomp.portalsdk.core.lm.FusionLicenseManagerUtils;
-import org.openecomp.portalsdk.core.logging.logic.EELFLoggerDelegate;
-import org.openecomp.portalsdk.core.objectcache.AbstractCacheManager;
-import org.openecomp.portalsdk.core.scheduler.CoreRegister;
-import org.openecomp.portalsdk.core.scheduler.CronRegistry;
-import org.openecomp.portalsdk.core.service.DataAccessService;
-import org.openecomp.portalsdk.core.service.PostDroolsService;
-import org.openecomp.portalsdk.core.util.CacheManager;
-import org.openecomp.portalsdk.core.util.SystemProperties;
+import org.onap.portalapp.controller.core.SingleSignOnController;
+import org.onap.portalapp.controller.sample.ElasticSearchController;
+import org.onap.portalapp.controller.sample.PostDroolsController;
+import org.onap.portalapp.scheduler.LogRegistry;
+import org.onap.portalsdk.core.auth.LoginStrategy;
+import org.onap.portalsdk.core.conf.AppConfig;
+import org.onap.portalsdk.core.conf.Configurable;
+//import org.onap.portalsdk.core.lm.FusionLicenseManager;
+//import org.onap.portalsdk.core.lm.FusionLicenseManagerUtils;
+import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
+import org.onap.portalsdk.core.objectcache.AbstractCacheManager;
+import org.onap.portalsdk.core.scheduler.CoreRegister;
+import org.onap.portalsdk.core.scheduler.CronRegistry;
+import org.onap.portalsdk.core.service.DataAccessService;
+import org.onap.portalsdk.core.service.PostDroolsService;
+import org.onap.portalsdk.core.util.CacheManager;
+import org.onap.portalsdk.core.util.SystemProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -79,7 +79,7 @@ public class ExternalAppConfig extends AppConfig implements Configurable {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.openecomp.portalsdk.core.conf.AppConfig#viewResolver()
+	 * @see org.onap.portalsdk.core.conf.AppConfig#viewResolver()
 	 */
 	public ViewResolver viewResolver() {
 		return super.viewResolver();
@@ -87,7 +87,7 @@ public class ExternalAppConfig extends AppConfig implements Configurable {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.openecomp.portalsdk.core.conf.AppConfig#addResourceHandlers(org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry)
+	 * @see org.onap.portalsdk.core.conf.AppConfig#addResourceHandlers(org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry)
 	 */
 	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -96,7 +96,7 @@ public class ExternalAppConfig extends AppConfig implements Configurable {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.openecomp.portalsdk.core.conf.AppConfig#dataAccessService()
+	 * @see org.onap.portalsdk.core.conf.AppConfig#dataAccessService()
 	 */
 	@Override
 	public DataAccessService dataAccessService() {
@@ -146,16 +146,17 @@ public class ExternalAppConfig extends AppConfig implements Configurable {
 		return new CacheManager();
 	}
 
-	@Bean
-	public FusionLicenseManager fusionLicenseManager() {
-		return new FusionLicenseManagerImpl();
-	}
+	/*
+        @Bean
+        public FusionLicenseManager fusionLicenseManager() {
+            return new FusionLicenseManagerImpl();
+        }
 
-	@Bean
-	public FusionLicenseManagerUtils fusionLicenseManagerUtils() {
-		return new FusionLicenseManagerUtils();
-	}
-
+        @Bean
+        public FusionLicenseManagerUtils fusionLicenseManagerUtils() {
+            return new FusionLicenseManagerUtils();
+        }
+    */
 	@Bean
 	public LoginStrategy loginStrategy() {
 		return new LoginStrategyImpl();

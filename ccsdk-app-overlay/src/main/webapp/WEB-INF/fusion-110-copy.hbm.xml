@@ -25,7 +25,7 @@
         "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
         "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
 
-<hibernate-mapping package="org.openecomp.portalsdk.core.domain">
+<hibernate-mapping package="org.onap.portalsdk.core.domain">
 
      <!-- User class mapping details -->
     <class name="User" table="FN_USER">
@@ -84,12 +84,12 @@
 		
         <set name="userApps" table="FN_USER_ROLE" lazy="false" sort="natural" inverse="true" cascade="all-delete-orphan">
             <key column="user_id"/>
-            <one-to-many class="org.openecomp.portalsdk.core.domain.UserApp" />
+            <one-to-many class="org.onap.portalsdk.core.domain.UserApp"/>
         </set>
 
         <set name="pseudoRoles" table="FN_USER_PSEUDO_ROLE" lazy="false" sort="natural">
             <key column="user_id"/>
-            <many-to-many column="pseudo_role_id" class="org.openecomp.portalsdk.core.domain.Role" />
+            <many-to-many column="pseudo_role_id" class="org.onap.portalsdk.core.domain.Role"/>
         </set>
     </class>
 
@@ -112,8 +112,8 @@
             <key-property name="userId" type="long">
                 <column name="user_id" precision="11" scale="0" />
             </key-property>
-        	<key-many-to-one name="app" class="org.openecomp.portalsdk.core.domain.App" column="app_id" />
-        	<key-many-to-one name="role" class="org.openecomp.portalsdk.core.domain.Role" column="role_id" />
+            <key-many-to-one name="app" class="org.onap.portalsdk.core.domain.App" column="app_id"/>
+            <key-many-to-one name="role" class="org.onap.portalsdk.core.domain.Role" column="role_id"/>
         </composite-id>
         <property name="priority" type="java.lang.Short">
             <column name="priority" precision="4" scale="0" />
@@ -174,17 +174,17 @@
 
         <set name="roleFunctions" table="FN_ROLE_FUNCTION" lazy="false" sort="natural">
             <key column="role_id"/>
-            <many-to-many column="function_cd" class="org.openecomp.portalsdk.core.domain.RoleFunction"/>
+            <many-to-many column="function_cd" class="org.onap.portalsdk.core.domain.RoleFunction"/>
         </set>
 
         <set name="childRoles" table="FN_ROLE_COMPOSITE" lazy="false" sort="natural">
             <key column="parent_role_id"/>
-            <many-to-many column="child_role_id" class="org.openecomp.portalsdk.core.domain.Role"/>
+            <many-to-many column="child_role_id" class="org.onap.portalsdk.core.domain.Role"/>
         </set>
         
         <set name="parentRoles" table="FN_ROLE_COMPOSITE" lazy="false" sort="natural">
             <key column="child_role_id"/>
-            <many-to-many column="parent_role_id" class="org.openecomp.portalsdk.core.domain.Role"/>
+            <many-to-many column="parent_role_id" class="org.onap.portalsdk.core.domain.Role"/>
         </set>
 
     </class>
@@ -269,7 +269,7 @@
     </class>
 
 	<!-- 
-    <class name="org.openecomp.portalsdk.analytics.model.base.ReportUserRole" table="cr_report_access">
+    <class name="org.onap.portalsdk.analytics.model.base.ReportUserRole" table="cr_report_access">
 		<composite-id>
 			<key-property name="repId" column="rep_id" />
 			<key-property name="orderNo" column="order_no" />
@@ -304,14 +304,14 @@
 
     <!-- Lookup (id/value bean) class mapping details -->
     <class name="Lookup">
-        <composite-id  name="nameValueId" class="org.openecomp.portalsdk.core.domain.support.NameValueId">
+        <composite-id name="nameValueId" class="org.onap.portalsdk.core.domain.support.NameValueId">
           <key-property name="val"/>
           <key-property name="lab" />
         </composite-id>
     </class>
 
 	<class name="UrlsAccessible" table="V_URL_ACCESS">
-      <composite-id  name="urlsAccessibleKey" class="org.openecomp.portalsdk.core.domain.UrlsAccessibleKey">
+        <composite-id name="urlsAccessibleKey" class="org.onap.portalsdk.core.domain.UrlsAccessibleKey">
     	<key-property	name="url"	column="url"/>
     	<key-property   name="functionCd"	column="function_cd"/>
       </composite-id>

@@ -46,7 +46,7 @@ import org.onap.ccsdk.dashboard.model.ConsulServiceHealth;
 import org.onap.ccsdk.dashboard.model.ConsulServiceHealthHistory;
 import org.onap.ccsdk.dashboard.model.ConsulServiceInfo;
 import org.onap.ccsdk.dashboard.model.ECTransportModel;
-import org.openecomp.portalsdk.core.logging.logic.EELFLoggerDelegate;
+import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -25,6 +25,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.Cookie;
@@ -33,20 +34,22 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.onap.ccsdk.dashboard.exception.DashboardControllerException;
-import org.openecomp.portalsdk.core.auth.LoginStrategy;
-import org.openecomp.portalsdk.core.command.LoginBean;
-import org.openecomp.portalsdk.core.controller.UnRestrictedBaseController;
-import org.openecomp.portalsdk.core.domain.User;
-import org.openecomp.portalsdk.core.logging.logic.EELFLoggerDelegate;
-import org.openecomp.portalsdk.core.menu.MenuProperties;
-import org.openecomp.portalsdk.core.onboarding.exception.PortalAPIException;
-import org.openecomp.portalsdk.core.onboarding.listener.PortalTimeoutHandler;
-import org.openecomp.portalsdk.core.onboarding.util.PortalApiConstants;
-import org.openecomp.portalsdk.core.onboarding.util.PortalApiProperties;
-import org.openecomp.portalsdk.core.service.LoginService;
-import org.openecomp.portalsdk.core.util.SystemProperties;
-import org.openecomp.portalsdk.core.web.support.AppUtils;
-import org.openecomp.portalsdk.core.web.support.UserUtils;
+import org.onap.portalsdk.core.auth.LoginStrategy;
+import org.onap.portalsdk.core.command.LoginBean;
+import org.onap.portalsdk.core.controller.UnRestrictedBaseController;
+import org.onap.portalsdk.core.domain.User;
+import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
+import org.onap.portalsdk.core.menu.MenuProperties;
+import org.onap.portalsdk.core.onboarding.exception.PortalAPIException;
+import org.onap.portalsdk.core.onboarding.listener.PortalTimeoutHandler;
+import org.onap.portalsdk.core.onboarding.util.PortalApiConstants;
+import org.onap.portalsdk.core.onboarding.util.PortalApiProperties;
+import org.onap.portalsdk.core.service.LoginService;
+import org.onap.portalsdk.core.util.SystemProperties;
+import org.onap.portalsdk.core.web.support.AppUtils;
+import org.onap.portalsdk.core.web.support.UserUtils;
+import org.onap.portalsdk.core.service.RoleService;
+import org.onap.portalsdk.core.domain.RoleFunction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Controller;
@@ -61,7 +64,7 @@ import org.springframework.web.util.WebUtils;
 @RequestMapping("/")
 /**
  * Replicated from
- * org.openecomp.portalapp.controller.core.SingleSignOnController to modify the
+ * org.onap.portalapp.controller.core.SingleSignOnController to modify the
  * behavior of sending user's browser on a detour of Portal app to get the
  * EPService cookie.
  */
@@ -75,6 +78,9 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
 
 	@Autowired
 	private LoginStrategy loginStrategy;
+
+    @Autowired
+    private RoleService roleService;
 
 	private String viewName;
 	private String welcomeView;
@@ -96,8 +102,8 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
 	 *             Encoding fails
 	 */
 	@RequestMapping(value = { "/single_signon.htm" }, method = RequestMethod.GET)
-	public ModelAndView singleSignOnLogin(HttpServletRequest request, HttpServletResponse response)
-			throws DashboardControllerException, PortalAPIException, UnsupportedEncodingException {
+    public ModelAndView singleSignOnLogin(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        //throws DashboardControllerException, PortalAPIException, UnsupportedEncodingException {
 
 		Map<String, String> model = new HashMap<>();
 		HashMap<String, String> additionalParamsMap = new HashMap<>();
@@ -116,6 +122,9 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
 				final String authMech = SystemProperties.getProperty(SystemProperties.AUTHENTICATION_MECHANISM);
 				String userId = loginStrategy.getUserId(request);
 				commandBean.setUserid(userId);
+                commandBean = getLoginService().findUser(commandBean,
+                        (String) request.getAttribute(MenuProperties.MENU_PROPERTIES_FILENAME_KEY), additionalParamsMap);
+                List<RoleFunction> roleFunctionList = roleService.getRoleFunctions(userId);
 				try {
 					commandBean = getLoginService().findUser(commandBean,
 							(String) request.getAttribute(MenuProperties.MENU_PROPERTIES_FILENAME_KEY),
@@ -145,7 +154,7 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
 						loginMethod = SystemProperties.getProperty(SystemProperties.LOGIN_METHOD_WEB_JUNCTION);
 					}
 					UserUtils.setUserSession(request, commandBean.getUser(), commandBean.getMenu(),
-							commandBean.getBusinessDirectMenu(), loginMethod);
+                            commandBean.getBusinessDirectMenu(), loginMethod, roleFunctionList);
 					initateSessionMgtHandler(request);
 					logger.debug(EELFLoggerDelegate.debugLogger,
 							"singleSignOnLogin: create new user session for expired user {}; user {} exists in the system",
