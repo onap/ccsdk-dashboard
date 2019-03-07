@@ -14,11 +14,12 @@
 		<encoding>UTF-8</encoding>
 		<springframework.version>4.2.0.RELEASE</springframework.version>
 		<hibernate.version>4.3.11.Final</hibernate.version>
-		<epsdk.version>2.1.0</epsdk.version>
+		<epsdk.version>2.5.1</epsdk.version>
 		<ccsdk.version>1.1.0-SNAPSHOT</ccsdk.version>
 		<nexusproxy>https://nexus.onap.org</nexusproxy>
-		<snapshotNexusPath>/content/repositories/snapshots/</snapshotNexusPath>
-		<releaseNexusPath>/content/repositories/releases/</releaseNexusPath>
+		<snapshotNexusPath>content/repositories/snapshots/</snapshotNexusPath>
+		<releaseNexusPath>content/repositories/releases/</releaseNexusPath>
+		<stagingNexusPath>/content/repositories/staging/</stagingNexusPath>
 		<!-- supplied by Jenkins server -->
 		<build.version>${project.version}</build.version>
 		<!-- Tests usually require some setup that maven cannot do, so skip. -->
@@ -28,15 +29,21 @@
 	<repositories>
 		<repository>
 			<!-- Releases repository has ECOMP release artifacts -->
-			<id>ecomp-releases</id>
-			<name>OpenECOMP - Release Repository</name>
+			<id>onap-releases</id>
+			<name>ONAP - Release Repository</name>
 			<url>${nexusproxy}/${releaseNexusPath}</url>
 		</repository>
 		<repository>
 			<!-- Snapshots repository has ECOMP snapshot artifacts -->
-			<id>ecomp-snapshots</id>
-			<name>OpenECOMP - Snapshot Repository</name>
+			<id>onap-snapshots</id>
+			<name>ONAP - Snapshot Repository</name>
 			<url>${nexusproxy}/${snapshotNexusPath}</url>
+		</repository>
+		<repository>
+			<!-- Staging repository has ECOMP release staging artifacts -->
+			<id>onap-staging</id>
+			<name>ONAP - Staging Repository</name>
+			<url>${nexusproxy}${stagingNexusPath}</url>
 		</repository>
 	</repositories>
 

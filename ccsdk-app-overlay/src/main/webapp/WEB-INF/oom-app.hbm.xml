@@ -25,7 +25,7 @@
         "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
         "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
 
-<hibernate-mapping package="org.onap.oom.dashboard.domain">
+<hibernate-mapping package="org.onap.ccsdk.dashboard.domain">
 	
     <!-- class mapping details -->
     <class name="ControllerEndpoint" table="ecd_endpoint">
@@ -33,5 +33,17 @@
         <property name="name"		column="name"/>
         <property name="url"		column="url"/>
     </class>
+	<class name="EcdComponent" table="ecd_component">
+        <id name="compId" 				column="ecd_component_id">
+          <generator class="native">
+             <param name="sequence">seq_ecd_component</param> 
+          </generator>
+        </id>
+        <property name="cname"		column="ecd_component_name"/>
+        <property name="dname"		column="ecd_component_display"/>
+    </class>
+    <query name="getAllComponents">
+      FROM EcdComponent
+    </query>
 	
 </hibernate-mapping>

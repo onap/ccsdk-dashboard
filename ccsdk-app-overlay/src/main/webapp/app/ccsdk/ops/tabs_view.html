@@ -1,0 +1,131 @@
+<div id="page-content" ng-controller="tabsController">
+    <div ng-show="ecdapp.isInit">
+    <b2b-tabset tab-id-selected="activeTabsId">
+        <b2b-tab ng-repeat="tab in ecdapp.gTabs" tab-item="tab" 
+                 id="{{tab.uniqueId}}" aria-controls="{{tab.tabPanelId}}"
+                 ng-disabled="tab.disabled">
+            {{tab.title}}
+        </b2b-tab>
+    </b2b-tabset>
+    </div>
+    
+    <div class="tab-content">
+        <div id="threetab1x" role="tabpanel" aria-labelledby="uniqueTab1x" aria-hidden="{{'cfy'===activeTabsId}}" class="tab-pane" ng-class="{'active': 'cfy'===activeTabsId}">
+        	<div class="row-nowrap" style="margin-top:-20px; margin-bottom: 5px;">
+        	<div class="span3 form-row">
+        	<label for="cfy-site-url">Site</label>
+			<select id="cfy-site-url" name="cfy-site-url" b2b-dropdown placeholder-text="Select Site" data-ng-model="ecdapp.cfySite" ng-change="ecdapp.cfyCnslFrameReload(ecdapp.cfySite, 'cfy')" required>
+				<option b2b-dropdown-list option-repeat="d in site_cfy_cnsl_map" value="{{d.site}}">{{d.site}}</option>
+			</select>
+			</div>
+			</div>
+			<div ng-hide="ecdapp.isFrameLoaded" class="span">
+			<i class="icon-spinner small" role="img" aria-label="Please wait while the content loads"></i>
+				Please wait while the content loads.
+			</div>	
+                <iframe id="cfy_frame" ng-show="ecdapp.isFrameLoaded" aria-expanded="true" scrolling="yes" frameborder="0" style="width:100%; height: 800px;" ng-src="{{ecdapp.cfy.url}}">
+    			</iframe>
+        </div>
+        <div id="threetab2x" role="tabpanel" aria-labelledby="uniqueTab2x" aria-hidden="{{'grf'===activeTabsId}}" class="tab-pane" ng-class="{'active': 'grf'===activeTabsId}">
+         	<div class="row-nowrap" style="margin-top:-20px; margin-bottom: 5px;">
+        	<div class="span3 form-row">
+         	<label for="grf-site-url">Site</label>
+			<select id="grf-site-url" name="grf-site-url" b2b-dropdown placeholder-text="Select Site" data-ng-model="ecdapp.grf.site" ng-change="ecdapp.selectAppTenant(ecdapp.grf.site)" required>
+				<option b2b-dropdown-list option-repeat="d in site_cfy_cnsl_map" value="{{d.site}}">{{d.site}}</option>
+			</select>
+			</div>
+			<div class="span4 form-row">
+			<label for="grf-ten-url">Tenant</label>
+			<select id="grf-ten-url" name="grf-ten-url" b2b-dropdown placeholder-text="Select Tenant" data-ng-model="ecdapp.grf.tenant" ng-change="ecdapp.selectCluster(ecdapp.grf.tenant)" required>
+				<option b2b-dropdown-list option-repeat="t in ecdapp.appTenants" value="{{t}}">{{t}}</option>
+			</select>
+			</div>			
+			<div class="span3 form-row">
+			<label for="grf-cluster-url">Cluster</label>
+			<select id="grf-cluster-url" name="grf-cluster-url" b2b-dropdown placeholder-text="Select K8s cluster" data-ng-model="ecdapp.grf.cluster" ng-change="ecdapp.appFrameReload(ecdapp.grf.cluster, 'grf')" required>
+				<option b2b-dropdown-list option-repeat="c in ecdapp.appCluster" value="{{c}}">{{c}}</option>
+			</select>
+			</div>
+			</div>
+			<div ng-hide="ecdapp.isFrameLoaded" class="span">
+			<i class="icon-spinner small" role="img" aria-label="Please wait while the content loads"></i>
+				Please wait while the content loads.
+			</div>
+              <iframe ng-show="ecdapp.isFrameLoaded" scrolling="yes" frameborder="0" style="width:100%; height: 800px;" ng-src="{{ecdapp.grf.url}}">
+    		  </iframe>
+        </div>
+        <div id="threetab3x" role="tabpanel" aria-labelledby="uniqueTab3x" aria-hidden="{{'cnsl'===activeTabsId}}" class="tab-pane" ng-class="{'active': 'cnsl'===activeTabsId}">
+        	<div class="row-nowrap" style="margin-top:-20px; margin-bottom: 5px;">
+        	<div class="span3 form-row">
+        	<label for="cnsl-site-url">Site</label>
+			<select id="cnsl-site-url" name="cnsl-site-url" b2b-dropdown placeholder-text="Select Site" data-ng-model="ecdapp.cnslSite" ng-change="ecdapp.cfyCnslFrameReload(ecdapp.cnslSite, 'cnsl')" required>
+				<option b2b-dropdown-list option-repeat="d in site_cfy_cnsl_map" value="{{d.site}}">{{d.site}}</option>
+			</select>
+			</div>
+			</div>
+			<div ng-hide="ecdapp.isFrameLoaded" class="span">
+			<i class="icon-spinner small" role="img" aria-label="Please wait while the content loads"></i>
+				Please wait while the content loads.
+			</div>
+                <iframe ng-show="ecdapp.isFrameLoaded" scrolling="yes" frameborder="0" style="width:100%; height: 800px;" ng-src="{{ecdapp.cnsl.url}}">
+    			</iframe>
+        </div>
+        <div id="threetab4x" role="tabpanel" aria-labelledby="uniqueTab4x" aria-hidden="{{'k8s'===activeTabsId}}" class="tab-pane" ng-class="{'active': 'k8s'===activeTabsId}">
+        	<div class="row-nowrap" style="margin-top:-20px; margin-bottom: 5px;">
+        	<div class="span3 form-row">
+        	<label for="k8s-site-url">Site</label>
+			<select id="k8s-site-url" name="k8s-site-url" b2b-dropdown placeholder-text="Select Site" data-ng-model="ecdapp.k8.site" ng-change="ecdapp.selectAppTenant(ecdapp.k8.site)" required>
+				<option b2b-dropdown-list option-repeat="d in site_cfy_cnsl_map" value="{{d.site}}">{{d.site}}</option>
+			</select>
+			</div>
+			<div class="span6 form-row">
+			<label for="k8s-ten-url">Tenant</label>
+			<select id="k8s-ten-url" name="k8s-ten-url" b2b-dropdown placeholder-text="Select Tenant" data-ng-model="ecdapp.k8.tenant" ng-change="ecdapp.selectCluster(ecdapp.k8.tenant)" required>
+				<option b2b-dropdown-list option-repeat="t in ecdapp.appTenants" value="{{t}}">{{t}}</option>
+			</select>
+			</div>
+			<div class="span3 form-row">
+			<label for="k8s-cluster-url">Cluster</label>
+			<select id="k8s-cluster-url" name="k8s-cluster-url" b2b-dropdown placeholder-text="Select K8s cluster" data-ng-model="ecdapp.k8.cluster" ng-change="ecdapp.appFrameReload(ecdapp.k8.cluster, 'k8')" required>
+				<option b2b-dropdown-list option-repeat="c in ecdapp.appCluster" value="{{c}}">{{c}}</option>
+			</select>
+			</div>
+			</div>
+			<div ng-hide="ecdapp.isFrameLoaded" class="span">
+			<i class="icon-spinner small" role="img" aria-label="Please wait while the content loads"></i>
+				Please wait while the content loads.
+			</div>
+                 <iframe ng-show="ecdapp.isFrameLoaded" scrolling="yes" frameborder="0" style="width:100%; height: 800px;" ng-src="{{ecdapp.k8.url}}">
+    			</iframe>
+        </div>
+        <div id="threetab5x" role="tabpanel" aria-labelledby="uniqueTab5x" aria-hidden="{{'prom'===activeTabsId}}" class="tab-pane" ng-class="{'active': 'prom'===activeTabsId}">
+        	<div class="row-nowrap" style="margin-top:-20px; margin-bottom: 5px;">
+        	<div class="span3 form-row">
+        	<label for="prom-site-url">Site</label>
+			<select id="prom-site-url" name="prom-site-url" b2b-dropdown placeholder-text="Select Site" data-ng-model="ecdapp.prom.site" ng-change="ecdapp.selectAppTenant(ecdapp.prom.site)" required>
+				<option b2b-dropdown-list option-repeat="d in site_cfy_cnsl_map" value="{{d.site}}">{{d.site}}</option>
+			</select>
+			</div>
+			<div class="span6 form-row">
+			<label for="prom-ten-url">Tenant</label>
+			<select id="prom-ten-url" name="prom-ten-url" b2b-dropdown placeholder-text="Select Tenant" data-ng-model="ecdapp.prom.tenant" ng-change="ecdapp.selectCluster(ecdapp.prom.tenant)" required>
+				<option b2b-dropdown-list option-repeat="t in ecdapp.appTenants" value="{{t}}">{{t}}</option>
+			</select>
+			</div>
+			<div class="span3 form-row">
+			<label for="prom-cluster-url">Cluster</label>
+			<select id="prom-cluster-url" name="prom-cluster-url" b2b-dropdown placeholder-text="Select K8s cluster" data-ng-model="ecdapp.prom.cluster" ng-change="ecdapp.appFrameReload(ecdapp.prom.cluster, 'prom')" required>
+				<option b2b-dropdown-list option-repeat="c in ecdapp.appCluster" value="{{c}}">{{c}}</option>
+			</select>
+			</div>
+			</div>
+			<div ng-hide="ecdapp.isFrameLoaded" class="span">
+			<i class="icon-spinner small" role="img" aria-label="Please wait while the content loads"></i>
+				Please wait while the content loads.
+			</div>
+            <iframe ng-show="ecdapp.isFrameLoaded" scrolling="yes" frameborder="0" style="width:100%; height: 800px;" ng-src="{{ecdapp.prom.url}}">
+    		</iframe>
+        </div>
+    </div>
+
+</div>

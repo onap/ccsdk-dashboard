@@ -2,7 +2,7 @@
  * =============LICENSE_START=========================================================
  *
  * =================================================================================
- *  Copyright (c) 2017 AT&T Intellectual Property. All rights reserved.
+ *  Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
  * ================================================================================
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -23,36 +23,40 @@ package org.onap.ccsdk.dashboard.controller;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.onap.ccsdk.dashboard.exception.DashboardControllerException;
-import org.onap.ccsdk.dashboard.rest.ControllerRestClientMockImpl;
-import org.onap.ccsdk.dashboard.service.ControllerEndpointService;
 import org.onap.ccsdk.dashboard.domain.ControllerEndpoint;
-import org.onap.ccsdk.dashboard.rest.IControllerRestClient;
-import org.onap.ccsdk.dashboard.util.DashboardProperties;
 import org.onap.ccsdk.dashboard.model.ControllerEndpointCredentials;
-import org.onap.ccsdk.dashboard.rest.ControllerRestClientImpl;
+import org.onap.ccsdk.dashboard.model.ControllerOpsTools;
+import org.onap.ccsdk.dashboard.rest.CloudifyClient;
+import org.onap.ccsdk.dashboard.rest.CloudifyMockClientImpl;
+import org.onap.ccsdk.dashboard.rest.CloudifyRestClientImpl;
+import org.onap.ccsdk.dashboard.rest.ConsulClient;
+import org.onap.ccsdk.dashboard.rest.ConsulMockClientImpl;
+import org.onap.ccsdk.dashboard.rest.ConsulRestClientImpl;
+import org.onap.ccsdk.dashboard.rest.DeploymentHandlerClient;
+import org.onap.ccsdk.dashboard.rest.DeploymentHandlerClientImpl;
+import org.onap.ccsdk.dashboard.rest.InventoryClient;
+import org.onap.ccsdk.dashboard.rest.RestInventoryClientImpl;
+import org.onap.ccsdk.dashboard.rest.RestInventoryClientMockImpl;
+import org.onap.ccsdk.dashboard.service.ControllerEndpointService;
+import org.onap.ccsdk.dashboard.util.DashboardProperties;
 import org.onap.portalsdk.core.controller.RestrictedBaseController;
 import org.onap.portalsdk.core.domain.User;
-import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 import org.onap.portalsdk.core.web.support.UserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
 /**
  * This base class provides utility methods to child controllers.
  */
 public class DashboardRestrictedBaseController extends RestrictedBaseController {
-
-	/**
-	 * Logger that conforms with ECOMP guidelines
-	 */
-	private static EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(DashboardRestrictedBaseController.class);
 
 	/**
 	 * Application name
@@ -83,8 +87,8 @@ public class DashboardRestrictedBaseController extends RestrictedBaseController 
 	 * Application properties - NOT available to constructor.
 	 */
 	@Autowired
-	private DashboardProperties appProperties;
-
+	protected DashboardProperties appProperties;
+	
 	/**
 	 * For getting selected controller
 	 */
@@ -97,6 +101,8 @@ public class DashboardRestrictedBaseController extends RestrictedBaseController 
 	public DashboardRestrictedBaseController() {
 		// Do not serialize null values
 		objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+		// Register Jdk8Module() for Stream and Optional types
+		objectMapper.registerModule(new Jdk8Module());
 	}
 
 	/**
@@ -172,24 +178,59 @@ public class DashboardRestrictedBaseController extends RestrictedBaseController 
 	 *             if a required property is not found
 	 */
 	protected ControllerEndpointCredentials[] getControllerEndpoints() {
-		final String[] controllerKeys = appProperties.getCsvListProperty(DashboardProperties.CONTROLLER_KEY_LIST);
+		final String[] controllerKeys = DashboardProperties.getCsvListProperty(DashboardProperties.CONTROLLER_KEY_LIST);
 		ControllerEndpointCredentials[] controllers = new ControllerEndpointCredentials[controllerKeys.length];
 		for (int i = 0; i < controllerKeys.length; ++i) {
 			String key = controllerKeys[i];
-			final String name = appProperties.getControllerProperty(key, DashboardProperties.CONTROLLER_SUBKEY_NAME);
-			final String url = appProperties.getControllerProperty(key, DashboardProperties.CONTROLLER_SUBKEY_URL);
-			final String user = appProperties.getControllerProperty(key,
+			final String name = DashboardProperties.getControllerProperty(key, DashboardProperties.CONTROLLER_SUBKEY_NAME);
+			final String url = DashboardProperties.getControllerProperty(key, DashboardProperties.CONTROLLER_SUBKEY_URL);
+			final String inventoryUrl = DashboardProperties.getControllerProperty(key, DashboardProperties.CONTROLLER_SUBKEY_INVENTORY_URL);
+			final String dhandlerUrl = DashboardProperties.getControllerProperty(key, DashboardProperties.CONTROLLER_SUBKEY_DHANDLER_URL);
+			final String consulUrl = DashboardProperties.getControllerProperty(key, DashboardProperties.CONTROLLER_SUBKEY_CONSUL_URL);
+			final String user = DashboardProperties.getControllerProperty(key,
 					DashboardProperties.CONTROLLER_SUBKEY_USERNAME);
-			final String pass = appProperties.getControllerProperty(key,
-					DashboardProperties.CONTROLLER_SUBKEY_PASSWORD);
-			final boolean encr = Boolean.parseBoolean (
-					appProperties.getControllerProperty(key, DashboardProperties.CONTROLLER_SUBKEY_ENCRYPTED));
-			logger.debug(EELFLoggerDelegate.debugLogger, "getConfiguredControllers: key {} yields url {}", key, url);
-			controllers[i] = new ControllerEndpointCredentials(false, name, url, user, pass, encr);
+			final String pass = DashboardProperties.getControllerProperty(key,
+					DashboardProperties.CONTROLLER_SUBKEY_PASS);
+			final boolean encr = Boolean.parseBoolean(
+					DashboardProperties.getControllerProperty(key, DashboardProperties.CONTROLLER_SUBKEY_ENCRYPTED));
+			controllers[i] = new ControllerEndpointCredentials(false, name, url, inventoryUrl, dhandlerUrl, consulUrl, user, pass, encr);
 		}
 		return controllers;
 	}
 
+	/**
+	 * Get the list of configured OPS Tools URLs from dashboard properties
+	 * 
+	 * @return Array of ControllerOpsTools objects
+	 * @throws IllegalStateException
+	 *             if a required property is not found
+	 */
+	protected List<ControllerOpsTools> getControllerOpsTools() {
+		List<ControllerOpsTools> opsList = new ArrayList<>();
+		final String[] controllerKeys = DashboardProperties.getCsvListProperty(DashboardProperties.CONTROLLER_KEY_LIST);
+		String key = controllerKeys[0];
+		final String cfyId = DashboardProperties.OPS_CLOUDIFY_URL.split("\\.")[1];
+		final String cfyUrl = DashboardProperties.getControllerProperty(key, DashboardProperties.OPS_CLOUDIFY_URL);
+		final String k8Id = DashboardProperties.OPS_K8S_URL.split("\\.")[1];
+		final String k8Url = DashboardProperties.getControllerProperty(key, DashboardProperties.OPS_K8S_URL);
+		final String grfId = DashboardProperties.OPS_GRAFANA_URL.split("\\.")[1];
+		final String grfUrl = DashboardProperties.getControllerProperty(key, DashboardProperties.OPS_GRAFANA_URL);
+		final String cnslId = DashboardProperties.OPS_CONSUL_URL.split("\\.")[1];
+		final String cnslUrl = DashboardProperties.getControllerProperty(key, DashboardProperties.OPS_CONSUL_URL);
+		final String promId = DashboardProperties.OPS_PROMETHEUS_URL.split("\\.")[1];
+		final String promUrl = DashboardProperties.getControllerProperty(key, DashboardProperties.OPS_PROMETHEUS_URL);
+		final String dbclId = DashboardProperties.OPS_DBCL_URL.split("\\.")[1];
+		final String dbclUrl = DashboardProperties.getControllerProperty(key, DashboardProperties.OPS_DBCL_URL);
+		opsList.add(new ControllerOpsTools(cfyId, cfyUrl));
+		opsList.add(new ControllerOpsTools(k8Id, k8Url));
+		opsList.add(new ControllerOpsTools(grfId, grfUrl));
+		opsList.add(new ControllerOpsTools(cnslId, cnslUrl));
+		opsList.add(new ControllerOpsTools(promId, promUrl));
+		opsList.add(new ControllerOpsTools(dbclId, dbclUrl));
+		
+		return opsList;		
+	}
+	
 	/**
 	 * Gets the controller endpoint for the specified user ID. Chooses the first
 	 * one from properties if the user has not selected one previously.
@@ -207,7 +248,7 @@ public class DashboardRestrictedBaseController extends RestrictedBaseController 
 		if (dbEntry == null || dbEntry.getName() == null) {
 			// Arbitrarily choose the first one
 			ControllerEndpointCredentials first = configured[0];
-			dbEntry = new ControllerEndpoint(userId, first.getName(), first.getUrl());
+			dbEntry = new ControllerEndpoint(userId, first.getName(), first.getUrl(), first.getInventoryUrl(), first.getDhandlerUrl());
 			controllerEndpointService.updateControllerEndpointSelection(dbEntry);
 		}
 		// Fetch complete details for the selected item
@@ -221,12 +262,16 @@ public class DashboardRestrictedBaseController extends RestrictedBaseController 
 		// Defend against a stale database entry.
 		if (selected == null) {
 			selected = configured[0];
-			dbEntry = new ControllerEndpoint(userId, selected.getName(), selected.getUrl());
+			dbEntry = new ControllerEndpoint(userId, selected.getName(), selected.getUrl(), selected.getInventoryUrl(), selected.getDhandlerUrl());
 			controllerEndpointService.updateControllerEndpointSelection(dbEntry);
 		}
 		return selected;
 	}
 
+	protected ControllerEndpointCredentials getOrSetControllerEndpointSelection() {
+		ControllerEndpointCredentials[] configured = getControllerEndpoints();
+		return configured[0];
+	}
 	/**
 	 * Convenience method that gets the user ID from the session and fetches the
 	 * REST client. Factors code out of subclass methods.
@@ -234,13 +279,12 @@ public class DashboardRestrictedBaseController extends RestrictedBaseController 
 	 * @param request
 	 *            HttpServletRequest
 	 * @return REST client appropriate for the user
-	 * @throws DashboardControllerException
 	 */
-	protected IControllerRestClient getControllerRestClient(HttpServletRequest request) throws DashboardControllerException {
+	protected CloudifyClient getCloudifyRestClient(HttpServletRequest request) throws Exception {
 		User appUser = UserUtils.getUserSession(request);
-		if (appUser == null || appUser.getLoginId() == null || appUser.getLoginId().length() == 0)
-			throw new DashboardControllerException("getControllerRestClient: Failed to get application user");
-		return getControllerRestClient(appUser.getId());
+		if (appUser == null || appUser.getId() == null )
+			throw new Exception("getCloudifyRestClient: Failed to get application user");
+		return getCloudifyRestClient(appUser.getId());
 	}
 
 	/**
@@ -248,28 +292,179 @@ public class DashboardRestrictedBaseController extends RestrictedBaseController 
 	 * client with appropriate credentials from properties.
 	 * 
 	 * @return REST client.
-	 * @throws DashboardControllerException on any failure; e.g., if the password cannot be decrypted.
 	 */
-	protected IControllerRestClient getControllerRestClient(long userId) throws DashboardControllerException {
-		IControllerRestClient result = null;
+	protected CloudifyClient getCloudifyRestClient(long userId) throws Exception {
+		CloudifyClient result = null;
 		// Be robust to missing development-only property
 		boolean mock = false;
-		if (appProperties.containsProperty(DashboardProperties.CONTROLLER_MOCK_DATA))
-			mock = appProperties.getBooleanProperty(DashboardProperties.CONTROLLER_MOCK_DATA);
+		if (DashboardProperties.containsProperty(DashboardProperties.CONTROLLER_MOCK_DATA))
+			mock = DashboardProperties.getBooleanProperty(DashboardProperties.CONTROLLER_MOCK_DATA);
 		if (mock) {
-			result = new ControllerRestClientMockImpl();
+			result = new CloudifyMockClientImpl();
 		} else {
-			try {
 			ControllerEndpointCredentials details = getOrSetControllerEndpointSelection(userId);
 			final String clearText = details.getEncryptedPassword() ? details.decryptPassword() : details.getPassword();
-			result = new ControllerRestClientImpl(details.getUrl(), details.getUsername(), clearText);
-			}
-			catch (Exception ex) {
-				logger.error("getControllerRestClient failed", ex);
-				throw new DashboardControllerException(ex);
-			}
+			result = new CloudifyRestClientImpl(details.getUrl(), details.getUsername(), clearText);
+		}
+		return result;
+	}
+	
+	/**
+	 * Gets a REST client; either a mock client (returns canned data), or a real
+	 * client with appropriate credentials from properties.
+	 * 
+	 * @return REST client.
+	 */
+	protected CloudifyClient getCloudifyRestClient() throws Exception {
+		CloudifyClient result = null;
+		// Be robust to missing development-only property
+		boolean mock = false;
+		if (DashboardProperties.containsProperty(DashboardProperties.CONTROLLER_MOCK_DATA))
+			mock = DashboardProperties.getBooleanProperty(DashboardProperties.CONTROLLER_MOCK_DATA);
+		if (mock) {
+			result = new CloudifyMockClientImpl();
+		} else {
+			ControllerEndpointCredentials details = getOrSetControllerEndpointSelection();
+			final String clearText = details.getEncryptedPassword() ? details.decryptPassword() : details.getPassword();
+			result = new CloudifyRestClientImpl(details.getUrl(), details.getUsername(), clearText);
+		}
+		return result;
+	}
+	
+	/**
+	 * Convenience method that gets the user ID from the session and fetches the
+	 * REST client. Factors code out of subclass methods.
+	 * 
+	 * @param request
+	 *            HttpServletRequest
+	 * @return REST client appropriate for the user
+	 */
+	protected ConsulClient getConsulRestClient(HttpServletRequest request) throws Exception {
+		User appUser = UserUtils.getUserSession(request);
+		if (appUser == null || appUser.getId() == null )
+			throw new Exception("getControllerRestClient: Failed to get application user");
+		return getConsulRestClient(appUser.getId());
+	}
+	
+	/**
+	 * Gets a REST client; either a mock client (returns canned data), or a real
+	 * client with appropriate credentials from properties.
+	 * 
+	 * @return REST client.
+	 */
+	protected ConsulClient getConsulRestClient(long userId) throws Exception {
+		ConsulClient result = null;
+		// Be robust to missing development-only property
+		boolean mock = false;
+		if (DashboardProperties.containsProperty(DashboardProperties.CONTROLLER_MOCK_DATA))
+			mock = DashboardProperties.getBooleanProperty(DashboardProperties.CONTROLLER_MOCK_DATA);
+		if (mock) {
+			result = new ConsulMockClientImpl();
+		} else {
+			ControllerEndpointCredentials details = getOrSetControllerEndpointSelection();
+			final String clearText = details.getEncryptedPassword() ? details.decryptPassword() : details.getPassword();
+			result = new ConsulRestClientImpl(details.getConsulUrl(), details.getUsername(), clearText);
+		}
+		return result;
+	}
+	
+	/**
+	 * Gets a REST client; either a mock client (returns canned data), or a real
+	 * client with appropriate credentials from properties.
+	 * 
+	 * @return REST client.
+	 */
+	protected ConsulClient getConsulRestClient() throws Exception {
+		ConsulClient result = null;
+		// Be robust to missing development-only property
+		boolean mock = false;
+		if (DashboardProperties.containsProperty(DashboardProperties.CONTROLLER_MOCK_DATA))
+			mock = DashboardProperties.getBooleanProperty(DashboardProperties.CONTROLLER_MOCK_DATA);
+		if (mock) {
+			result = new ConsulMockClientImpl();
+		} else {
+			ControllerEndpointCredentials details = getOrSetControllerEndpointSelection();
+			final String clearText = details.getEncryptedPassword() ? details.decryptPassword() : details.getPassword();
+			result = new ConsulRestClientImpl(details.getConsulUrl(), details.getUsername(), clearText);
+		}
+		return result;
+	}
+	
+	/**
+	 * Convenience method that gets the user ID from the session and fetches the
+	 * Inventory client. Factors code out of subclass methods.
+	 * 
+	 * @param request
+	 *            HttpServletRequest
+	 * @return Inventory client appropriate for the user
+	 */
+	protected InventoryClient getInventoryClient(HttpServletRequest request) throws Exception {
+		User appUser = UserUtils.getUserSession(request);
+		if (appUser == null || appUser.getId() == null)
+			throw new Exception("getControllerRestClient: Failed to get application user");
+		return getInventoryClient(appUser.getId());
+	}
+
+	/**
+	 * Gets an Inventory client with appropriate credentials from properties.
+	 *
+	 * @return Inventory Client.
+	 */
+	protected InventoryClient getInventoryClient(long userId) throws Exception {
+		InventoryClient result = null;
+		boolean mock = false;
+		if (DashboardProperties.containsProperty(DashboardProperties.CONTROLLER_MOCK_DATA))
+			mock = DashboardProperties.getBooleanProperty(DashboardProperties.CONTROLLER_MOCK_DATA);
+		if (mock) {
+			result = new RestInventoryClientMockImpl();
+		} else {
+		ControllerEndpointCredentials details = getOrSetControllerEndpointSelection(userId);
+		final String clearText = details.getEncryptedPassword() ? details.decryptPassword() : details.getPassword();
+		result = new RestInventoryClientImpl(details.getInventoryUrl(), details.getUsername(), clearText);
 		}
 		return result;
 	}
 
+	protected InventoryClient getInventoryClient() throws Exception {
+		InventoryClient result = null;
+		ControllerEndpointCredentials details = getOrSetControllerEndpointSelection();
+		final String clearText = details.getEncryptedPassword() ? details.decryptPassword() : details.getPassword();
+		result = new RestInventoryClientImpl(details.getInventoryUrl(), details.getUsername(), clearText);
+		return result;
+	}
+	/**
+	 * Convenience method that gets the user ID from the session and fetches the
+	 * Deployment Handler client. Factors code out of subclass methods.
+	 *
+	 * @param request
+	 *            HttpServletRequest
+	 * @return Deployment Handler client appropriate for the user
+	 */
+	protected DeploymentHandlerClient getDeploymentHandlerClient(HttpServletRequest request) throws Exception {
+		User appUser = UserUtils.getUserSession(request);
+		if (appUser == null || appUser.getId() == null)
+			throw new Exception("getControllerRestClient: Failed to get application user");
+		return getDeploymentHandlerClient(appUser.getId());
+	}
+
+	/**
+	 * Gets a Deployment Handler client with appropriate credentials from properties.
+	 *
+	 * @return Deployment Handler Client.
+	 */
+	protected DeploymentHandlerClient getDeploymentHandlerClient(long userId) throws Exception {
+		DeploymentHandlerClient result = null;
+		ControllerEndpointCredentials details = getOrSetControllerEndpointSelection(userId);
+		final String clearText = details.getEncryptedPassword() ? details.decryptPassword() : details.getPassword();
+		result = new DeploymentHandlerClientImpl(details.getDhandlerUrl(), details.getUsername(), clearText);
+		return result;
+	}
+	
+	protected DeploymentHandlerClient getDeploymentHandlerClient() throws Exception {
+		DeploymentHandlerClient result = null;
+		ControllerEndpointCredentials details = getOrSetControllerEndpointSelection();
+		final String clearText = details.getEncryptedPassword() ? details.decryptPassword() : details.getPassword();
+		result = new DeploymentHandlerClientImpl(details.getDhandlerUrl(), details.getUsername(), clearText);
+		return result;
+	}
 }

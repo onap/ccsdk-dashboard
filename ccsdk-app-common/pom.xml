@@ -15,11 +15,13 @@
 		<springframework.version>4.2.0.RELEASE</springframework.version>
 		<hibernate.version>4.3.11.Final</hibernate.version>
 		<eelf.version>1.0.0</eelf.version>
-		<epsdk.version>2.1.0</epsdk.version>
+		<epsdk.version>2.5.1</epsdk.version>
 		<nexusproxy>https://nexus.onap.org</nexusproxy>
-		<snapshotNexusPath>/content/repositories/snapshots/</snapshotNexusPath>
-		<releaseNexusPath>/content/repositories/releases/</releaseNexusPath>
-		<skipTests>true</skipTests>
+		<snapshotNexusPath>content/repositories/snapshots/</snapshotNexusPath>
+		<releaseNexusPath>content/repositories/releases/</releaseNexusPath>
+		<stagingNexusPath>/content/repositories/staging/</stagingNexusPath>
+		<skipTests>false</skipTests>
+		<jacocoVersion>0.7.6.201602180812</jacocoVersion>
 	</properties>
 
 	<repositories>
@@ -34,6 +36,12 @@
 			<id>ecomp-snapshots</id>
 			<name>OpenECOMP - Snapshot Repository</name>
 			<url>${nexusproxy}/${snapshotNexusPath}</url>
+		</repository>
+		<repository>
+			<!-- Staging repository has ECOMP release staging artifacts -->
+			<id>onap-staging</id>
+			<name>ONAP - Staging Repository</name>
+			<url>${nexusproxy}${stagingNexusPath}</url>
 		</repository>
 	</repositories>
 
@@ -115,7 +123,6 @@
 					</execution>
 				</executions>
 			</plugin>
-
 			<!-- no deployment needed -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -125,12 +132,53 @@
 					<skip>true</skip>
 				</configuration>
 			</plugin>
-
+			<!-- jacoco -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacocoVersion}</version>
+				<executions>
+					<execution>
+						<id>prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+						<configuration>
+							<destFile>${project.build.directory}/code-coverage/jacoco-ut.exec</destFile>
+						</configuration>
+					</execution>
+					<execution>
+						<id>post-unit-test</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+						<configuration>
+							<dataFile>${project.build.directory}/code-coverage/jacoco-ut.exec</dataFile>
+							<outputDirectory>${project.basedir}/target/site/jacoco</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<systemPropertyVariables>
+						<jacoco-agent.destfile>${project.build.directory}/code-coverage/jacoco-ut.exec</jacoco-agent.destfile>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
 		</plugins>
 
 	</build>
 
 	<dependencies>
+		<dependency>
+			<groupId>javax.ws.rs</groupId>
+			<artifactId>javax.ws.rs-api</artifactId>
+			<version>2.0</version>
+		</dependency>
 		<!-- For using HTTP Basic Auth in uService REST client -->
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
@@ -168,17 +216,27 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-annotations</artifactId>
-			<version>2.6.3</version>
+			<version>2.9.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
-			<version>2.6.3</version>
+			<version>2.9.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>2.6.3</version>
+			<version>2.9.0</version>
+		</dependency>
+		<dependency>
+		   <groupId>com.fasterxml.jackson.datatype</groupId>
+		   <artifactId>jackson-datatype-jdk8</artifactId>
+		   <version>2.9.0</version>
+		</dependency>
+		<dependency>
+		    <groupId>com.fasterxml.jackson.dataformat</groupId>
+		    <artifactId>jackson-dataformat-yaml</artifactId>
+		    <version>2.9.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.mchange</groupId>
@@ -236,6 +294,13 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
 			<version>${springframework.version}</version>
+		</dependency>
+		<!-- Jacoco for offline instrumentation -->
+		<dependency>
+			<groupId>org.jacoco</groupId>
+			<artifactId>org.jacoco.agent</artifactId>
+			<version>${jacocoVersion}</version>
+			<classifier>runtime</classifier>
 		</dependency>
 	</dependencies>
 

@@ -4,7 +4,7 @@
 	<head>
 	<meta charset="UTF-8">
 	<title>OOM Dashboard</title>
-    <link rel="icon" type="image/ico" href="app/oom/images/onap_32x32.ico" />
+    <link rel="icon" type="image/ico" href="app/ccsdk/images/onap_32x32.ico" />
 
 	<!-- Third-party scripts from EPSDK overlay -->	
 	<script src="app/fusion/external/angular-1.4.8/angular.js"></script>	
@@ -18,11 +18,12 @@
 	<script src="app/fusion/external/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
 	
 	<!-- Third-party scripts from app -->
-	<script src="app/oom/external/bootstrap.min.js" type="text/javascript"></script>
+	<script src="app/ccsdk/external/bootstrap.min.js" type="text/javascript"></script>
 	<!-- https://github.com/jeremyfa/yaml.js -->
-	<script src="app/oom/external/yaml.js" type="text/javascript"></script>
+	<script src="app/ccsdk/external/yaml.js" type="text/javascript"></script>
 	
-	<script src="app/fusion/external/b2b/js/b2b-angular/b2b-library.min.js"></script>
+	<script src="app/fusion/external/b2b/js/b2b-angular/b2b-library.js"></script>
+	<!-- <script src="app/fusion/external/b2b/js/b2b-angular/b2b-library.min.js"></script>-->
 	<!-- Tweaked CSS -->
 	<link rel="stylesheet" type="text/css" href="app/fusion/external/b2b/css/b2b-angular/b2b-angular.css">
 	<link rel="stylesheet" type="text/css" href="app/fusion/external/b2b/css/b2b-angular/font_icons.css">
@@ -34,8 +35,8 @@
 	<link rel="stylesheet" type="text/css" href="app/fusion/styles/ecomp.css">
 	
     <!-- main app -->
-	<script src="app/oom/home/modal-service.js"></script>
-	<script src="app/oom/home/appDS2.js"></script> 
+	<script src="app/ccsdk/home/modal-service.js"></script>
+	<script src="app/ccsdk/home/appDS2.js"></script> 
 
 	<!-- directives and services -->
 	<script src="app/fusion/scripts/DS2-services/userInfoServiceDS2.js"></script>
@@ -47,33 +48,44 @@
 	<script src="app/fusion/scripts/DS2-directives/ds2LeftMenu.js"></script>
 	<script src="app/fusion/scripts/DS2-directives/b2b-leftnav-ext.js"></script> 
 	 
-	<!-- ECD home -->
-	<script src="app/oom/home/tree-view-controller.js"></script>
-	<script src="app/oom/home/tree-view-directive.js"></script>
-	<script src="app/oom/home/controller-service.js"></script>
-	<script src="app/oom/home/oom-instances-controller.js"></script>
-	<script src="app/oom/home/executions-view-controller.js"></script>
-	<link rel="stylesheet" href="app/oom/home/tree-view-style.css"/>
-	<link rel="stylesheet" href="app/oom/home/oom-style.css"/>	
+	<!-- OOM home -->
+	<script src="app/ccsdk/home/tree-view-controller.js"></script>
+	<script src="app/ccsdk/home/tree-view-directive.js"></script>
+	<script src="app/ccsdk/home/controller-service.js"></script>
+	<script src="app/ccsdk/home/oom-instances-controller.js"></script>
+	<script src="app/ccsdk/home/executions-view-controller.js"></script>
+	<script src="app/ccsdk/home/http-interceptor.js"></script>
+	<link rel="stylesheet" href="app/ccsdk/home/tree-view-style.css"/>
+	<link rel="stylesheet" href="app/ccsdk/home/oom-style.css"/>	
 
 	<!-- Cloudify -->
-	<script src="app/oom/cloudify/blueprint-service.js"></script>
-	<script src="app/oom/cloudify/deployment-service.js"></script>
-	<script src="app/oom/cloudify/execution-service.js"></script>
-	<script src="app/oom/cloudify/tosca-table-controller.js"></script>
-	<script src="app/oom/cloudify/blueprint-controllers.js"></script>
-	<script src="app/oom/cloudify/deployment-controllers.js"></script>
-	<script src="app/oom/cloudify/execution-table-controller.js"></script>
+	<script src="app/ccsdk/cloudify/blueprint-service.js"></script>
+	<script src="app/ccsdk/cloudify/deployment-service.js"></script>
+	<script src="app/ccsdk/cloudify/execution-service.js"></script>
+	<script src="app/ccsdk/cloudify/tosca-table-controller.js"></script>
+	<script src="app/ccsdk/cloudify/blueprint-controllers.js"></script>
+	<script src="app/ccsdk/cloudify/deployment-controllers.js"></script>
+	<script src="app/ccsdk/cloudify/execution-table-controller.js"></script>
+	
+	<!--Inventory-->
+	<script src="app/ccsdk/inventory/blueprint-service.js"></script>
+	<script src="app/ccsdk/inventory/deployment-service.js"></script>
+	<script src="app/ccsdk/inventory/execution-service.js"></script>
+	<script src="app/ccsdk/inventory/blueprint-controllers.js"></script>
+	<script src="app/ccsdk/inventory/deployment-controllers.js"></script>
 	
 	<!-- Consul -->
-	<script src="app/oom/consul/service-health-service.js"></script>	
-	<script src="app/oom/consul/service-controllers.js"></script>
-	<script src="app/oom/consul/node-table-controller.js"></script>
-	<script src="app/oom/consul/node-health-service.js"></script>	
-	<script src="app/oom/consul/node-services-controller.js"></script>
-	<script src="app/oom/consul/datacenter-table-controller.js"></script>
-	<script src="app/oom/consul/datacenter-health-service.js"></script>
+	<script src="app/ccsdk/consul/service-health-service.js"></script>	
+	<script src="app/ccsdk/consul/service-controllers.js"></script>
+	<script src="app/ccsdk/consul/node-table-controller.js"></script>
+	<script src="app/ccsdk/consul/node-health-service.js"></script>	
+	<script src="app/ccsdk/consul/node-services-controller.js"></script>
+	<script src="app/ccsdk/consul/datacenter-table-controller.js"></script>
+	<script src="app/ccsdk/consul/datacenter-health-service.js"></script>
 
+	<!-- Ops -->
+	<script src="app/ccsdk/ops/tabs-view-controller.js"></script>
+	
 	<!-- user admin pages --> 
 	<script src="app/fusion/scripts/DS2-services/adminService.js"></script>
 	<script src="app/fusion/scripts/DS2-services/ds2-profile/selfProfileService.js"></script> 
@@ -91,7 +103,7 @@
 	<script src="app/fusion/scripts/DS2-controllers/fn-menu-add-popup-controller.js"></script>
 	
 	<!-- main page -->
-	<script src="app/oom/home/oom-router.js"></script>
+	<script src="app/ccsdk/home/oom-router.js"></script>
 
 	<style>
 		.csep-root1{
@@ -111,12 +123,15 @@
 	</head>
 	<body class="appBody" ng-app="abs">
 		<!-- double quotation marks are required for the popup templates - values are string literals -->
-  	  	<div ng-include src="'app/oom/home/oom_popup_templates.html'"></div>
-		<div ng-include src="'app/oom/home/oom_instances_popup.html'"></div>
-  	  	<div ng-include src="'app/oom/cloudify/blueprint_popups.html'"></div>
-  	  	<div ng-include src="'app/oom/cloudify/deployment_popups.html'"></div>
-	    <div ng-include src="'app/oom/consul/service_popups.html'"></div>
-	    <div ng-include src="'app/oom/consul/node_popups.html'"></div>
+  	  	<div ng-include src="'app/ccsdk/home/oom_popup_templates.html'"></div>
+		<div ng-include src="'app/ccsdk/home/oom_instances_popup.html'"></div>
+  	  	<div ng-include src="'app/ccsdk/cloudify/blueprint_popups.html'"></div>
+  	  	<div ng-include src="'app/ccsdk/cloudify/deployment_popups.html'"></div>
+  	  	<div ng-include src="'app/ccsdk/inventory/inventory_blueprint_popups.html'"></div>
+  	  	<div ng-include src="'app/ccsdk/inventory/inventory_deployment_popups.html'"></div>
+  	  	<div ng-include src="'app/ccsdk/inventory/inventory_execution_popups.html'"></div>
+	    <div ng-include src="'app/ccsdk/consul/service_popups.html'"></div>
+	    <div ng-include src="'app/ccsdk/consul/node_popups.html'"></div>
 		<div ds2-header id="header" class="header-container"></div>
 		<div ds2-menu id="menu-container" class="menu-container"></div>
 		<div ng-view id="rightContentProfile" class="content-container"></div>		

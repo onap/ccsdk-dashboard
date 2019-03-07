@@ -2,7 +2,7 @@
  * =============LICENSE_START=========================================================
  *
  * =================================================================================
- *  Copyright (c) 2017 AT&T Intellectual Property. All rights reserved.
+ *  Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
  * ================================================================================
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -19,9 +19,13 @@
  *
  *  ECOMP is a trademark and service mark of AT&T Intellectual Property.
  *******************************************************************************/
+
 package org.onap.ccsdk.dashboard.service;
 
+import java.util.List;
+
 import org.onap.ccsdk.dashboard.domain.ControllerEndpoint;
+import org.onap.ccsdk.dashboard.domain.EcdComponent;
 
 /**
  * Provides methods for managing the user's selection of controller endpoint.
@@ -56,4 +60,19 @@ public interface ControllerEndpointService {
 	 */
 	void deleteControllerEndpointSelection(long userId);
 
+	/**
+	 * Gets all component names that are currently supported through
+	 * ECOMPC dashboard
+	 * 
+	 * @return Component instance list;
+	 */
+	public List<EcdComponent> getComponents();
+
+	/**
+	 * 
+	 * Add a new component to support in ECOMPC platform
+	 * 
+	 * @param component
+	 */
+	void insertComponent(EcdComponent component);
 }

@@ -2,3 +2,5 @@
 ccsdk-app-common/ccsdk-app-common.iml
 ccsdk-app-os/ccsdk-app-os.iml
 ccsdk-app-overlay/ccsdk-app-overlay.iml
+.project
+.settings

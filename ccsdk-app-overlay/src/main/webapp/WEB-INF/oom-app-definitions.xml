@@ -27,6 +27,7 @@
 <tiles-definitions>
 
 	<!-- Main page for the single-page app -->
-    <definition name="oom_home_tdkey"   template="/app/oom/home/oom_spa.html"/>
-	
+    <definition name="ecd_home_tdkey"   template="/app/ccsdk/home/oom_spa.html"/>
+	<definition name="welcome"
+		template="/app/fusion/scripts/DS2-view-models/welcome.html" />
 </tiles-definitions>

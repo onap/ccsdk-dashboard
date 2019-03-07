@@ -30,11 +30,11 @@
   -->
   <!--<jmxConfigurator /> -->
 
-  <!--  specify the component name -->
-  <property name="componentName" value="oom_app_os"></property>
+    <!--  specify the component name -->
+  <property name="componentName" value="dashboard"></property>
   
   <!--  specify the base path of the log directory -->
-  <property name="logDirPrefix" value="${catalina.base}/logs"></property>
+  <property name="logDirPrefix" value="/opt/logs/ecompc"></property>
   
   <!-- The directories where logs are written -->
   <property name="logDirectory" value="${logDirPrefix}/${componentName}" />
