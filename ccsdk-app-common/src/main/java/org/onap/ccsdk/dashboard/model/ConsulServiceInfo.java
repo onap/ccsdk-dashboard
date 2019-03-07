@@ -2,7 +2,7 @@
  * =============LICENSE_START=========================================================
  *
  * =================================================================================
- *  Copyright (c) 2017 AT&T Intellectual Property. All rights reserved.
+ *  Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
  * ================================================================================
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
  *
  *  ECOMP is a trademark and service mark of AT&T Intellectual Property.
  *******************************************************************************/
+
 package org.onap.ccsdk.dashboard.model;
 
 import java.util.List;
@@ -31,11 +32,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * monitoring. This is NOT a model of message returned by Controller.
  * 
  * The controller API answers a message with a map of String (name) to List of
- * String (IP addresses).
+ * String (addresses).
  * 
  * <pre>
   {
-	"pgaasServer1":["1.2.3.4"]
+	"pgaasServer1":["135.91.224.136"]
   }
  * </pre>
  */

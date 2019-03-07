@@ -2,7 +2,7 @@
  * =============LICENSE_START=========================================================
  *
  * =================================================================================
- *  Copyright (c) 2017 AT&T Intellectual Property. All rights reserved.
+ *  Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
  * ================================================================================
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ public final class CloudifyDeployment extends ECTransportModel {
 	 * A dictionary containing key value pairs which represents a deployment
 	 * input and its provided value.
 	 */
-	public final Inputs inputs;
+	public final Map<String, Object> inputs;
 	/** A dictionary containing policies of a deployment. */
 	public final Map<String, Object> policy_types;
 	/** A dictionary containing policy triggers of a deployment. */
@@ -60,15 +60,17 @@ public final class CloudifyDeployment extends ECTransportModel {
 	/** A list of workflows that can be executed on a deployment. */
 	public final List<Workflow> workflows;
 
+	public final String tenant_name;
+
 	@JsonCreator
 	public CloudifyDeployment(@JsonProperty("description") String description,
 			@JsonProperty("blueprint_id") String blueprint_id, @JsonProperty("created_at") String created_at,
 			@JsonProperty("updated_at") String updated_at, @JsonProperty("id") String id,
-			@JsonProperty("inputs") Inputs inputs, @JsonProperty("policy_types") Map<String, Object> policy_types,
+			@JsonProperty("inputs") Map<String, Object> inputs, @JsonProperty("policy_types") Map<String, Object> policy_types,
 			@JsonProperty("policy_triggers") Map<String, Object> policy_triggers,
 			@JsonProperty("outputs") Map<String, Object> outputs, @JsonProperty("groups") Map<String, Object> groups,
 			@JsonProperty("scaling_groups") Map<String, Object> scaling_groups,
-			@JsonProperty("workflows") List<Workflow> workflows) {
+			@JsonProperty("workflows") List<Workflow> workflows, @JsonProperty("tenant_name") String tenant_name) {
 		this.description = description;
 		this.blueprint_id = blueprint_id;
 		this.created_at = created_at;
@@ -81,6 +83,7 @@ public final class CloudifyDeployment extends ECTransportModel {
 		this.groups = groups;
 		this.scaling_groups = scaling_groups;
 		this.workflows = workflows;
+		this.tenant_name = tenant_name;
 	}
 
 	public static final class Inputs {

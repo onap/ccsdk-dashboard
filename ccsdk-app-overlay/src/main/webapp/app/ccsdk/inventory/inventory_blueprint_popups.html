@@ -1,0 +1,755 @@
+<script type="text/ng-template"
+	id="inventory_blueprint_update_popup.html">
+
+	<style>
+	.ecd-parameter-table
+	{
+	    border:   1px;
+    	overflow: auto;
+	}
+	.ecd-parameter-table th
+	{
+		font-size: 1.4rem;
+	}
+
+	</style>
+
+	<div class="b2b-modal-header ng-scope">
+		<h2 id="myModalLabel" modal-title="">{{ecdapp.label}}</h2>
+		<div class="corner-button in">
+			<button type="button" class="close" aria-label="Close"
+				ng-click="$dismiss('cancel')"></button>
+		</div>
+	</div>
+
+	<div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
+		role="region" aria-label="Modal body content">
+		<div ng-show="ecdapp.updateInProgress" class="row-nowrap">
+			<div class="span" style="margin-bottom:20px;">
+				<i class="icon-spinner small" role="img" aria-label="Please wait while upload is in progress"></i>
+				Blueprint <span style="font-weight: bolder;background: aqua;">{{ecdapp.serviceType.typeName}}</span> upload is in progress... 
+			</div>
+		</div>
+		<form name="updateForm">
+		<div class="row-nowrap" style="margin-top:-20px;">
+			<div class="span4 form-row">
+				<label for="appl">Application</label>
+				<div class="field-group">
+				<input id="appl" class="span12" type="text" disabled="disabled" data-ng-model="ecdapp.serviceType.application"/>
+				</div>
+			</div>
+			<div class="span4 form-row">
+				<label for="comp">Component</label>
+				<div class="field-group">
+				<input id="comp" class="span12" type="text" disabled="disabled" data-ng-model="ecdapp.serviceType.component"/>
+				</div>		
+			</div>
+			<div class="span4 form-row" ng-class="{'error':updateForm.owner.$touched && updateForm.owner.$invalid}">
+				<div class="tooltip" b2b-tooltip trigger="focus">
+            		<a  href="javascript:void(0)" class="tooltip-element" data-placement="bottom" role="button" aria-label="Help"  aria-describedby="tooltiptext1" >
+                	*Owner
+                	<div class="arrow"></div>
+            		</a>
+	            	<div class="tooltip-wrapper" role="tooltip" aria-live="polite" aria-atomic="false" style="z-index:1111">
+                	<div class="tooltip-size-control">
+                    	<div class="helpertext" tabindex="-1" role="tooltip" id="tooltiptext1">  
+                        	<div class="popover-title">Owner - a required input</div>  
+                        	<div class="popover-content">
+                            	<p>Owner of the blueprint record, is set to the authenticated user ID by default, example: ab1234</p>
+                            	<strong class="hidden-spoken">Double tap to close help message.</strong>
+                        	</div>
+                    	</div>
+                	</div>
+            		</div>
+				</div>
+				<input type="text" id="owner" name="owner" class="span12" data-ng-model="ecdapp.serviceType.owner" required>
+				<div ng-if="updateForm.owner.$touched && updateForm.owner.$invalid" role="alert" class="error-msg" aria-live="polite" aria-atomic="true" >
+                  <i class="icon-badgealert" aria-hidden="true"></i>
+                  <span>Error: Required field.</span>
+            	</div>	
+	        </div>
+		</div>
+		<div class="row-nowrap">
+			<div class="span6 form-row">
+				<label class="span12" for="typeName">*Blueprint Name</label>
+				<div class="field-group tooltip-onclick"  b2b-tooltip>
+					<input type="text" id="typeName" name="typeName" class="span12" data-ng-model="ecdapp.serviceType.typeName" disabled="disabled">
+					<button class="reset-field" type="button" aria-label="Reset text field"></button>
+					<button id="tooltipButton3" class="btn icon-content-listguide tooltip-element icon-tooltip" data-toggle="button" aria-label="Email help"   aria-describedby="tooltipContent3" >
+	            	</button>
+	            	<div class="helpertext" tabindex="-1" role="tooltip" id="tooltipContent3">  
+	                	<div class="popover-title">Blueprint or Type name - a required input</div>  
+	                	<div class="popover-content">
+	                    	<p>Blueprint or Service Type name identifying the specific application component function. Each application component can have multiple functions which map to separate blueprints.</p>
+	                    	<strong class="hidden-spoken">Double tap to close help message.</strong>
+	                	</div>
+	            	</div>
+	            </div>
+	        </div>
+	        <div class="span6 form-row">
+				<label class="span12" for="typeName">*Blueprint Version</label>
+				<div class="field-group tooltip-onclick"  b2b-tooltip>
+					<input type="text" id="typeVer" name="typeVer" class="span12" data-ng-model="ecdapp.serviceType.typeVersion" disabled="disabled">
+					<button class="reset-field" type="button" aria-label="Reset text field"></button>
+					<button id="tooltipButton3" class="btn icon-content-listguide tooltip-element icon-tooltip" data-toggle="button" aria-label="Email help"   aria-describedby="tooltipContent4" >
+	            	</button>
+	            	<div class="helpertext" tabindex="-1" role="tooltip" id="tooltipContent4">  
+	                	<div class="popover-title">Blueprint or Type version - a required input</div>  
+	                	<div class="popover-content">
+	                    	<p>Blueprint or Service Type version may be used to identify the blueprint or package release version.</p>
+	                    	<strong class="hidden-spoken">Double tap to close help message.</strong>
+	                	</div>
+	            	</div>
+	            </div>
+	        </div>
+		</div>					
+		<div class="row-nowrap">
+			<div class="span12 form-row" ng-class="{'error':updateForm.bpTemplate.$touched && updateForm.bpTemplate.$invalid}">
+				<div class="tooltip" b2b-tooltip trigger="focus">
+            		<a  href="javascript:void(0)" class="tooltip-element" data-placement="bottom" role="button" aria-label="Help"  aria-describedby="tooltiptext2" >
+                	*Blueprint Template
+                	<div class="arrow"></div>
+            		</a>
+	            	<div class="tooltip-wrapper" role="tooltip" aria-live="polite" aria-atomic="false" style="z-index:1111">
+                	<div class="tooltip-size-control">
+                    	<div class="helpertext" tabindex="-1" role="tooltip" id="tooltiptext2">  
+                        	<div class="popover-title">Blueprint template in YAML format - a required input</div>  
+                        	<div class="popover-content">
+                            	<p>Blueprint YAML file read from inventory. Edit if required to make updates.</p>
+                            	<strong class="hidden-spoken">Double tap to close help message.</strong>
+                        	</div>
+                    	</div>
+                	</div>
+            		</div>
+				</div>
+				<textarea id="bpTemplate" name="bpTemplate"class="span12" rows="15" data-ng-model="ecdapp.serviceType.blueprintTemplate" wrap="off" required>
+				</textarea>
+				<div ng-if="updateForm.bpTemplate.$touched && updateForm.bpTemplate.$invalid" role="alert" class="error-msg" aria-live="polite" aria-atomic="true" >
+                  <i class="icon-badgealert" aria-hidden="true"></i>
+                  <span>Error: Required field.</span>
+            	</div>
+			</div>
+		</div>
+		<div ng-show="ecdapp.updateInProgress" class="row-nowrap">
+			<div class="span" style="margin-bottom:20px;">
+    		<i class="icon-spinner small" role="img" aria-label="Please wait while upload is in progress"></i>
+	    	Blueprint <span style="font-weight: bolder;background: aqua;">{{ecdapp.serviceType.typeName}}</span> upload is in progress... 
+			</div>
+		</div>
+		</form>
+	</div>
+
+	<div class="b2b-modal-footer ng-scope ng-isolate-scope">
+		<div class="cta-button-group in">
+			<button class="btn btn-alt btn-small" type="submit" ng-disabled="updateForm.$invalid"
+					ng-click="ecdapp.updateBlueprint(ecdapp.serviceType);">
+				Save
+			</button>
+			<button class="btn btn-small" type="button"
+				ng-click="$dismiss('cancel')">
+				Cancel
+			</button>
+		</div>
+	</div>
+	
+</script>
+
+<script type="text/ng-template"
+	id="inventory_blueprint_upload_popup.html">
+
+	<style>
+	.ecd-parameter-table
+	{
+	    border:   1px;
+    	overflow: auto;
+	}
+	.ecd-parameter-table th
+	{
+		font-size: 1.4rem;
+	}
+	select
+	{
+		-webkit-appearance: menulist;
+		-moz-appearance: menulist;
+	}
+	</style>
+	
+	<div class="b2b-modal-header ng-scope">
+		<h2 id="myModalLabel" modal-title="">{{ecdapp.label}}</h2>
+		<div class="corner-button in">
+			<button type="button" class="close" aria-label="Close"
+				ng-click="$dismiss('cancel')"></button>
+		</div>
+	</div>
+
+	<div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
+		role="region" aria-label="Modal body content">
+		<div ng-show="ecdapp.uploadInProgress" class="row-nowrap">
+			<div class="span" style="margin-bottom:20px;">
+				<i class="icon-spinner small" role="img" aria-label="Please wait while upload is in progress"></i>
+				Blueprint <span style="font-weight: bolder;background: aqua;">{{ecdapp.serviceTypeRequest.typeName}}</span> upload is in progress... 
+			</div>
+		</div>
+		
+		<div class="row-nowrap" style="margin-bottom: 10px;">
+        	<label for="checkbox1" class="checkbox">
+                    <input id="checkbox1" type="checkbox" ng-click="ecdapp.handleImportCb($event)"><i class="skin"></i><span>Import Data</span>
+            </label>
+			<span class="tooltip" b2b-tooltip>
+				<a href="#" class="icon-tooltip tooltip-element" tabindex="0" role="button" data-placement="bottom" aria-label="Help" aria-describedby="tooltiptextRadio" >
+					<span class="arrow"></span>
+				</a>
+				<span class="tooltip-wrapper">
+					<span class="tooltip-size-control">
+						<span id="tooltiptextRadio" role="tooltip" aria-live="polite" aria-hidden="true" class="helpertext" tabindex="-1">  
+							<span class="popover-title">Import blueprint data</span>  
+							<span class="popover-content">
+								<span>Enable the option to import FORM data from local file system. Blueprint import file can be made readily available by exporting a record from application blueprints table.</span>
+								<strong class="hidden-spoken hidden-desktop">Double tap to close help message.</strong>
+							</span>
+						</span>
+					</span>
+				</span>
+			</span>
+			<div ng-show="ecdapp.isImport" style="height: 40px; margin-left: 60px;" b2b-file-drop file-model="ecdapp.serviceTypeRequest.fileModel" on-drop="ecdapp.handleImportFile()" align="center" required>
+				<span b2b-file-link file-model="ecdapp.serviceTypeRequest.fileModel" on-file-select="ecdapp.handleImportFile()" >
+				Drag &amp; drop or click to browse Blueprint data file
+   			</span>
+			</div>
+		</div>
+		<form name="uploadForm">
+		<div class="row-nowrap" style="margin-top:-20px;" ng-show="ecdapp.isImport">
+			<div class="span3 form-row" ng-class="{'error':uploadForm.appl.$touched && !ecdapp.validAppl}">
+				<div class="tooltip" b2b-tooltip trigger="focus">
+            		<a  href="javascript:void(0)" class="tooltip-element" data-placement="bottom" role="button" aria-label="Help"  aria-describedby="tooltiptext1" >
+                	*Application
+                	<div class="arrow"></div>
+            		</a>
+	            	<div class="tooltip-wrapper" role="tooltip" aria-live="polite" aria-atomic="false" style="z-index:1111">
+                	<div class="tooltip-size-control">
+                    	<div class="helpertext" tabindex="-1" role="tooltip" id="tooltiptext1">  
+                        	<div class="popover-title">Application - a required input</div>  
+                        	<div class="popover-content">
+                            	<p>EOM controller application name. Select an application from the dropdown menu.</p>
+                            	<strong class="hidden-spoken">Double tap to close help message.</strong>
+                        	</div>
+                    	</div>
+                	</div>
+            		</div>
+				</div>
+				<div class="field-group">
+					<input id="appl2" class="span12" type="text" data-ng-model="ecdapp.serviceTypeRequest.application"/>
+				</div>
+				<div ng-if="uploadForm.appl.$touched && !ecdapp.validAppl" id="applDropdown" role="alert" class="error-msg" aria-live="polite" aria-atomic="true" >
+                  <i class="icon-badgealert" aria-hidden="true"></i>
+                  <span>Error: Required field.</span>
+            	</div>
+				<div ng-show="uploadForm.$submitted" role="alert" class="error-msg" aria-live="polite" aria-atomic="true">
+					<div ng-show="uploadForm.appl.$error.required">
+					<i class="icon-badgealert" aria-hidden="true"></i>
+					<span>Error: Required field.</span>
+					</div>
+				</div>
+			</div>
+			<div class="span3 form-row" ng-class="{'error':uploadForm.comp.$touched && !ecdapp.validComp}">
+				<div class="tooltip" b2b-tooltip trigger="focus">
+            		<a  href="javascript:void(0)" class="tooltip-element" data-placement="bottom" role="button" aria-label="Help"  aria-describedby="tooltiptext1" >
+                	*Component/Namespace
+                	<div class="arrow"></div>
+            		</a>
+	            	<div class="tooltip-wrapper" role="tooltip" aria-live="polite" aria-atomic="false" style="z-index:1111">
+                	<div class="tooltip-size-control">
+                    	<div class="helpertext" tabindex="-1" role="tooltip" id="tooltiptext1">  
+                        	<div class="popover-title">Component - a required input</div>  
+                        	<div class="popover-content">
+                            	<p>Display name of the Component. Component dropdown menu depends on application menu. Component is part of application namespace defined in AAF. If the component is not in the list then add it by using the FORM below.</p>
+                            	<strong class="hidden-spoken">Double tap to close help message.</strong>
+                        	</div>
+                    	</div>
+                	</div>
+            		</div>
+				</div>
+				<div class="field-group">
+				<input id="comp2" class="span12" type="text" data-ng-model="ecdapp.serviceTypeRequest.component"/>
+				</div>
+				<div ng-if="uploadForm.comp.$touched && !ecdapp.validComp" id="compDropdown" role="alert" class="error-msg" aria-live="polite" aria-atomic="true" >
+                  <i class="icon-badgealert" aria-hidden="true"></i>
+                  <span>Error: Required field.</span>
+            	</div>				
+			</div>
+			<div class="span3 form-row" ng-class="{'error':uploadForm.owner.$touched && uploadForm.owner.$invalid}">
+				<div class="tooltip" b2b-tooltip trigger="focus">
+            		<a  href="javascript:void(0)" class="tooltip-element" data-placement="bottom" role="button" aria-label="Help"  aria-describedby="tooltiptext1" >
+                	*Owner
+                	<div class="arrow"></div>
+            		</a>
+	            	<div class="tooltip-wrapper" role="tooltip" aria-live="polite" aria-atomic="false" style="z-index:1111">
+                	<div class="tooltip-size-control">
+                    	<div class="helpertext" tabindex="-1" role="tooltip" id="tooltiptext1">  
+                        	<div class="popover-title">Owner - a required input</div>  
+                        	<div class="popover-content">
+                            	<p>Owner of the blueprint record, is set to the authenticated user ID by default, example: ab1234</p>
+                            	<strong class="hidden-spoken">Double tap to close help message.</strong>
+                        	</div>
+                    	</div>
+                	</div>
+            		</div>
+				</div>
+				<input type="text" id="owner2" name="owner" class="span12" data-ng-model="ecdapp.serviceTypeRequest.owner" required>
+				<div ng-if="uploadForm.owner.$touched && uploadForm.owner.$invalid" role="alert" class="error-msg" aria-live="polite" aria-atomic="true" >
+                  <i class="icon-badgealert" aria-hidden="true"></i>
+                  <span>Error: Required field.</span>
+            	</div>	
+	        </div>
+		</div>
+		<div class="row-nowrap" style="margin-top:-20px;" ng-hide="ecdapp.isImport">
+			<div class="span3 form-row" ng-class="{'error':uploadForm.appl.$touched && !ecdapp.validAppl}">
+				<div class="tooltip" b2b-tooltip trigger="focus">
+            		<a  href="javascript:void(0)" class="tooltip-element" data-placement="bottom" role="button" aria-label="Help"  aria-describedby="tooltiptext1" >
+                	*Application
+                	<div class="arrow"></div>
+            		</a>
+	            	<div class="tooltip-wrapper" role="tooltip" aria-live="polite" aria-atomic="false" style="z-index:1111">
+                	<div class="tooltip-size-control">
+                    	<div class="helpertext" tabindex="-1" role="tooltip" id="tooltiptext1">  
+                        	<div class="popover-title">Application - a required input</div>  
+                        	<div class="popover-content">
+                            	<p>EOM controller application name. Select an application from the dropdown menu.</p>
+                            	<strong class="hidden-spoken">Double tap to close help message.</strong>
+                        	</div>
+                    	</div>
+                	</div>
+            		</div>
+				</div>
+				<div class="field-group">
+				<select id="appl" name="appl" b2b-dropdown placeholder-text="Select Application" class="span8" data-ng-model="ecdapp.serviceTypeRequest.application" ng-change="ecdapp.selectAppComp(ecdapp.serviceTypeRequest.application)" required>
+					<option b2b-dropdown-list option-repeat="d in ecdapp.apps" value="{{d}}">{{d}}</option>
+				</select>
+				</div>
+				<div ng-if="uploadForm.appl.$touched && !ecdapp.validAppl" id="applDropdown" role="alert" class="error-msg" aria-live="polite" aria-atomic="true" >
+                  <i class="icon-badgealert" aria-hidden="true"></i>
+                  <span>Error: Required field.</span>
+            	</div>
+				<div ng-show="uploadForm.$submitted" role="alert" class="error-msg" aria-live="polite" aria-atomic="true">
+					<div ng-show="uploadForm.appl.$error.required">
+					<i class="icon-badgealert" aria-hidden="true"></i>
+					<span>Error: Required field.</span>
+					</div>
+				</div>
+			</div>
+			<div class="span3 form-row" ng-class="{'error':uploadForm.comp.$touched && !ecdapp.validComp}">
+				<div class="tooltip" b2b-tooltip trigger="focus">
+            		<a  href="javascript:void(0)" class="tooltip-element" data-placement="bottom" role="button" aria-label="Help"  aria-describedby="tooltiptext1" >
+                	*Component/Namespace
+                	<div class="arrow"></div>
+            		</a>
+	            	<div class="tooltip-wrapper" role="tooltip" aria-live="polite" aria-atomic="false" style="z-index:1111">
+                	<div class="tooltip-size-control">
+                    	<div class="helpertext" tabindex="-1" role="tooltip" id="tooltiptext1">  
+                        	<div class="popover-title">Component - a required input</div>  
+                        	<div class="popover-content">
+                            	<p>Display name of the Component. Component dropdown menu depends on application menu. Component is part of application namespace defined in AAF. If the component is not in the list then add it by using the FORM below.</p>
+                            	<strong class="hidden-spoken">Double tap to close help message.</strong>
+                        	</div>
+                    	</div>
+                	</div>
+            		</div>
+				</div>
+				<div class="field-group">
+				<select b2b-dropdown name="comp" class="span8" placeholder-text="Select Component" data-ng-model="ecdapp.serviceTypeRequest.component" ng-change="ecdapp.validateComp()" ng-disabled="!ecdapp.validAppl" required>
+					<option b2b-dropdown-list option-repeat="d in ecdapp.comps" value="{{d.cname}}">{{d.dname}}</option>
+				</select>
+				</div>
+				<div ng-if="uploadForm.comp.$touched && !ecdapp.validComp" id="compDropdown" role="alert" class="error-msg" aria-live="polite" aria-atomic="true" >
+                  <i class="icon-badgealert" aria-hidden="true"></i>
+                  <span>Error: Required field.</span>
+            	</div>				
+			</div>
+			<div class="span1 form-row">
+	        	<label></label>
+	        	<div class="field-group span2" ng-click="ecdapp.enableAddApp();">
+				<a href="" title="Display add component FORM" class="icon-arrows-vertical-arrow-down ecd-icon-action"></a>
+				</div>
+			</div> 
+			<div class="span3 form-row" ng-class="{'error':uploadForm.owner.$touched && uploadForm.owner.$invalid}">
+				<div class="tooltip" b2b-tooltip trigger="focus">
+            		<a  href="javascript:void(0)" class="tooltip-element" data-placement="bottom" role="button" aria-label="Help"  aria-describedby="tooltiptext1" >
+                	*Owner
+                	<div class="arrow"></div>
+            		</a>
+	            	<div class="tooltip-wrapper" role="tooltip" aria-live="polite" aria-atomic="false" style="z-index:1111">
+                	<div class="tooltip-size-control">
+                    	<div class="helpertext" tabindex="-1" role="tooltip" id="tooltiptext1">  
+                        	<div class="popover-title">Owner - a required input</div>  
+                        	<div class="popover-content">
+                            	<p>Owner of the blueprint record, is set to the authenticated user ID by default, example: ab1234</p>
+                            	<strong class="hidden-spoken">Double tap to close help message.</strong>
+                        	</div>
+                    	</div>
+                	</div>
+            		</div>
+				</div>
+				<input type="text" id="owner" name="owner" class="span12" data-ng-model="ecdapp.serviceTypeRequest.owner" placeholder="Example: ab1234" required>
+				<div ng-if="uploadForm.owner.$touched && uploadForm.owner.$invalid" role="alert" class="error-msg" aria-live="polite" aria-atomic="true" >
+                  <i class="icon-badgealert" aria-hidden="true"></i>
+                  <span>Error: Required field.</span>
+            	</div>	
+	        </div>
+		</div>
+		<div class="row-nowrap" ng-hide="ecdapp.isImport">
+			<div id="addAppDiv" class="span12 row-nowrap" ng-show="ecdapp.enableAppForm">
+			<div class="span4 form-row">
+				<label>*Component Name</label>
+				<div class="field-group tooltip-onclick"  b2b-tooltip>
+					<input type="text" class="span12" data-ng-model="ecdapp.newCompName" placeholder="Example: scheduler">
+					<button class="reset-field" type="button" aria-label="Reset text field"></button>
+					<button id="tooltipButton1" class="btn icon-tooltip tooltip-element" data-toggle="button" aria-label="Comp Name"   aria-describedby="tooltipContent1" >
+	            	</button>
+	            	<div class="helpertext" tabindex="-1" role="tooltip" id="tooltipContent1">  
+	                	<div class="popover-title">Component name - a required input</div>  
+	                	<div class="popover-content">
+	                    	<p>Component name is a sub-string of the application namespace in AAF. A non-admin user should only add a new component if that user's role belongs to the component namespace.</p>
+	                    	<strong class="hidden-spoken">Double tap to close help message.</strong>
+	                	</div>
+	            	</div>
+	            </div>
+	        </div>
+			<div class="span4 form-row">
+				<label>*Component Display Name</label>
+				<div class="field-group tooltip-onclick"  b2b-tooltip>
+					<input type="text" class="span12" data-ng-model="ecdapp.newCompDisplayName" placeholder="Example: ECOMP SCHEDULER" style="text-transform:uppercase">
+					<button class="reset-field" type="button" aria-label="Reset text field"></button>
+					<button id="tooltipButton2" class="btn icon-tooltip tooltip-element" data-toggle="button" aria-label="Email help"   aria-describedby="tooltipContent2" >
+	            	</button>
+	            	<div class="helpertext" tabindex="-1" role="tooltip" id="tooltipContent2">  
+	                	<div class="popover-title">Component Display Name - a required input</div>  
+	                	<div class="popover-content">
+	                    	<p>Component display name in selection menu</p>
+	                    	<strong class="hidden-spoken">Double tap to close help message.</strong>
+	                	</div>
+	            	</div>
+	            </div>
+	        </div>
+	        <div class="span1 form-row">
+	        	<label></label>
+	        	<div class="field-group" ng-click="ecdapp.addApplication(ecdapp.serviceTypeRequest.application, ecdapp.newCompId, 
+	        	ecdapp.newCompName, ecdapp.newCompDisplayName);">
+				<a href="" title="Add Component" class="icon-arrows-quick-sync ecd-icon-action"></a>
+				</div>
+			</div> 
+			</div>      
+		</div>
+		<div class="row-nowrap">
+			<div class="span6 form-row" ng-class="{'error':uploadForm.typeName.$touched && uploadForm.typeName.$invalid}">
+				<label class="span12" for="typeName">*Blueprint Name</label>
+				<div class="field-group tooltip-onclick"  b2b-tooltip>
+					<input type="text" id="typeName" name="typeName" class="span12" data-ng-model="ecdapp.serviceTypeRequest.typeName" placeholder="Example: mso_helm_chart" required>
+					<button class="reset-field" type="button" aria-label="Reset text field"></button>
+					<button id="tooltipButton3" class="btn icon-tooltip tooltip-element" data-toggle="button" aria-label="Email help"   aria-describedby="tooltipContent3" >
+	            	</button>
+	            	<div class="helpertext" tabindex="-1" role="tooltip" id="tooltipContent3">  
+	                	<div class="popover-title">Blueprint or Type name - a required input</div>  
+	                	<div class="popover-content">
+	                    	<p>Blueprint or Service Type name identifying the specific application component function. Each application component can have multiple functions which map to separate blueprints.</p>
+	                    	<strong class="hidden-spoken">Double tap to close help message.</strong>
+	                	</div>
+	            	</div>
+	            </div>
+				<div ng-if="uploadForm.typeName.$touched && uploadForm.typeName.$invalid" role="alert" class="error-msg" aria-live="polite" aria-atomic="true" >
+                  <i class="icon-badgealert" aria-hidden="true"></i>
+                  <span>Error: Required field.</span>
+            	</div>
+	        </div>
+	        <div class="span6 form-row" ng-class="{'error':uploadForm.typeVer.$touched && uploadForm.typeVer.$invalid}">
+				<label class="span12" for="typeName">*Blueprint Version</label>
+				<div class="field-group tooltip-onclick"  b2b-tooltip>
+					<input type="text" id="typeVer" name="typeVer" class="span12" data-ng-model="ecdapp.serviceTypeRequest.typeVersion" placeholder="Example: 181017" required>
+					<button class="reset-field" type="button" aria-label="Reset text field"></button>
+					<button id="tooltipButton3" class="btn icon-tooltip tooltip-element" data-toggle="button" aria-label="Email help"   aria-describedby="tooltipContent4" >
+	            	</button>
+	            	<div class="helpertext" tabindex="-1" role="tooltip" id="tooltipContent4">  
+	                	<div class="popover-title">Blueprint or Type version - a required input</div>  
+	                	<div class="popover-content">
+	                    	<p>Blueprint or Service Type version may be an integer, example: 10, 181017 or a semantic version string, example: 1902.01.03. Semantic version string is converted to an integer by removing "...", before inserting into inventory. This field is used to identify the blueprint template version or a component package version.</p>
+	                    	<strong class="hidden-spoken">Double tap to close help message.</strong>
+	                	</div>
+	            	</div>
+	            </div>
+				<div ng-if="uploadForm.typeVer.$touched && uploadForm.typeVer.$invalid" role="alert" class="error-msg" aria-live="polite" aria-atomic="true" >
+                  <i class="icon-badgealert" aria-hidden="true"></i>
+                  <span>Error: Required field.</span>
+            	</div>
+	        </div>
+		</div>					
+		<div class="row-nowrap">
+			<div class="span12 form-row" ng-class="{'error':uploadForm.bpTemplate.$touched && uploadForm.bpTemplate.$invalid}">
+				<div class="tooltip" b2b-tooltip trigger="focus">
+            		<a  href="javascript:void(0)" class="tooltip-element" data-placement="bottom" role="button" aria-label="Help"  aria-describedby="tooltiptext2" >
+                	*Blueprint Template
+                	<div class="arrow"></div>
+            		</a>
+	            	<div class="tooltip-wrapper" role="tooltip" aria-live="polite" aria-atomic="false" style="z-index:1111">
+                	<div class="tooltip-size-control">
+                    	<div class="helpertext" tabindex="-1" role="tooltip" id="tooltiptext2">  
+                        	<div class="popover-title">Blueprint template in YAML format - a required input</div>  
+                        	<div class="popover-content">
+                            	<p>Drag and Drop a blueprint YAML file OR click to browse blueprint YAML file</p>
+                            	<strong class="hidden-spoken">Double tap to close help message.</strong>
+                        	</div>
+                    	</div>
+                	</div>
+            		</div>
+				</div>
+   				<div b2b-file-drop file-model="ecdapp.serviceTypeRequest.fileModel" on-drop="handleFileSelect()" align="center" required>
+    			<span b2b-file-link file-model="ecdapp.serviceTypeRequest.fileModel" on-file-select="handleFileSelect()" >
+    			Drag &amp; drop a blueprint YAML file here, or click to browse.
+   				</span>
+				</div>
+				<textarea id="bpTemplate" name="bpTemplate"class="span12" rows="15" data-ng-model="ecdapp.serviceTypeRequest.blueprintTemplate" wrap="off" required>
+				</textarea>
+				<div ng-if="uploadForm.bpTemplate.$touched && uploadForm.bpTemplate.$invalid" role="alert" class="error-msg" aria-live="polite" aria-atomic="true" >
+                  <i class="icon-badgealert" aria-hidden="true"></i>
+                  <span>Error: Required field.</span>
+            	</div>
+			</div>
+		</div>
+		<div ng-show="ecdapp.uploadInProgress" class="row-nowrap">
+			<div class="span" style="margin-bottom:20px;">
+    		<i class="icon-spinner small" role="img" aria-label="Please wait while upload is in progress"></i>
+	    	Blueprint <span style="font-weight: bolder;background: aqua;">{{ecdapp.serviceTypeRequest.typeName}}</span> upload is in progress... 
+			</div>
+		</div>
+		</form>
+	</div>
+
+	<div class="b2b-modal-footer ng-scope ng-isolate-scope">
+		<div class="cta-button-group in">
+			<button class="btn btn-alt btn-small" type="submit" ng-disabled="uploadForm.$invalid || !ecdapp.validAppl || !ecdapp.validComp"
+					ng-click="ecdapp.uploadBlueprint(ecdapp.serviceTypeRequest);">
+				Save
+			</button>
+			<button class="btn btn-small" type="button"
+				ng-click="$dismiss('cancel')">
+				Cancel
+			</button>
+		</div>
+	</div>
+</script>
+
+<script type="text/ng-template" id="inventory_blueprint_view_popup.html">
+
+	<div class="b2b-modal-header ng-scope">
+		<h2 id="myModalLabel" modal-title="">{{ecdapp.label}}</h2>
+		<div class="corner-button in">
+			<button type="button" class="close" aria-label="Close"
+				ng-click="$dismiss('cancel')"></button>
+		</div>
+	</div>
+
+	<div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
+		role="region" aria-label="Modal body content">
+
+	 	<!-- show progress indicator -->
+		<div ng-show="ecdapp.isDataLoading">
+			<div class="span" style="margin-bottom:20px;">
+    			<i class="icon-spinner small" role="img" aria-label="Please wait while the content loads"></i>
+	    		Please wait while the content loads.
+	    	</div>
+		</div>
+
+		<div ng-show="ecdapp.errMsg">
+			<span class="ecd-error-message">{{ecdapp.errMsg}}</span>
+		</div>
+	
+		<div ng-hide="ecdapp.errMsg">
+			<pre>{{ecdapp.blueprint}}</pre>
+		</div>
+
+	</div>
+
+	<div class="b2b-modal-footer ng-scope ng-isolate-scope">
+		<div class="cta-button-group in">
+			<button class="btn btn-alt btn-small" type="button"
+					ng-click="$dismiss('cancel');">
+				Close
+			</button>
+		</div>
+	</div>
+
+</script>
+
+<script type="text/ng-template"
+	id="inventory_blueprint_deploy_popup.html">
+
+	<style>
+	.ecd-parameter-table
+	{
+	    border:   1px;
+    	overflow: auto;
+	}
+	.ecd-parameter-table th 
+	{
+		font-size: 1.4rem;
+	}
+
+	</style>
+
+	<div class="b2b-modal-header ng-scope">
+		<h2 id="myModalLabel" modal-title="">{{ecdapp.label}}</h2>
+		<div ng-hide="ecdapp.deploymentInProgress" class="corner-button in">
+			<button type="button" class="close" aria-label="Close"
+				ng-click="$dismiss('cancel')"></button>
+		</div>
+	</div>
+
+	<div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
+		role="region" aria-label="Modal body content">
+
+		<div ng-show="ecdapp.deploymentInProgress" class="row-nowrap">
+			<div class="span" style="margin-bottom:20px;">
+    			<i class="icon-spinner small" role="img" aria-label="Please wait while the content loads"></i>
+	    		Deployment <span style="font-weight: bolder;background: aqua;">{{ecdapp.editRequest.component}}_{{ecdapp.editRequest.tag}}</span> to tenant <span style="font-weight: bolder;background: aqua;">{{ecdapp.editRequest.tenant}}</span> is in progress... execution status will display shortly
+	    	</div>
+		</div>
+
+ 		<form name="deployForm">
+		<div ng-hide="ecdapp.deploymentInProgress" class="row-nowrap" style="margin-top:-20px;">
+			<div class="span4 form-row">
+				<div class="tooltip" b2b-tooltip trigger="focus">
+            		<a  href="javascript:void(0)" class="tooltip-element" data-placement="bottom" role="button" aria-label="Help"  aria-describedby="tooltiptext1" >
+                	*Component
+                	<div class="arrow"></div>
+            		</a>
+	            	<div class="tooltip-wrapper" role="tooltip" aria-live="polite" aria-atomic="false" style="z-index:1111">
+                	<div class="tooltip-size-control">
+                    	<div class="helpertext" tabindex="-1" role="tooltip" id="tooltiptext1">  
+                        	<div class="popover-title">Component - a required field</div>  
+                        	<div class="popover-content">
+                            	<p>Value is set to the component name that blueprint belongs. Component name is a sub-string of the application namespace in AAF. User role is associated with that same namespace.</p>
+                            	<strong class="hidden-spoken">Double tap to close help message.</strong>
+                        	</div>
+                    	</div>
+                	</div>
+            		</div>
+				</div>
+				<!--<label for="blueprintFileName">*Component</label> -->
+				<input id="blueprintComponent" class="span12" disabled="disabled" type="text" data-ng-model="ecdapp.editRequest.component" autofocus>
+				</input>
+			</div>
+			<div class="span4 form-row" ng-class="{'error':deployForm.tag.$touched && deployForm.tag.$invalid}">
+				<div class="tooltip" b2b-tooltip trigger="focus">
+            		<a  href="javascript:void(0)" class="tooltip-element" data-placement="bottom" role="button" aria-label="Help"  aria-describedby="tooltiptext1" >
+                	*Deployment Tag
+                	<div class="arrow"></div>
+            		</a>
+	            	<div class="tooltip-wrapper" role="tooltip" aria-live="polite" aria-atomic="false" style="z-index:1111">
+                	<div class="tooltip-size-control">
+                    	<div class="helpertext" tabindex="-1" role="tooltip" id="tooltiptext1">  
+                        	<div class="popover-title">Deployment Tag - a required input</div>  
+                        	<div class="popover-content">
+                            	<p>Default value set to the blueprint name. An editable field for the deployment reference, can be used to identify the purpose of the deployment. Deployment ID [<component>_<deployment tag>] is generated from component and deployment tag fields.</p>
+                            	<strong class="hidden-spoken">Double tap to close help message.</strong>
+                        	</div>
+                    	</div>
+                	</div>
+					</div>
+				</div>
+				<input id="tag" name="tag" class="span12" type="text" data-ng-model="ecdapp.editRequest.tag" required/>
+				<div ng-if="deployForm.tag.$touched && deployForm.tag.$invalid" role="alert" class="error-msg" aria-live="polite" aria-atomic="true" >
+                  <i class="icon-badgealert" aria-hidden="true"></i>
+                  <span>Error: Required field.</span>
+            	</div>
+				<div ng-show="deployForm.$submitted">
+					<div ng-show="deployForm.tag.$error.required">
+					    <i class="icon-badgealert" aria-hidden="true"></i>
+						<span>Error: Required field.</span>
+					</div>
+				</div>
+			</div> 
+			<div class="span4 form-row" ng-class="{'error':deployForm.tenant.$touched && !ecdapp.validTenant}">
+				<div class="tooltip" b2b-tooltip trigger="focus">
+            		<a  href="javascript:void(0)" class="tooltip-element" data-placement="bottom" role="button" aria-label="Help"  aria-describedby="tooltiptext1" >
+                	*Cloudify Tenants
+                	<div class="arrow"></div>
+            		</a>
+	            	<div class="tooltip-wrapper" role="tooltip" aria-live="polite" aria-atomic="false" style="z-index:1111">
+                	<div class="tooltip-size-control">
+                    	<div class="helpertext" tabindex="-1" role="tooltip" id="tooltiptext1">  
+                        	<div class="popover-title">Tenant name - a required input</div>  
+                        	<div class="popover-content">
+                            	<p>Values are shown in a dropdown. Tenant information is obtained from Cloudify. Tenant selection is required to begin deployment.</p>
+                            	<strong class="hidden-spoken">Double tap to close help message.</strong>
+                        	</div>
+                    	</div>
+                	</div>
+            		</div>
+				</div>
+				<select id="cldTenants" name="tenant" b2b-dropdown placeholder-text="Select Tenant" class="span8" data-ng-model="ecdapp.editRequest.tenant" ng-change="ecdapp.validateTenant()">
+					<option b2b-dropdown-list option-repeat="d in tenantList.data" value="{{d.name}}">{{d.name}}</option>
+				</select>
+            	<div ng-if="deployForm.tenant.$touched && !ecdapp.validTenant" id="tenantDropdown" role="alert" class="error-msg" aria-live="polite" aria-atomic="true" >
+                  <i class="icon-badgealert" aria-hidden="true"></i>
+                  <span>Error: Required field.</span>
+            	</div>
+			</div>
+		</div>
+
+		<div ng-hide="ecdapp.deploymentInProgress" class="row-nowrap">
+			<div class="span6">
+			<span style="font-weight: bolder;background: aquamarine;">Deployment ID: {{ecdapp.editRequest.component}}_{{ecdapp.editRequest.tag}}</span>
+			</div>
+		</div>
+		<div ng-show="ecdapp.errMsg">
+			<span class="ecd-error-message">{{ecdapp.errMsg}}</span>
+		</div>
+	 	<!-- show progress indicator -->
+		<div ng-show="ecdapp.isDataLoading">
+			<div class="span" style="margin-bottom:20px;">
+    			<i class="icon-spinner small" role="img" aria-label="Operation in progress"></i>
+	    		Operation in progress.
+	    	</div>
+		</div>
+
+		<div ng-hide="ecdapp.deploymentInProgress" class="row-nowrap">
+			<div class="span12">
+				<div class="form-row">
+					<label for="parameters">*Parameters</label>
+   					<div b2b-file-drop file-model="ecdapp.editRequest.fileModel" on-drop="handleFileSelect()" align="center">
+    						<span b2b-file-link file-model="ecdapp.editRequest.fileModel" on-file-select="handleFileSelect()" >
+    						Drag &amp; drop a parameters JSON file here, or click to browse.
+   							</span>
+			        </div>
+		        </div>
+				<div class="ecd-parameter-table">
+					<table id="parameters">
+						<tr id="ecd-table-header">
+							<th width="60%">Name</th>
+							<th width="40%">Value</th>
+						</tr>
+	            		<tbody ng-repeat="(pkey, pval) in ecdapp.editRequest.parmFileDict">
+							<tr id="tr-rowData">
+								<td ng-bind="pkey"/>
+								<td><input id="parameterValue" class="span12" type="text" data-ng-model="ecdapp.editRequest.parmFileDict[pkey]" autofocus/></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</form>
+	</div>
+
+	<div class="b2b-modal-footer ng-scope ng-isolate-scope">
+		<div ng-hide="ecdapp.deploymentInProgress" class="cta-button-group in">
+			<button class="btn btn-alt btn-small" type="submit" ng-disabled="deployForm.$invalid || !ecdapp.validTenant"
+					ng-click="ecdapp.deployBlueprint(ecdapp.editRequest);">
+				Deploy
+			</button>
+			<button class="btn btn-small" type="button"
+				ng-click="$dismiss('cancel')">
+				Cancel
+			</button>
+		</div>
+	</div>
+
+</script>

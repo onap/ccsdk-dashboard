@@ -23,35 +23,27 @@ appDS2.config(function($routeProvider) {
 	$routeProvider
 	.when('/orgchart', {
 		/* horizontal layout */
-		templateUrl: 'app/oom/home/tree_view.html',
+		templateUrl: 'app/ccsdk/home/tree_view.html',
 		controller : 'treeViewController'
 	})
-	.when('/tosca', { 
-		templateUrl: 'app/oom/cloudify/tosca_table.html',
-		controller : 'toscaTableController'
+	.when('/ibp', { 
+		templateUrl: 'app/ccsdk/inventory/inventory_blueprint_table.html',
+		controller : 'inventoryBlueprintTableController'
 	})
-	.when('/bp', { 
-		templateUrl: 'app/oom/cloudify/blueprint_table.html',
-		controller : 'blueprintTableController'
-	})
-	.when('/dep', { 
-		templateUrl: 'app/oom/cloudify/deployment_table.html',
-		controller : 'deploymentTableController'
-	})
-	.when('/exe', { 
-		templateUrl: 'app/oom/cloudify/execution_table.html',
-		controller : 'executionTableController'
+	.when('/idep', { 
+		templateUrl: 'app/ccsdk/inventory/inventory_deployment_table.html',
+		controller : 'inventoryDeploymentTableController'
 	})
 	.when('/sh', { 
-		templateUrl: 'app/oom/consul/service_health_table.html',
+		templateUrl: 'app/ccsdk/consul/service_health_table.html',
 		controller : 'serviceHealthTableController'
 	})
 	.when('/nh', { 
-		templateUrl: 'app/oom/consul/node_table.html',
+		templateUrl: 'app/ccsdk/consul/node_table.html',
 		controller : 'nodeTableController'
 	})
 	.when('/dc', { 
-		templateUrl: 'app/oom/consul/datacenter_table.html',
+		templateUrl: 'app/ccsdk/consul/datacenter_table.html',
 		controller : 'datacenterTableController'
 	})
 	.when('/profile/:profileId', {
@@ -90,8 +82,36 @@ appDS2.config(function($routeProvider) {
 		templateUrl: 'app/fusion/scripts/DS2-view-models/ds2-admin/usage.html',
 		controller: 'usageListControllerDS2'
 	})
+	.when('/cfy', {
+		templateUrl: 'app/ccsdk/ops/tabs_view.html',
+		controller: 'tabsController',
+		item: 'cfy'
+	})
+	.when('/cnsl', {
+		templateUrl: 'app/ccsdk/ops/tabs_view.html',
+		controller: 'tabsController',
+		item: 'cnsl'
+	})
+	.when('/grf', {
+		templateUrl: 'app/ccsdk/ops/tabs_view.html',
+		controller: 'tabsController',
+		item: 'grf'
+	})
+	.when('/k8s', {
+		templateUrl: 'app/ccsdk/ops/tabs_view.html',
+		controller: 'tabsController',
+		item: 'k8s'
+	})
+	.when('/prom', {
+		templateUrl: 'app/ecdapp/ops/tabs_view.html',
+		controller: 'tabsController',
+		item: 'prom'
+	})
+	.when('/dbcl', {
+		templateUrl: 'app/ecdapp/ops/dbcl_view.html'
+	})
 	.otherwise({
-		templateUrl: 'app/oom/home/executions_view.html',
+		templateUrl: 'app/ccsdk/home/executions_view.html',
 		controller : 'executionsViewController'
 	})
 	;

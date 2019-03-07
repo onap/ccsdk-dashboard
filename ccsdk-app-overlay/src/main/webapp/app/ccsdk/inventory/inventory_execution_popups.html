@@ -1,0 +1,255 @@
+<script type="text/ng-template" id="inventory_execution_view_popup.html">
+	<div class="b2b-modal-header ng-scope">
+		<h2 id="myModalLabel" style="margin-left: 200px;" modal-title="">{{ecdapp.label}}</h2>
+		<div class="corner-button in">
+			<button type="button" class="close" aria-label="Close"
+				ng-click="$dismiss('cancel')"></button>
+		</div>
+		<div style="position: absolute;">
+		<label for="show-menu" class="show-menu" title="click to view more info">&#9776;</label>
+		<input type="checkbox" id="show-menu" />
+		<div class="menu" ng-hide="ecdapp.errMsg">
+			<!--<div class="row-nowrap" style="margin-bottom:10px;"> -->
+				<div class="span12" style="margin-bottom:10px;">
+					<label for="deploymentRef">Deployment Ref</label>
+					<!--not editable-->
+					<input id="deploymentRef" class="span6" type="text" data-ng-model="ecdapp.deplRef"/>
+				</div>
+				<div class="span12" style="margin-bottom:10px;">
+					<label for="tenant">Tenant</label>
+					<!--not editable-->
+					<input id="tenant" class="span6" type="text" data-ng-model="ecdapp.ui_tenant"/>
+				</div>
+				<!-- <button ng-click="ecdapp.toggleStatusDefinitions()" class="btn btn-alt btn-small">Click to view status definitions</button> -->
+ 					<div>
+						<div b2b-table id="status-table" class="b2b-table-div">
+							<table id="status-definition-table">
+								<thead b2b-table-row type="header">
+									<tr id="th-header-row">
+										<th b2b-table-header key="status">Status</th>
+										<th b2b-table-header key="definition">Definition</th>
+									</tr>
+								</thead>
+								<tbody b2b-table-row type="body">
+									<tr>
+										<td>waiting to start</td>
+										<td>The execution is waiting for a worker to start it</td>
+									</tr>
+									<tr>
+										<td>in progress</td>
+										<td>The execution is currently running.</td>
+									</tr>
+									<tr>
+										<td>cancel in progress</td>
+										<td>The execution is currently being cancelled.</td>
+									</tr>
+									<tr>
+										<td>force-cancelling in progress</td>
+										<td>The execution is currently being force-cancelled.</td>
+									</tr>
+									<tr>
+										<td>cancelled</td>
+										<td>The execution has been cancelled.</td>
+									</tr>
+									<tr>
+										<td>successful</td>
+										<td>The execution has terminated successfully.</td>
+									</tr>
+									<tr>
+										<td>failed</td>
+										<td>The execution has failed. Click on the button in the error column to view the error details.</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+		</div>
+	</div>
+	</div>
+
+	<div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
+		role="region" aria-label="Modal body content">
+
+		<!--<h1 class="heading-page" id="executions-page">Executions</h1> -->
+
+	 	<!-- show progress indicator -->
+		<div ng-show="ecdapp.isDataLoading">
+			<div class="span" style="margin-bottom:20px;">
+    			<i class="icon-spinner small" role="img" aria-label="Please wait while the content loads"></i>
+	    		Please wait while the content loads.
+	    	</div>
+		</div>
+		<div ng-show="ecdapp.isCancelOn">
+			<div class="span" style="margin-bottom:20px;">
+    			<i class="icon-spinner small" role="img" aria-label="Cancel in progress"></i>
+	    		Cancel in progress
+	    	</div>
+		</div>
+		<div ng-show="ecdapp.errMsg">
+			<span class="ecd-error-message">{{ecdapp.errMsg}}</span>
+		</div>
+		<div ng-show="ecdapp.evtErrMsg">
+			<span class="ecd-error-message">{{ecdapp.evtErrMsg}}</span>
+		</div>
+
+    <div class="form-row" style="margin-top:0px;">
+		<div style="float: left; width: 200px; margin-left: 30px;" title="switch to enable/disable screen refresh">
+        	<label for="refresh_switch" class="btn-switch-label" ng-class="{'b2b-disabled-label':allDisabled}">
+            <span aria-hidden="true">Auto-refresh</span>
+            <input type="button" aria-pressed="{{ecdapp.refresh_switch.value}}" id="refresh_switch" b2b-switches ng-model="ecdapp.refresh_switch.value" ng-disabled="allDisabled" aria-disabled="{{allDisabled}}" aria-label="Auto-refresh is {{ecdapp.refresh_switch.value?'On':'Off'}}. {{allDisabled?'Disabled. Explanation why it is disabled':''}}">
+        	</label>
+		</div>
+        <div style="float: right;" title="Checkbox to view latest execution workflow only">
+        	<label for="checkbox1" class="checkbox">
+                    <input id="checkbox1" type="checkbox" ng-model="ecdapp.isLastExecution"><i class="skin"></i><span>Last execution</span>
+            </label>
+    	</div>
+    </div>
+
+		<div ng-hide="ecdapp.errMsg">
+			<div 
+	    		b2b-table 
+	    		id="executions-table"
+	    		class="b2b-table-div" 
+	    		table-data="ecdapp.tableData" 
+	    		search-string="ecdapp.searchString" 
+	    		current-page="ecdapp.currentPageIgnored"
+	    		next-sort="ecdapp.nextSortIgnored">
+
+		        <table>
+		            <thead b2b-table-row type="header">	
+						<tr id="th-header-row">
+							<th b2b-table-header key="created_at">Created Date</th>
+							<th b2b-table-header key="workflow_id">Workflow ID</th>
+							<th b2b-table-header key="id">ID</th>
+							<th b2b-table-header key="status">Status</th>
+							<th b2b-table-header sortable="false"><i class="icon-controls-gear ecd-icon-display"></i></th>
+						</tr>
+					</thead>
+					
+		            <tbody b2b-table-row type="body" row-repeat="rowData in ecdapp.tableData">
+						<tr id="tr-rowData">
+							<td b2b-table-body
+								ng-bind="rowData.created_at"/>
+							<td b2b-table-body
+								ng-bind="rowData.workflow_id"/>
+							<td b2b-table-body
+								ng-bind="rowData.id"/>
+							<td b2b-table-body ng-if="rowData.status == 'pending'">
+								waiting to start
+							</td>
+							<td b2b-table-body ng-if="rowData.status == 'started'">
+						    	<div ng-click="ecdapp.getExecutionLogs(rowData.id, ecdapp.ui_tenant);">
+						    		<a href="" title="View execution logs" class="tooltip">in progress</a>
+						    	</div>
+							</td>
+							<td b2b-table-body ng-if="rowData.status == 'cancelling'">
+						    	<div ng-click="ecdapp.getExecutionLogs(rowData.id, ecdapp.ui_tenant);">
+						    		<a href="" title="View execution logs" class="tooltip">cancel in progress</a>
+						    	</div>	
+							</td>
+							<td b2b-table-body ng-if="rowData.status == 'force_cancelling'">
+								<div ng-click="ecdapp.getExecutionLogs(rowData.id, ecdapp.ui_tenant);">
+						    		<a href="" title="View execution logs" class="tooltip">force-cancelling in progress</a>
+						    	</div>				
+							</td>
+							<td b2b-table-body ng-if="rowData.status == 'cancelled'">
+								<div ng-click="ecdapp.getExecutionLogs(rowData.id, ecdapp.ui_tenant);">
+						    		<a href="" title="View execution logs" class="tooltip">cancelled</a>
+						    	</div>
+							</td>
+							<td b2b-table-body ng-if="rowData.status == 'terminated'">
+						    	<div ng-click="ecdapp.getExecutionLogs(rowData.id, ecdapp.ui_tenant);">
+						    		<a href="" title="View execution logs" class="tooltip">successful</a>
+						    	</div>
+							</td>
+							<td b2b-table-body ng-if="rowData.status == 'failed'">
+						    	<div ng-click="ecdapp.getExecutionLogs(rowData.id, ecdapp.ui_tenant);">
+						    		<a href="" title="View execution logs" class="tooltip">failed</a>
+						    	</div>
+							</td>
+							<td b2b-table-body ng-if="rowData.status == 'failed'">
+						    	<div ng-show="rowData.error" ng-click="ecdapp.viewErrorModalPopup(rowData);">
+						    		<a href="" title="View error details" class="icon-people-preview ecd-icon-action"></a>
+						    	</div>
+					     	</td>
+							<td b2b-table-body ng-if="rowData.status == 'started'"> 
+						    	<div ng-click="ecdapp.cancelExecutionModalPopup(rowData, ecdapp.ui_tenant);">
+									<a href="" title="Cancel execution" class="icon-controls-stop ecd-icon-action"></a>
+						    	</div>
+					     	</td>
+						</tr>
+					</tbody>
+				</table>
+			</div> 
+			<!-- <div b2b-pagination="" total-pages="ecdapp.totalPages" 
+						current-page="ecdapp.currentPageNum" click-handler="pageChangeHandler"
+						role="navigation">
+			</div> -->
+			</div>
+			<div ng-show="ecdapp.isEventLogQuery">
+				<div style="float: left;">
+					<h3>Events/Logs </h3>
+					<h4>execution id: {{ecdapp.executionId}} </h4>
+				</div>
+        		<div style="float: right;" title="Checkbox to Include log type events">
+        			<label for="checkbox2" class="checkbox">
+                    <input id="checkbox2" type="checkbox" ng-model="ecdapp.isLogType"><i class="skin"></i><span>Include Logs</span>
+            		</label>
+				</div>
+
+				<div 
+	    		b2b-table 
+	    		id="logs-table"
+	    		class="b2b-table-div" 
+	    		table-data="ecdapp.logTableData"
+	    		current-page="ecdapp.currentPageIgnored"
+	    		next-sort="ecdapp.nextSortIgnored">
+		        <table>
+		            <thead b2b-table-row type="header">	
+						<tr id="th-header-row">
+							<th b2b-table-header key="reported_timestamp">Reported Timestamp</th>
+							<th b2b-table-header key="timestamp">Type</th>
+							<th b2b-table-header key="event_type">Event Type</th>
+							<th b2b-table-header key="message">Message</th>
+							<th b2b-table-header key="node_name">Node name</th>
+							<th b2b-table-header key="node_instance_id">Node Instance</th>
+							<th b2b-table-header key="error_causes">Error Causes</th>
+						</tr>
+					</thead>			
+		            <tbody b2b-table-row type="body" row-repeat="rowData in ecdapp.logTableData">
+						<tr id="tr-rowData" ng-class="{ 'red-background' : rowData.message.toLowerCase().contains("error") }">
+							<td b2b-table-body
+								ng-bind="rowData.reported_timestamp"/>
+							<td b2b-table-body
+								ng-bind="rowData.type"/>
+							<td b2b-table-body
+								ng-bind="rowData.event_type"/>
+							<td b2b-table-body
+								ng-bind="rowData.message"/>
+							<td b2b-table-body
+								ng-bind="rowData.node_name"/>
+							<td b2b-table-body
+								ng-bind="rowData.node_instance_id"/>
+							<td b2b-table-body
+								ng-bind="rowData.error_causes[0].traceback"/>
+						</tr>
+					</tbody>
+			</table>
+			</div>
+			<div b2b-pagination="" total-pages="ecdapp.totalLogPages" 
+						current-page="ecdapp.currentLogPageNum" click-handler="pageChangeHandler"
+						role="navigation">
+			</div>
+		</div>
+
+	<div class="b2b-modal-footer ng-scope ng-isolate-scope">
+		<div class="cta-button-group in">
+			<button class="btn btn-alt btn-small" type="button"
+					ng-click="$dismiss('cancel');">
+				Close
+			</button>
+		</div>
+	</div>
+
+</script>

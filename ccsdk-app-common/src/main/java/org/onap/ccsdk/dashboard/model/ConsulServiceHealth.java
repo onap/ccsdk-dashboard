@@ -2,7 +2,7 @@
  * =============LICENSE_START=========================================================
  *
  * =================================================================================
- *  Copyright (c) 2017 AT&T Intellectual Property. All rights reserved.
+ *  Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
  * ================================================================================
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
     "Name": "Service 'pgaasServer1' check",
     "Status": "passing",
     "Notes": "This is a pgaas1_Service_ID health check",
-    "Output": "HTTP GET http:\/\/1.2.3.4:8000\/healthcheck\/status: 200 OK ..",
+    "Output": "HTTP GET http:\/\/135.91.224.136:8000\/healthcheck\/status: 200 OK Output: { \"output\": \"Thu Apr 20 19:53:01 UTC 2017|INFO|masters=1 pgaas1.rdm1.cci.att.com|secondaries=0 |maintenance= |down=1 pgaas2.rdm1.cci.att.com| \" }\n",
     "ServiceID": "pgaas1_Service_ID",
     "ServiceName": "pgaasServer1",
     "CreateIndex": 190199,

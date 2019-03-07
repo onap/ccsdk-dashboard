@@ -2,7 +2,7 @@
  * =============LICENSE_START=========================================================
  *
  * =================================================================================
- *  Copyright (c) 2017 AT&T Intellectual Property. All rights reserved.
+ *  Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
  * ================================================================================
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ package org.onap.ccsdk.dashboard.model;
  * Model for JSON response with health-check results.
  */
 public class HealthStatus {
-	// Either 200 or 500
+	// Either 200 or 503
 	public int statusCode;
 	// Additional detail in case of error, empty in case of success.
 	public String message;

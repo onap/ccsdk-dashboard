@@ -2,7 +2,7 @@
  * =============LICENSE_START=========================================================
  *
  * =================================================================================
- *  Copyright (c) 2017 AT&T Intellectual Property. All rights reserved.
+ *  Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
  * ================================================================================
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -21,8 +21,6 @@
  *******************************************************************************/
 package org.onap.ccsdk.dashboard.model;
 
-import org.onap.ccsdk.dashboard.exception.DashboardControllerException;
-import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 import org.onap.portalsdk.core.onboarding.util.CipherUtil;
 
 /**
@@ -31,15 +29,13 @@ import org.onap.portalsdk.core.onboarding.util.CipherUtil;
  */
 public class ControllerEndpointCredentials extends ControllerEndpointTransport {
 
-	private EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(ControllerEndpointCredentials.class);
-
 	public String username;
 	public String password;
 	public boolean isEncryptedPass;
 
-	public ControllerEndpointCredentials(boolean selected, String name, String url, String username, String password,
-			boolean isEncryptedPass) {
-		super(selected, name, url);
+	public ControllerEndpointCredentials(boolean selected, String name, String url, String inventoryUrl, String dhandlerUrl,
+			String consulUrl, String username, String password, boolean isEncryptedPass) {
+		super(selected, name, url, inventoryUrl, dhandlerUrl, consulUrl);
 		this.username = username;
 		this.password = password;
 		this.isEncryptedPass = isEncryptedPass;
@@ -75,26 +71,22 @@ public class ControllerEndpointCredentials extends ControllerEndpointTransport {
 	 * @return ControllerEndpoint with copy of the non-privileged data
 	 */
 	public ControllerEndpointTransport toControllerEndpointTransport() {
-		return new ControllerEndpointTransport(getSelected(), getName(), getUrl());
+		return new ControllerEndpointTransport(getSelected(), getName(), getUrl(), 
+				getInventoryUrl(), getDhandlerUrl(), getConsulUrl());
 	}
 
 	/**
-	 * Accepts clear text and stores an encrypted value; as a side effect, sets the
-	 * encrypted flag to true.
+	 * Accepts clear text and stores an encrypted value; as a side effect, sets
+	 * the encrypted flag to true.
 	 * 
 	 * @param plainText
 	 *            Clear-text password
-	 * @throws DashboardControllerException
+	 * @throws Exception
 	 *             If encryption fails
 	 */
-	public void encryptPassword(final String plainText) throws DashboardControllerException {
-		try {
-			this.password = CipherUtil.encrypt(plainText);
-			this.isEncryptedPass = true;
-		} catch (Exception ex) {
-			logger.error("encryptPassword failed", ex);
-			throw new DashboardControllerException(ex);
-		}
+	public void encryptPassword(final String plainText) throws Exception {
+		this.password = CipherUtil.encrypt(plainText);
+		this.isEncryptedPass = true;
 	}
 
 	/**
@@ -102,15 +94,10 @@ public class ControllerEndpointCredentials extends ControllerEndpointTransport {
 	 * true.
 	 * 
 	 * @return Clear-text password.
-	 * @throws DashboardControllerException
+	 * @throws Exception
 	 *             If decryption fails
 	 */
-	public String decryptPassword() throws DashboardControllerException {
-		try {
-			return CipherUtil.decrypt(password);
-		} catch (Exception ex) {
-			logger.error("decryptPassword failed", ex);
-			throw new DashboardControllerException(ex);
-		}
+	public String decryptPassword() throws Exception {
+		return CipherUtil.decrypt(password);
 	}
 }

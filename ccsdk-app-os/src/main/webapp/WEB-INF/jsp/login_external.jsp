@@ -77,7 +77,7 @@
 	</head>
 	<body>
 		<div class="login">
-			<img src="app/oom/images/onap_logo_2257x496.png" style="height: 150px;" />
+			<img src="app/ccsdk/images/onap_logo_2257x496.png" style="height: 150px;" />
 			<h2>
 				<%=appDisplayName%>
 			</h2>

@@ -1,3 +1,26 @@
+/*******************************************************************************
+ * =============LICENSE_START=========================================================
+ *
+ * =================================================================================
+ *  Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
+ * ================================================================================
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *  
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *  
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ * ============LICENSE_END=========================================================
+ *
+ *  ECOMP is a trademark and service mark of AT&T Intellectual Property.
+ *******************************************************************************/
+package org.onap.ccsdk.dashboard.controller;
+
 /*-
  * ================================================================================
  * ECOMP Portal SDK
@@ -18,14 +41,9 @@
  * ================================================================================
  */
 
-package org.onap.ccsdk.dashboard.controller;
-
-import java.io.UnsupportedEncodingException;
-
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.Cookie;
@@ -33,23 +51,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.onap.ccsdk.dashboard.exception.DashboardControllerException;
 import org.onap.portalsdk.core.auth.LoginStrategy;
 import org.onap.portalsdk.core.command.LoginBean;
 import org.onap.portalsdk.core.controller.UnRestrictedBaseController;
 import org.onap.portalsdk.core.domain.User;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 import org.onap.portalsdk.core.menu.MenuProperties;
-import org.onap.portalsdk.core.onboarding.exception.PortalAPIException;
 import org.onap.portalsdk.core.onboarding.listener.PortalTimeoutHandler;
 import org.onap.portalsdk.core.onboarding.util.PortalApiConstants;
 import org.onap.portalsdk.core.onboarding.util.PortalApiProperties;
 import org.onap.portalsdk.core.service.LoginService;
+import org.onap.portalsdk.core.service.RoleService;
 import org.onap.portalsdk.core.util.SystemProperties;
 import org.onap.portalsdk.core.web.support.AppUtils;
 import org.onap.portalsdk.core.web.support.UserUtils;
-import org.onap.portalsdk.core.service.RoleService;
-import org.onap.portalsdk.core.domain.RoleFunction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Controller;
@@ -64,14 +79,13 @@ import org.springframework.web.util.WebUtils;
 @RequestMapping("/")
 /**
  * Replicated from
- * org.onap.portalapp.controller.core.SingleSignOnController to modify the
+ * org.openecomp.portalapp.controller.core.SingleSignOnController to modify the
  * behavior of sending user's browser on a detour of Portal app to get the
  * EPService cookie.
  */
 public class ECDSingleSignOnController extends UnRestrictedBaseController {
 
 	private EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(ECDSingleSignOnController.class);
-    private static final String REDIRECT = "redirect:";
 
 	@Autowired
 	private LoginService loginService;
@@ -79,34 +93,29 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
 	@Autowired
 	private LoginStrategy loginStrategy;
 
-    @Autowired
-    private RoleService roleService;
-
+	@Autowired
+	private RoleService roleService;
+	
 	private String viewName;
 	private String welcomeView;
 
 	/**
-	 * Handles requests directed to the single sign-on page by the session timeout
-	 * interceptor.
+	 * Handles requests directed to the single sign-on page by the session
+	 * timeout interceptor.
 	 * 
 	 * @param request
 	 *            HttpServletRequest
 	 * @param response
 	 *            HttpServletResponse
 	 * @return Redirect to an appropriate address
-	 * @throws DashboardControllerException
-	 *             User not found
-	 * @throws PortalAPIException
-	 *             User ID can't be fetched
-	 * @throws UnsupportedEncodingException
-	 *             Encoding fails
+	 * @throws Exception
+	 * On any failure
 	 */
 	@RequestMapping(value = { "/single_signon.htm" }, method = RequestMethod.GET)
-    public ModelAndView singleSignOnLogin(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        //throws DashboardControllerException, PortalAPIException, UnsupportedEncodingException {
+	public ModelAndView singleSignOnLogin(HttpServletRequest request, HttpServletResponse response) throws Exception {
 
-		Map<String, String> model = new HashMap<>();
-		HashMap<String, String> additionalParamsMap = new HashMap<>();
+		Map<String, String> model = new HashMap<String, String>();
+		HashMap<String, String> additionalParamsMap = new HashMap<String, String>();
 		LoginBean commandBean = new LoginBean();
 
 		// SessionTimeoutInterceptor sets these parameters
@@ -122,17 +131,9 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
 				final String authMech = SystemProperties.getProperty(SystemProperties.AUTHENTICATION_MECHANISM);
 				String userId = loginStrategy.getUserId(request);
 				commandBean.setUserid(userId);
-                commandBean = getLoginService().findUser(commandBean,
-                        (String) request.getAttribute(MenuProperties.MENU_PROPERTIES_FILENAME_KEY), additionalParamsMap);
-                List<RoleFunction> roleFunctionList = roleService.getRoleFunctions(userId);
-				try {
-					commandBean = getLoginService().findUser(commandBean,
-							(String) request.getAttribute(MenuProperties.MENU_PROPERTIES_FILENAME_KEY),
-							additionalParamsMap);
-				} catch (Exception ex) {
-					logger.error("singleSignOnLogin failed", ex);
-					throw new DashboardControllerException(ex);
-				}
+				commandBean = getLoginService().findUser(commandBean,
+						(String) request.getAttribute(MenuProperties.MENU_PROPERTIES_FILENAME_KEY),
+						additionalParamsMap);
 				if (commandBean.getUser() == null) {
 					String loginErrorMessage = (commandBean.getLoginErrorMessage() != null)
 							? commandBean.getLoginErrorMessage()
@@ -142,7 +143,7 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
 							+ "?noUserError=Yes";
 					logger.debug(EELFLoggerDelegate.debugLogger, "singleSignOnLogin: user is null, redirect URL is {}",
 							redirectUrl);
-                    return new ModelAndView(REDIRECT + redirectUrl);
+					return new ModelAndView("redirect:" + redirectUrl);
 				} else {
 					// store the user's information in the session
 					String loginMethod;
@@ -154,33 +155,36 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
 						loginMethod = SystemProperties.getProperty(SystemProperties.LOGIN_METHOD_WEB_JUNCTION);
 					}
 					UserUtils.setUserSession(request, commandBean.getUser(), commandBean.getMenu(),
-                            commandBean.getBusinessDirectMenu(), loginMethod, roleFunctionList);
+							commandBean.getBusinessDirectMenu(), loginMethod, roleService.getRoleFunctions(userId));
 					initateSessionMgtHandler(request);
 					logger.debug(EELFLoggerDelegate.debugLogger,
 							"singleSignOnLogin: create new user session for expired user {}; user {} exists in the system",
 							userId, commandBean.getUser().getOrgUserId());
-                    return new ModelAndView(REDIRECT + forwardURL);
+					return new ModelAndView("redirect:" + forwardURL);
 				}
 			} // user is null or session is null
 			else {
 				// both user and session are non-null.
 				logger.info(EELFLoggerDelegate.debugLogger, "singleSignOnLogin: redirecting to the forwardURL {}",
 						forwardURL);
-                return new ModelAndView(REDIRECT + forwardURL);
+				return new ModelAndView("redirect:" + forwardURL);
 			}
 		} else {
 			/*
-			 * Login cookie not found, or redirect-to-portal parameter was found.
+			 * Login cookie not found, or redirect-to-portal parameter was
+			 * found.
 			 */
 			if (isPortalAvailable()) {
 				/*
-				 * Redirect the user to the portal with a suitable return URL. The forwardURL
-				 * parameter that arrives as a parameter is a partial (not absolute) request
-				 * path for a page in the application. The challenge here is to compute the
-				 * correct absolute path for the original request so the portal can redirect the
-				 * user back to the right place. If the application sits behind WebJunction, or
-				 * if separate FE-BE hosts are used, then the URL yielded by the request has a
-				 * host name that is not reachable by the user.
+				 * Redirect the user to the portal with a suitable return URL.
+				 * The forwardURL parameter that arrives as a parameter is a
+				 * partial (not absolute) request path for a page in the
+				 * application. The challenge here is to compute the correct
+				 * absolute path for the original request so the portal can
+				 * redirect the user back to the right place. If the application
+				 * sits behind WebJunction, or if separate FE-BE hosts are used,
+				 * then the URL yielded by the request has a host name that is
+				 * not reachable by the user.
 				 */
 				String returnToAppUrl = null;
 				if (SystemProperties.containsProperty(SystemProperties.APP_BASE_URL)) {
@@ -192,11 +196,12 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
 							"singleSignOnLogin: using app base URL {} and redirectURL {}", appUrl, returnToAppUrl);
 				} else {
 					/**
-					 * Be backward compatible with applications that don't need this feature. This
-					 * is the controller for the single_signon.htm page, so the replace should
-					 * always find the specified token.
+					 * Be backward compatible with applications that don't need
+					 * this feature. This is the controller for the
+					 * single_signon.htm page, so the replace should always find
+					 * the specified token.
 					 */
-					returnToAppUrl = request.getRequestURL().toString()
+					returnToAppUrl = ((HttpServletRequest) request).getRequestURL().toString()
 							.replace("single_signon.htm", forwardURL);
 					logger.debug(EELFLoggerDelegate.debugLogger, "singleSignOnLogin: computed redirectURL {}",
 							returnToAppUrl);
@@ -211,13 +216,13 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
 						+ encodedReturnToAppUrl;
 				logger.debug(EELFLoggerDelegate.debugLogger, "singleSignOnLogin: portal-bound redirect URL is {}",
 						redirectUrl);
-                return new ModelAndView(REDIRECT + redirectUrl);
+				return new ModelAndView("redirect:" + redirectUrl);
 			} // portal is available
 
 			else {
 				/*
-				 * Portal is not available. Redirect user to the login page, ignoring the
-				 * forwardURL parameter.
+				 * Portal is not available. Redirect user to the login page,
+				 * ignoring the forwardURL parameter.
 				 */
 				return new ModelAndView("redirect:login.htm");
 			}
@@ -226,8 +231,8 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
 	}
 
 	/**
-	 * Discover if the portal is available by GET-ing a resource from the REST URL
-	 * specified in portal.properties, using a very short timeout.
+	 * Discover if the portal is available by GET-ing a resource from the REST
+	 * URL specified in portal.properties, using a very short timeout.
 	 * 
 	 * @return True if the portal answers, otherwise false.
 	 */
@@ -270,12 +275,10 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
 		return request.getSession().getId();
 	}
 
-	@Override
 	public String getViewName() {
 		return viewName;
 	}
 
-	@Override
 	public void setViewName(String viewName) {
 		this.viewName = viewName;
 	}
