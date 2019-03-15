@@ -28,77 +28,76 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CloudifyExecutionRequest extends ECTransportModel {
 
-	/** A unique identifier for the deployment. */
-	public String deployment_id;
-	/** A unique identifier for the workflow */
-	public String workflow_id;
-	public Boolean allow_custom_parameters;
-	public Boolean force;
-	public String tenant;
-	/** Parameters: retrieve using the GET /deployments */
-	public Map<String, Object> parameters;
-	
-	public String getDeployment_id() {
-		return deployment_id;
-	}
+    /** A unique identifier for the deployment. */
+    public String deployment_id;
+    /** A unique identifier for the workflow */
+    public String workflow_id;
+    public Boolean allow_custom_parameters;
+    public Boolean force;
+    public String tenant;
+    /** Parameters: retrieve using the GET /deployments */
+    public Map<String, Object> parameters;
 
-	public String getWorkflow_id() {
-		return workflow_id;
-	}
+    public String getDeployment_id() {
+        return deployment_id;
+    }
 
-	public Boolean getAllow_custom_parameters() {
-		return allow_custom_parameters;
-	}
+    public String getWorkflow_id() {
+        return workflow_id;
+    }
 
-	public Boolean getForce() {
-		return force;
-	}
+    public Boolean getAllow_custom_parameters() {
+        return allow_custom_parameters;
+    }
 
-	public String getTenant() {
-		return tenant;
-	}
+    public Boolean getForce() {
+        return force;
+    }
 
-	public Map<String, Object> getParameters() {
-		return parameters;
-	}
+    public String getTenant() {
+        return tenant;
+    }
 
-	public void setDeployment_id(String deployment_id) {
-		this.deployment_id = deployment_id;
-	}
+    public Map<String, Object> getParameters() {
+        return parameters;
+    }
 
-	public void setWorkflow_id(String workflow_id) {
-		this.workflow_id = workflow_id;
-	}
+    public void setDeployment_id(String deployment_id) {
+        this.deployment_id = deployment_id;
+    }
 
-	public void setAllow_custom_parameters(Boolean allow_custom_parameters) {
-		this.allow_custom_parameters = allow_custom_parameters;
-	}
+    public void setWorkflow_id(String workflow_id) {
+        this.workflow_id = workflow_id;
+    }
 
-	public void setForce(Boolean force) {
-		this.force = force;
-	}
+    public void setAllow_custom_parameters(Boolean allow_custom_parameters) {
+        this.allow_custom_parameters = allow_custom_parameters;
+    }
 
-	public void setTenant(String tenant) {
-		this.tenant = tenant;
-	}
+    public void setForce(Boolean force) {
+        this.force = force;
+    }
 
-	public void setParameters(Map<String, Object> parameters) {
-		this.parameters = parameters;
-	}
+    public void setTenant(String tenant) {
+        this.tenant = tenant;
+    }
 
-	@JsonCreator
-	public CloudifyExecutionRequest(@JsonProperty("deployment_id") String deployment_id,
-			@JsonProperty("workflow_id") String workflow_id,
-			@JsonProperty("allow_custom_parameters") Boolean allowCustomParameters, 
-			@JsonProperty("force") Boolean force,
-			@JsonProperty("tenant") String tenant,
-			@JsonProperty("parameters") Map<String, Object> parameters) {
-		this.deployment_id = deployment_id;
-		this.workflow_id = workflow_id;
-		this.allow_custom_parameters = allowCustomParameters;
-		this.force = force;
-		this.tenant = tenant;
-		this.parameters = parameters;
-	}
+    public void setParameters(Map<String, Object> parameters) {
+        this.parameters = parameters;
+    }
+
+    @JsonCreator
+    public CloudifyExecutionRequest(@JsonProperty("deployment_id") String deployment_id,
+            @JsonProperty("workflow_id") String workflow_id,
+            @JsonProperty("allow_custom_parameters") Boolean allowCustomParameters,
+            @JsonProperty("force") Boolean force, @JsonProperty("tenant") String tenant,
+            @JsonProperty("parameters") Map<String, Object> parameters) {
+        this.deployment_id = deployment_id;
+        this.workflow_id = workflow_id;
+        this.allow_custom_parameters = allowCustomParameters;
+        this.force = force;
+        this.tenant = tenant;
+        this.parameters = parameters;
+    }
 
 }

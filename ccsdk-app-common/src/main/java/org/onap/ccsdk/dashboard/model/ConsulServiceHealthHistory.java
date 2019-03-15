@@ -39,16 +39,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public final class ConsulServiceHealthHistory extends ECTransportModel {
 
-	public final String status;
-	public final String output;
-	public final String date;
+    public final String status;
+    public final String output;
+    public final String date;
 
-	@JsonCreator
-	public ConsulServiceHealthHistory(@JsonProperty("Status") String status, @JsonProperty("Output") String output,
-			@JsonProperty("Date") String date) {
-		this.status = status;
-		this.output = output;
-		this.date = date;
-	}
+    @JsonCreator
+    public ConsulServiceHealthHistory(@JsonProperty("Status") String status, @JsonProperty("Output") String output,
+            @JsonProperty("Date") String date) {
+        this.status = status;
+        this.output = output;
+        this.date = date;
+    }
 
 }

@@ -26,32 +26,28 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CloudifySecret extends ECTransportModel {
 
-	/** The time when the secret was created */
-	public final String created_at;
-	/** The secret’s key, unique per tenant */
-	public final String key;
-	/** The time the secret was last updated at */
-	public final String updated_at;
-	/** The secret’s value */
-	public final String value;
-	/** Defines who can see the secret. Can be private, tenant or global*/
-	public final String visibility;
-	/** Determines who can see the value of the secret. */
-	public final String is_hidden_value;
+    /** The time when the secret was created */
+    public final String created_at;
+    /** The secret’s key, unique per tenant */
+    public final String key;
+    /** The time the secret was last updated at */
+    public final String updated_at;
+    /** The secret’s value */
+    public final String value;
+    /** Defines who can see the secret. Can be private, tenant or global */
+    public final String visibility;
+    /** Determines who can see the value of the secret. */
+    public final String is_hidden_value;
 
-	@JsonCreator
-	public CloudifySecret(
-			@JsonProperty("created_at") String created_at,
-			@JsonProperty("key") String key,
-			@JsonProperty("updated_at") String updated_at,
-			@JsonProperty("value") String value,
-			@JsonProperty("visibility") String visibility,
-			@JsonProperty("is_hidden_value") String is_hidden_value)  {
-		this.created_at = created_at;
-		this.key = key;
-		this.updated_at = updated_at;
-		this.value = value;
-		this.visibility = visibility;
-		this.is_hidden_value = is_hidden_value;
-	}
+    @JsonCreator
+    public CloudifySecret(@JsonProperty("created_at") String created_at, @JsonProperty("key") String key,
+            @JsonProperty("updated_at") String updated_at, @JsonProperty("value") String value,
+            @JsonProperty("visibility") String visibility, @JsonProperty("is_hidden_value") String is_hidden_value) {
+        this.created_at = created_at;
+        this.key = key;
+        this.updated_at = updated_at;
+        this.value = value;
+        this.visibility = visibility;
+        this.is_hidden_value = is_hidden_value;
+    }
 }

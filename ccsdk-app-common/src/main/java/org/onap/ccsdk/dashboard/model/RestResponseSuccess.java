@@ -26,32 +26,31 @@ package org.onap.ccsdk.dashboard.model;
  */
 public class RestResponseSuccess extends ECTransportModel {
 
-	private String message;
+    private String message;
 
-	public RestResponseSuccess() {
-	}
+    public RestResponseSuccess() {
+    }
 
-	/**
-	 * Convenience constructor
-	 * 
-	 * @param message
-	 *            Message body
-	 */
-	public RestResponseSuccess(final String message) {
-		this.message = message;
-	}
+    /**
+     * Convenience constructor
+     * 
+     * @param message Message body
+     */
+    public RestResponseSuccess(final String message) {
+        this.message = message;
+    }
 
-	public String getMessage() {
-		return message;
-	}
+    public String getMessage() {
+        return message;
+    }
 
-	public void setMessage(String message) {
-		this.message = message;
-	}
+    public void setMessage(String message) {
+        this.message = message;
+    }
 
-	@Override
-	public String toString() {
-		return "RestResponseSuccess[message=" + message + "]";
-	}
+    @Override
+    public String toString() {
+        return "RestResponseSuccess[message=" + message + "]";
+    }
 
 }

@@ -37,19 +37,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public final class CloudifyBlueprintUpload extends ECTransportModel {
 
-	/** A unique identifier for the blueprint. */
-	public final String blueprint_id;
-	/** The blueprint’s main file name. */
-	public final String blueprint_filename;
-	/** The zip file URL. */
-	public final String zip_url;
+    /** A unique identifier for the blueprint. */
+    public final String blueprint_id;
+    /** The blueprint’s main file name. */
+    public final String blueprint_filename;
+    /** The zip file URL. */
+    public final String zip_url;
 
-	@JsonCreator
-	public CloudifyBlueprintUpload(@JsonProperty("blueprint_id") String blueprint_id,
-			@JsonProperty("blueprint_filename") String blueprint_filename, @JsonProperty("zip_url") String zip_url) {
-		this.blueprint_id = blueprint_id;
-		this.blueprint_filename = blueprint_filename;
-		this.zip_url = zip_url;
-	}
+    @JsonCreator
+    public CloudifyBlueprintUpload(@JsonProperty("blueprint_id") String blueprint_id,
+            @JsonProperty("blueprint_filename") String blueprint_filename, @JsonProperty("zip_url") String zip_url) {
+        this.blueprint_id = blueprint_id;
+        this.blueprint_filename = blueprint_filename;
+        this.zip_url = zip_url;
+    }
 
 }

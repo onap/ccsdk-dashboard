@@ -25,29 +25,27 @@ package org.onap.fusionapp.model;
  * Trivial model of a String
  */
 public class Result {
-	private String result;
+    private String result;
 
-	/**
-	 * @param result
-	 *            String
-	 */
-	public Result(String result) {
-		this.result = result;
-	}
+    /**
+     * @param result String
+     */
+    public Result(String result) {
+        this.result = result;
+    }
 
-	/**
-	 * @return String
-	 */
-	public String getResult() {
-		return result;
-	}
+    /**
+     * @return String
+     */
+    public String getResult() {
+        return result;
+    }
 
-	/**
-	 * @param result
-	 *            String
-	 */
-	public void setResult(String result) {
-		this.result = result;
-	}
+    /**
+     * @param result String
+     */
+    public void setResult(String result) {
+        this.result = result;
+    }
 
 }

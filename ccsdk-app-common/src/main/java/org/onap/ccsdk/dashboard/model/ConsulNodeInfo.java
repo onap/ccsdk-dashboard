@@ -27,7 +27,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Model for message returned by Consul about a node registered for health monitoring.
+ * Model for message returned by Consul about a node registered for health
+ * monitoring.
  * 
  * <pre>
   {
@@ -39,34 +40,31 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 	"CreateIndex":6,
 	"ModifyIndex":179808
    }
-	</pre>
+ * </pre>
  */
 public final class ConsulNodeInfo extends ECTransportModel {
 
-	public final String id;
-	public final String node;
-	public final String address;	
-	public final Map<String,Object> taggedAddresses;
-	public final Map<String,Object> meta;
-	public final int createIndex;
-	public final int modifyIndex;
+    public final String id;
+    public final String node;
+    public final String address;
+    public final Map<String, Object> taggedAddresses;
+    public final Map<String, Object> meta;
+    public final int createIndex;
+    public final int modifyIndex;
 
-	@JsonCreator
-	public ConsulNodeInfo(
-			@JsonProperty("ID") String id,
-			@JsonProperty("Node") String node,
-			@JsonProperty("Address") String address,
-			@JsonProperty("TaggedAddresses") Map<String,Object> taggedAddresses,
-			@JsonProperty("Meta") Map<String,Object> meta,
-			@JsonProperty("CreateIndex") int createIndex,
-			@JsonProperty("ModifyIndex") int modifyIndex) {
-		this.id = id;
-		this.node = node;
-		this.address = address;
-		this.taggedAddresses = taggedAddresses;
-		this.meta = meta;
-		this.createIndex = createIndex;
-		this.modifyIndex = modifyIndex;
-	}
+    @JsonCreator
+    public ConsulNodeInfo(@JsonProperty("ID") String id, @JsonProperty("Node") String node,
+            @JsonProperty("Address") String address,
+            @JsonProperty("TaggedAddresses") Map<String, Object> taggedAddresses,
+            @JsonProperty("Meta") Map<String, Object> meta, @JsonProperty("CreateIndex") int createIndex,
+            @JsonProperty("ModifyIndex") int modifyIndex) {
+        this.id = id;
+        this.node = node;
+        this.address = address;
+        this.taggedAddresses = taggedAddresses;
+        this.meta = meta;
+        this.createIndex = createIndex;
+        this.modifyIndex = modifyIndex;
+    }
 
 }

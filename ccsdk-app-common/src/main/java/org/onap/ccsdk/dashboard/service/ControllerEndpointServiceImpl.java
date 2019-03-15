@@ -41,80 +41,75 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class ControllerEndpointServiceImpl implements ControllerEndpointService {
 
-	@Autowired
-	private DataAccessService dataAccessService;
+    @Autowired
+    private DataAccessService dataAccessService;
 
-	/**
-	 * @return Data access service
-	 */
-	public DataAccessService getDataAccessService() {
-		return dataAccessService;
-	}
+    /**
+     * @return Data access service
+     */
+    public DataAccessService getDataAccessService() {
+        return dataAccessService;
+    }
 
-	/**
-	 * @param dataAccessService
-	 *            Data access service
-	 */
-	public void setDataAccessService(DataAccessService dataAccessService) {
-		this.dataAccessService = dataAccessService;
-	}
+    /**
+     * @param dataAccessService Data access service
+     */
+    public void setDataAccessService(DataAccessService dataAccessService) {
+        this.dataAccessService = dataAccessService;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.openecomp.controller.dashboard.service.ControllerEndpointService#
-	 * getControllerEndpoint(java.lang.Integer)
-	 */
-	@Override
-	public ControllerEndpoint getControllerEndpointSelection(long userId) {
-		return (ControllerEndpoint) getDataAccessService()
-				.getDomainObject(ControllerEndpoint.class, userId, null);
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.openecomp.controller.dashboard.service.ControllerEndpointService#
-	 * getComponents()
-	 */
-	@SuppressWarnings("unchecked")
-	@Override
-	public List<EcdComponent> getComponents() {
-		return dataAccessService.executeNamedQuery("getAllComponents", null, null);
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.openecomp.controller.dashboard.service.ControllerEndpointService#
+     * getControllerEndpoint(java.lang.Integer)
+     */
+    @Override
+    public ControllerEndpoint getControllerEndpointSelection(long userId) {
+        return (ControllerEndpoint) getDataAccessService().getDomainObject(ControllerEndpoint.class, userId, null);
+    }
 
-	@Override
-	public void insertComponent(EcdComponent component) {
-		dataAccessService.saveDomainObject(component, null);
-	}
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.openecomp.controller.dashboard.service.ControllerEndpointService#
-	 * updateControllerEndpoint(org.openecomp.controller.dashboard.domain.
-	 * ControllerEndpoint)
-	 */
-	@Override
-	public void updateControllerEndpointSelection(ControllerEndpoint endpoint) {
-		getDataAccessService().saveDomainObject(endpoint, null);
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.openecomp.controller.dashboard.service.ControllerEndpointService#
+     * getComponents()
+     */
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<EcdComponent> getComponents() {
+        return dataAccessService.executeNamedQuery("getAllComponents", null, null);
+    }
 
-	/*
-	 * // (non-Javadoc)
-	 * 
-	 * @see
-	 * org.openecomp.controller.dashboard.service.ControllerEndpointService#
-	 * deleteControllerEndpoint(java.lang.Integer)
-	 */
-	@Override
-	public void deleteControllerEndpointSelection(long userId) {
-		ControllerEndpoint dbEntry = (ControllerEndpoint) getDataAccessService()
-				.getDomainObject(ControllerEndpoint.class, userId, null);
-		if (dbEntry != null)
-			getDataAccessService().deleteDomainObject(dbEntry, null);
-	}
+    @Override
+    public void insertComponent(EcdComponent component) {
+        dataAccessService.saveDomainObject(component, null);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.openecomp.controller.dashboard.service.ControllerEndpointService#
+     * updateControllerEndpoint(org.openecomp.controller.dashboard.domain.
+     * ControllerEndpoint)
+     */
+    @Override
+    public void updateControllerEndpointSelection(ControllerEndpoint endpoint) {
+        getDataAccessService().saveDomainObject(endpoint, null);
+    }
+
+    /*
+     * // (non-Javadoc)
+     * 
+     * @see org.openecomp.controller.dashboard.service.ControllerEndpointService#
+     * deleteControllerEndpoint(java.lang.Integer)
+     */
+    @Override
+    public void deleteControllerEndpointSelection(long userId) {
+        ControllerEndpoint dbEntry = (ControllerEndpoint) getDataAccessService()
+                .getDomainObject(ControllerEndpoint.class, userId, null);
+        if (dbEntry != null)
+            getDataAccessService().deleteDomainObject(dbEntry, null);
+    }
 
 }

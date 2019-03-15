@@ -30,13 +30,12 @@ import org.onap.portalsdk.core.domain.User;
  */
 public class AdminAuthExtension {
 
-	/**
-	 * @param user
-	 *            User who was authenticated
-	 */
-	public void saveUserExtension(User user) {
-		// app's developer implement their own logic here, like updating app's
-		// related tables
-	}
+    /**
+     * @param user User who was authenticated
+     */
+    public void saveUserExtension(User user) {
+        // app's developer implement their own logic here, like updating app's
+        // related tables
+    }
 
 }

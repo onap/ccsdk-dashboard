@@ -33,26 +33,25 @@ import ch.qos.logback.core.spi.FilterReply;
  */
 public class CustomLoggingFilter extends Filter<ILoggingEvent> {
 
-	/**
-	 * Custom Filter is added to strip out the continuous U-EB logging messages
-	 * But make sure we log the ERROR and WARNING Level messages.
-	 * 
-	 * @param event
-	 *            Logging event
-	 */
-	@Override
-	public FilterReply decide(ILoggingEvent event) {
-		try {
-			if ((event.getLevel() != Level.ERROR || event.getLevel() != Level.WARN)
-					&& ("UEBConsumerThread".equalsIgnoreCase(event.getThreadName()))
-					&& (event.getLoggerName().contains("com.att.nsa")
-							|| event.getLoggerName().contains("org.apache.http"))) {
-				return FilterReply.DENY;
-			} else {
-				return FilterReply.NEUTRAL;
-			}
-		} catch (Exception e) {
-			return FilterReply.NEUTRAL;
-		}
-	}
+    /**
+     * Custom Filter is added to strip out the continuous U-EB logging messages But
+     * make sure we log the ERROR and WARNING Level messages.
+     * 
+     * @param event Logging event
+     */
+    @Override
+    public FilterReply decide(ILoggingEvent event) {
+        try {
+            if ((event.getLevel() != Level.ERROR || event.getLevel() != Level.WARN)
+                    && ("UEBConsumerThread".equalsIgnoreCase(event.getThreadName()))
+                    && (event.getLoggerName().contains("com.att.nsa")
+                            || event.getLoggerName().contains("org.apache.http"))) {
+                return FilterReply.DENY;
+            } else {
+                return FilterReply.NEUTRAL;
+            }
+        } catch (Exception e) {
+            return FilterReply.NEUTRAL;
+        }
+    }
 }

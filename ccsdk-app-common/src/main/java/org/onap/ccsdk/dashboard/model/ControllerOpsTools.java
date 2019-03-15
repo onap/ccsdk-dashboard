@@ -26,30 +26,31 @@ package org.onap.ccsdk.dashboard.model;
  */
 public class ControllerOpsTools extends ECTransportModel {
 
-	private String id;
-	private String url;
+    private String id;
+    private String url;
 
-	public ControllerOpsTools() {}
-	
-	public ControllerOpsTools(String id, String url) {
-		this.setId(id);
-		this.setUrl(url);
-	}
+    public ControllerOpsTools() {
+    }
 
-	public String getId() {
-		return id;
-	}
+    public ControllerOpsTools(String id, String url) {
+        this.setId(id);
+        this.setUrl(url);
+    }
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public String getUrl() {
-		return url;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public void setUrl(String url) {
-		this.url = url;
-	}
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
 
 }

@@ -42,23 +42,23 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public final class CloudifyDeploymentRequest extends ECTransportModel {
 
-	/** A unique identifier for the deployment. */
-	public final String deployment_id;
-	/** A unique identifier for the blueprint. */
-	public final String blueprint_id;
-	/**
-	 * These values are input for the deployment which can be retrieved from the
-	 * GET /blueprint API this is :plan.input field in GET /blueprint
-	 */
-	public final Map<String, Object> parameters;
+    /** A unique identifier for the deployment. */
+    public final String deployment_id;
+    /** A unique identifier for the blueprint. */
+    public final String blueprint_id;
+    /**
+     * These values are input for the deployment which can be retrieved from the GET
+     * /blueprint API this is :plan.input field in GET /blueprint
+     */
+    public final Map<String, Object> parameters;
 
-	@JsonCreator
-	public CloudifyDeploymentRequest(@JsonProperty("deployment_id") String deployment_id,
-			@JsonProperty("blueprint_id") String blueprint_id,
-			@JsonProperty("parameters") Map<String, Object> parameters) {
-		this.deployment_id = deployment_id;
-		this.blueprint_id = blueprint_id;
-		this.parameters = parameters;
-	}
+    @JsonCreator
+    public CloudifyDeploymentRequest(@JsonProperty("deployment_id") String deployment_id,
+            @JsonProperty("blueprint_id") String blueprint_id,
+            @JsonProperty("parameters") Map<String, Object> parameters) {
+        this.deployment_id = deployment_id;
+        this.blueprint_id = blueprint_id;
+        this.parameters = parameters;
+    }
 
 }

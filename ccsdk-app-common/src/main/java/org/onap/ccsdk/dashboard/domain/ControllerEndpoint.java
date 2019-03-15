@@ -30,62 +30,62 @@ import org.onap.portalsdk.core.domain.support.DomainVo;
  */
 public class ControllerEndpoint extends DomainVo {
 
-	private static final long serialVersionUID = 8785223545128054402L;
+    private static final long serialVersionUID = 8785223545128054402L;
 
-	private long userId;
-	private String name;
-	private String url;
-	private String inventoryUrl;
-	private String dhandlerUrl;
+    private long userId;
+    private String name;
+    private String url;
+    private String inventoryUrl;
+    private String dhandlerUrl;
 
-	public ControllerEndpoint() {
-	}
+    public ControllerEndpoint() {
+    }
 
-	public ControllerEndpoint(long userId, String name, String url, String inventoryUrl, String dhandlerUrl) {
-		this.userId = userId;
-		this.name = name;
-		this.url = url;
-		this.inventoryUrl = inventoryUrl;
-		this.dhandlerUrl = dhandlerUrl;
-	}
+    public ControllerEndpoint(long userId, String name, String url, String inventoryUrl, String dhandlerUrl) {
+        this.userId = userId;
+        this.name = name;
+        this.url = url;
+        this.inventoryUrl = inventoryUrl;
+        this.dhandlerUrl = dhandlerUrl;
+    }
 
-	public long getUserId() {
-		return userId;
-	}
+    public long getUserId() {
+        return userId;
+    }
 
-	public void setUserId(long userId) {
-		this.userId = userId;
-	}
+    public void setUserId(long userId) {
+        this.userId = userId;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public String getUrl() {
-		return url;
-	}
+    public String getUrl() {
+        return url;
+    }
 
-	public void setUrl(String url) {
-		this.url = url;
-	}
+    public void setUrl(String url) {
+        this.url = url;
+    }
 
-	public String getInventoryUrl() {
-		return inventoryUrl;
-	}
+    public String getInventoryUrl() {
+        return inventoryUrl;
+    }
 
-	public void setInventoryUrl(String inventoryUrl) {
-		this.inventoryUrl = inventoryUrl;
-	}
+    public void setInventoryUrl(String inventoryUrl) {
+        this.inventoryUrl = inventoryUrl;
+    }
 
-	public String getDhandlerUrl() {
-		return dhandlerUrl;
-	}
+    public String getDhandlerUrl() {
+        return dhandlerUrl;
+    }
 
-	public void setDhandlerUrl(String dhandlerUrl) {
-		this.dhandlerUrl = dhandlerUrl;
-	}
+    public void setDhandlerUrl(String dhandlerUrl) {
+        this.dhandlerUrl = dhandlerUrl;
+    }
 }

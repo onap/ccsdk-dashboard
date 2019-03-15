@@ -27,36 +27,38 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CloudifyDeploymentList extends ECTransportModel {
-	
-	public final List<CloudifyDeployment> items;
-	public final Metadata metadata;
+
+    public final List<CloudifyDeployment> items;
+    public final Metadata metadata;
 
     @JsonCreator
-    public CloudifyDeploymentList(@JsonProperty("items") List<CloudifyDeployment> items, @JsonProperty("metadata") Metadata metadata){
-		this.items = items;
-		this.metadata = metadata;
-	}
+    public CloudifyDeploymentList(@JsonProperty("items") List<CloudifyDeployment> items,
+            @JsonProperty("metadata") Metadata metadata) {
+        this.items = items;
+        this.metadata = metadata;
+    }
 
-	public static final class Metadata {
-		public final Pagination pagination;
+    public static final class Metadata {
+        public final Pagination pagination;
 
         @JsonCreator
-        public Metadata(@JsonProperty("pagination") Pagination pagination){
+        public Metadata(@JsonProperty("pagination") Pagination pagination) {
             this.pagination = pagination;
         }
-        
-		public static final class Pagination {
-			public final long total;
-			public final long offset;
-			public final long size;
+
+        public static final class Pagination {
+            public final long total;
+            public final long offset;
+            public final long size;
 
             @JsonCreator
-            public Pagination(@JsonProperty("total") long total, @JsonProperty("offset") long offset, @JsonProperty("size") long size){
-				this.total = total;
-				this.offset = offset;
-				this.size = size;
-			}
-		}
-	}
-		
+            public Pagination(@JsonProperty("total") long total, @JsonProperty("offset") long offset,
+                    @JsonProperty("size") long size) {
+                this.total = total;
+                this.offset = offset;
+                this.size = size;
+            }
+        }
+    }
+
 }

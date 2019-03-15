@@ -35,44 +35,41 @@ import org.onap.ccsdk.dashboard.domain.EcdComponent;
  */
 public interface ControllerEndpointService {
 
-	/**
-	 * Gets the object for the specified user ID.
-	 * 
-	 * @param userId
-	 *            Application user ID
-	 * @return ControllerEndpointCredentials instance; null if none exists.
-	 */
-	ControllerEndpoint getControllerEndpointSelection(long userId);
+    /**
+     * Gets the object for the specified user ID.
+     * 
+     * @param userId Application user ID
+     * @return ControllerEndpointCredentials instance; null if none exists.
+     */
+    ControllerEndpoint getControllerEndpointSelection(long userId);
 
-	/**
-	 * Creates or updates an entry for the user ID specified within the object.
-	 * 
-	 * @param endpoint
-	 *            info to store.
-	 */
-	void updateControllerEndpointSelection(ControllerEndpoint endpoint);
+    /**
+     * Creates or updates an entry for the user ID specified within the object.
+     * 
+     * @param endpoint info to store.
+     */
+    void updateControllerEndpointSelection(ControllerEndpoint endpoint);
 
-	/**
-	 * Deletes the object for the specified user ID.
-	 * 
-	 * @param userId
-	 *            Application user ID
-	 */
-	void deleteControllerEndpointSelection(long userId);
+    /**
+     * Deletes the object for the specified user ID.
+     * 
+     * @param userId Application user ID
+     */
+    void deleteControllerEndpointSelection(long userId);
 
-	/**
-	 * Gets all component names that are currently supported through
-	 * ECOMPC dashboard
-	 * 
-	 * @return Component instance list;
-	 */
-	public List<EcdComponent> getComponents();
+    /**
+     * Gets all component names that are currently supported through ECOMPC
+     * dashboard
+     * 
+     * @return Component instance list;
+     */
+    public List<EcdComponent> getComponents();
 
-	/**
-	 * 
-	 * Add a new component to support in ECOMPC platform
-	 * 
-	 * @param component
-	 */
-	void insertComponent(EcdComponent component);
+    /**
+     * 
+     * Add a new component to support in ECOMPC platform
+     * 
+     * @param component
+     */
+    void insertComponent(EcdComponent component);
 }

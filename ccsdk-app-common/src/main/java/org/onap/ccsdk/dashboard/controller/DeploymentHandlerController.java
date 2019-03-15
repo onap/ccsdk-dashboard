@@ -60,184 +60,188 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 @RequestMapping("/deploymenthandler")
 public class DeploymentHandlerController extends DashboardRestrictedBaseController {
 
-	private static EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(DeploymentHandlerController.class);
-	
-	private static final String DEPLOYMENTS_PATH = "dcae-deployments";
-	
-	private static Date begin, end;
+    private static EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(DeploymentHandlerController.class);
 
-	@RequestMapping(value = { DEPLOYMENTS_PATH + "/{deploymentId:.+}" }, method = RequestMethod.PUT, produces = "application/json")
-	@ResponseBody
-	public String putDeployment(HttpServletRequest request, @RequestBody DeploymentRequestObject deploymentRequestObject) throws Exception {
-		preLogAudit(request);
-		String json = null;
-		try {
-			DeploymentHandlerClient deploymentHandlerClient = getDeploymentHandlerClient(request);
-			if (deploymentRequestObject.getMethod().equals("create")) {
-				json = objectMapper.writeValueAsString(deploymentHandlerClient.putDeployment(deploymentRequestObject.getDeploymentId(), 
-					deploymentRequestObject.getTenant(), new DeploymentRequest(deploymentRequestObject.getServiceTypeId(), deploymentRequestObject.getInputs())));
-			} else {
-				json = objectMapper.writeValueAsString(deploymentHandlerClient.updateDeployment(deploymentRequestObject.getDeploymentId(), 
-						deploymentRequestObject.getTenant(), new DeploymentRequest(deploymentRequestObject.getServiceTypeId(), deploymentRequestObject.getInputs())));				
-			}
-		} catch (BadRequestException e) {
-			MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-			MDC.put("TargetEntity", "Deployment Handler");
-			MDC.put("TargetServiceName", "Deployment Handler");
-			MDC.put("ErrorCode", "300");
-			MDC.put("ErrorCategory", "ERROR");
-			MDC.put("ErrorDescription", "Deployment failed! Bad Request");
-			logger.error(EELFLoggerDelegate.errorLogger, "putDeployment caught exception");
-			json = objectMapper.writeValueAsString(new RestResponseError("Bad Request " + e.getMessage()));
-		} catch (ServiceAlreadyExistsException e) {
-			MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-			MDC.put("TargetEntity", "Deployment Handler");
-			MDC.put("TargetServiceName", "Deployment Handler");
-			MDC.put("ErrorCode", "300");
-			MDC.put("ErrorCategory", "ERROR");
-			MDC.put("ErrorDescription", "Deployment failed! Service already exists");
-			logger.error(EELFLoggerDelegate.errorLogger, "putDeployment caught exception");
-			json = objectMapper.writeValueAsString(new RestResponseError("Service already exists " + e.getMessage()));
-		} catch (ServerErrorException e) {
-			MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-			MDC.put("TargetEntity", "Deployment Handler");
-			MDC.put("TargetServiceName", "Deployment Handler");
-			MDC.put("ErrorCode", "300");
-			MDC.put("ErrorCategory", "ERROR");
-			MDC.put("ErrorDescription", "Deployment failed! Server Error");
-			logger.error(EELFLoggerDelegate.errorLogger, "putDeployment caught exception");
-			json = objectMapper.writeValueAsString(new RestResponseError("Server Error " + e.getMessage()));
-		} catch (DownstreamException e) {
-			MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-			MDC.put("TargetEntity", "Deployment Handler");
-			MDC.put("TargetServiceName", "Deployment Handler");
-			MDC.put("ErrorCode", "300");
-			MDC.put("ErrorCategory", "ERROR");
-			MDC.put("ErrorDescription", "Deployment failed! Downstream Exception");
-			logger.error(EELFLoggerDelegate.errorLogger, "putDeployment caught exception");
-			json = objectMapper.writeValueAsString(new RestResponseError("Downstream Exception " + e.getMessage()));
-		} catch (JsonProcessingException jpe) {
-			// Should never, ever happen
-			MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-			MDC.put("TargetEntity", "Deployment Handler");
-			MDC.put("TargetServiceName", "Deployment Handler");
-			MDC.put("ErrorCode", "300");
-			MDC.put("ErrorCategory", "ERROR");
-			MDC.put("ErrorDescription", "Deployment failed! Json Processing Exception");
-			logger.error(EELFLoggerDelegate.errorLogger, "putDeployment caught exception");
-			json = "{ \"error\" : \"" + jpe.toString() + "\"}";
-		} catch (Throwable t) {
-			MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-			MDC.put("TargetEntity", "Deployment Handler");
-			MDC.put("TargetServiceName", "Deployment Handler");
-			MDC.put("ErrorCode", "300");
-			MDC.put("ErrorCategory", "ERROR");
-			MDC.put("ErrorDescription", "Deployment failed!");
-			logger.error(EELFLoggerDelegate.errorLogger, "putDeployment caught exception");
-			json = objectMapper.writeValueAsString(new RestResponseError("putDeployment failed", t));
-		} finally {
-			postLogAudit(request);
-		}
-		return json;
-	}
+    private static final String DEPLOYMENTS_PATH = "dcae-deployments";
 
-	@RequestMapping(value = { DEPLOYMENTS_PATH + "/{deploymentId:.+}" }, method = RequestMethod.DELETE, produces = "application/json")
-	@ResponseBody
-	public String deleteDeployment(@PathVariable("deploymentId") String deploymentId, HttpServletRequest request, 
-			@RequestParam("tenant") String tenant, HttpServletResponse response) throws Exception {
-		preLogAudit(request);
-		String json = null;
-		StringBuffer status = new StringBuffer();
-		try {
-			DeploymentHandlerClient deploymentHandlerClient = getDeploymentHandlerClient(request);
-			deploymentHandlerClient.deleteDeployment(deploymentId, tenant);
-			String self = request.getRequestURL().toString().split("\\?")[0];
-			status.append(self)
-			.append("/executions?tenant=")
-			.append(tenant);
-			DeploymentResource deplRsrc = 
-					new DeploymentResource(deploymentId, 
-							new DeploymentResourceLinks(self, "", status.toString()));
-			JSONObject statObj = new JSONObject(deplRsrc);
-			json = statObj.toString();
-		} catch (BadRequestException e) {
-			MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-			MDC.put("TargetEntity", "Deployment Handler");
-			MDC.put("TargetServiceName", "Deployment Handler");
-			MDC.put("ErrorCode", "300");
-			MDC.put("ErrorCategory", "ERROR");
-			MDC.put("ErrorDescription", "Deleting deployment " + deploymentId + " failed!");
-			logger.error(EELFLoggerDelegate.errorLogger, "deleteDeployment caught exception");
-			json = objectMapper.writeValueAsString(new RestResponseError(e.getMessage()));
-		} catch (ServerErrorException e) {
-			MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-			MDC.put("TargetEntity", "Deployment Handler");
-			MDC.put("TargetServiceName", "Deployment Handler");
-			MDC.put("ErrorCode", "300");
-			MDC.put("ErrorCategory", "ERROR");
-			MDC.put("ErrorDescription", "Deleting deployment " + deploymentId + " failed!");
-			logger.error(EELFLoggerDelegate.errorLogger, "deleteDeployment caught exception");
-			json = objectMapper.writeValueAsString(new RestResponseError(e.getMessage()));
-		} catch (DownstreamException e) {
-			MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-			MDC.put("TargetEntity", "Deployment Handler");
-			MDC.put("TargetServiceName", "Deployment Handler");
-			MDC.put("ErrorCode", "300");
-			MDC.put("ErrorCategory", "ERROR");
-			MDC.put("ErrorDescription", "Deleting deployment " + deploymentId + " failed!");
-			logger.error(EELFLoggerDelegate.errorLogger, "deleteDeployment caught exception");
-			json = objectMapper.writeValueAsString(new RestResponseError(e.getMessage()));
-		} catch (DeploymentNotFoundException e) {
-			MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-			MDC.put("TargetEntity", "Deployment Handler");
-			MDC.put("TargetServiceName", "Deployment Handler");
-			MDC.put("ErrorCode", "300");
-			MDC.put("ErrorCategory", "ERROR");
-			MDC.put("ErrorDescription", "Deleting deployment " + deploymentId + " failed!");
-			logger.error(EELFLoggerDelegate.errorLogger, "deleteDeployment caught exception");
-			json = objectMapper.writeValueAsString(new RestResponseError(e.getMessage()));
-		} catch (JsonProcessingException jpe) {
-			// Should never, ever happen
-			MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-			MDC.put("TargetEntity", "Deployment Handler");
-			MDC.put("TargetServiceName", "Deployment Handler");
-			MDC.put("ErrorCode", "300");
-			MDC.put("ErrorCategory", "ERROR");
-			MDC.put("ErrorDescription", "Deleting deployment " + deploymentId + " failed!");
-			logger.error(EELFLoggerDelegate.errorLogger, "deleteDeployment caught exception");
-			json = "{ \"error\" : \"" + jpe.toString() + "\"}";
-		} catch (Throwable t) {
-			MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-			MDC.put("TargetEntity", "Deployment Handler");
-			MDC.put("TargetServiceName", "Deployment Handler");
-			MDC.put("ErrorCode", "300");
-			MDC.put("ErrorCategory", "ERROR");
-			MDC.put("ErrorDescription", "Deleting deployment " + deploymentId + " failed!");
-			logger.error(EELFLoggerDelegate.errorLogger, "deleteDeployment caught exception");
-			json = objectMapper.writeValueAsString(new RestResponseError("deleteDeployment failed", t));
-		} finally {
-			postLogAudit(request);
-		}
-		return json;
-	}
+    private static Date begin, end;
 
-	public void preLogAudit(HttpServletRequest request) {
-		begin = new Date();
-		MDC.put(SystemProperties.AUDITLOG_BEGIN_TIMESTAMP, logDateFormat.format(begin));
-		MDC.put(SystemProperties.METRICSLOG_BEGIN_TIMESTAMP, logDateFormat.format(begin));
-		MDC.put(SystemProperties.STATUS_CODE, "COMPLETE");
-		//logger.setRequestBasedDefaultsIntoGlobalLoggingContext(request, APP_NAME);
-	}
+    @RequestMapping(value = {
+            DEPLOYMENTS_PATH + "/{deploymentId:.+}" }, method = RequestMethod.PUT, produces = "application/json")
+    @ResponseBody
+    public String putDeployment(HttpServletRequest request,
+            @RequestBody DeploymentRequestObject deploymentRequestObject) throws Exception {
+        preLogAudit(request);
+        String json = null;
+        try {
+            DeploymentHandlerClient deploymentHandlerClient = getDeploymentHandlerClient(request);
+            if (deploymentRequestObject.getMethod().equals("create")) {
+                json = objectMapper.writeValueAsString(deploymentHandlerClient.putDeployment(
+                        deploymentRequestObject.getDeploymentId(), deploymentRequestObject.getTenant(),
+                        new DeploymentRequest(deploymentRequestObject.getServiceTypeId(),
+                                deploymentRequestObject.getInputs())));
+            } else {
+                json = objectMapper.writeValueAsString(deploymentHandlerClient.updateDeployment(
+                        deploymentRequestObject.getDeploymentId(), deploymentRequestObject.getTenant(),
+                        new DeploymentRequest(deploymentRequestObject.getServiceTypeId(),
+                                deploymentRequestObject.getInputs())));
+            }
+        } catch (BadRequestException e) {
+            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
+            MDC.put("TargetEntity", "Deployment Handler");
+            MDC.put("TargetServiceName", "Deployment Handler");
+            MDC.put("ErrorCode", "300");
+            MDC.put("ErrorCategory", "ERROR");
+            MDC.put("ErrorDescription", "Deployment failed! Bad Request");
+            logger.error(EELFLoggerDelegate.errorLogger, "putDeployment caught exception");
+            json = objectMapper.writeValueAsString(new RestResponseError("Bad Request " + e.getMessage()));
+        } catch (ServiceAlreadyExistsException e) {
+            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
+            MDC.put("TargetEntity", "Deployment Handler");
+            MDC.put("TargetServiceName", "Deployment Handler");
+            MDC.put("ErrorCode", "300");
+            MDC.put("ErrorCategory", "ERROR");
+            MDC.put("ErrorDescription", "Deployment failed! Service already exists");
+            logger.error(EELFLoggerDelegate.errorLogger, "putDeployment caught exception");
+            json = objectMapper.writeValueAsString(new RestResponseError("Service already exists " + e.getMessage()));
+        } catch (ServerErrorException e) {
+            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
+            MDC.put("TargetEntity", "Deployment Handler");
+            MDC.put("TargetServiceName", "Deployment Handler");
+            MDC.put("ErrorCode", "300");
+            MDC.put("ErrorCategory", "ERROR");
+            MDC.put("ErrorDescription", "Deployment failed! Server Error");
+            logger.error(EELFLoggerDelegate.errorLogger, "putDeployment caught exception");
+            json = objectMapper.writeValueAsString(new RestResponseError("Server Error " + e.getMessage()));
+        } catch (DownstreamException e) {
+            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
+            MDC.put("TargetEntity", "Deployment Handler");
+            MDC.put("TargetServiceName", "Deployment Handler");
+            MDC.put("ErrorCode", "300");
+            MDC.put("ErrorCategory", "ERROR");
+            MDC.put("ErrorDescription", "Deployment failed! Downstream Exception");
+            logger.error(EELFLoggerDelegate.errorLogger, "putDeployment caught exception");
+            json = objectMapper.writeValueAsString(new RestResponseError("Downstream Exception " + e.getMessage()));
+        } catch (JsonProcessingException jpe) {
+            // Should never, ever happen
+            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
+            MDC.put("TargetEntity", "Deployment Handler");
+            MDC.put("TargetServiceName", "Deployment Handler");
+            MDC.put("ErrorCode", "300");
+            MDC.put("ErrorCategory", "ERROR");
+            MDC.put("ErrorDescription", "Deployment failed! Json Processing Exception");
+            logger.error(EELFLoggerDelegate.errorLogger, "putDeployment caught exception");
+            json = "{ \"error\" : \"" + jpe.toString() + "\"}";
+        } catch (Throwable t) {
+            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
+            MDC.put("TargetEntity", "Deployment Handler");
+            MDC.put("TargetServiceName", "Deployment Handler");
+            MDC.put("ErrorCode", "300");
+            MDC.put("ErrorCategory", "ERROR");
+            MDC.put("ErrorDescription", "Deployment failed!");
+            logger.error(EELFLoggerDelegate.errorLogger, "putDeployment caught exception");
+            json = objectMapper.writeValueAsString(new RestResponseError("putDeployment failed", t));
+        } finally {
+            postLogAudit(request);
+        }
+        return json;
+    }
 
-	public void postLogAudit(HttpServletRequest request) {
-		end = new Date();
-		MDC.put("AlertSeverity", "0");
-		MDC.put("TargetEntity", "Deployment Handler");
-		MDC.put("TargetServiceName", "Deployment Handler");
-		MDC.put(SystemProperties.AUDITLOG_END_TIMESTAMP, logDateFormat.format(end));
-		MDC.put(SystemProperties.METRICSLOG_END_TIMESTAMP, logDateFormat.format(end));
-		MDC.put(SystemProperties.MDC_TIMER, Long.toString((end.getTime() - begin.getTime())));
-		logger.info(EELFLoggerDelegate.auditLogger, request.getMethod() + request.getRequestURI());
-		logger.info(EELFLoggerDelegate.metricsLogger, request.getMethod() + request.getRequestURI());
-	}
+    @RequestMapping(value = {
+            DEPLOYMENTS_PATH + "/{deploymentId:.+}" }, method = RequestMethod.DELETE, produces = "application/json")
+    @ResponseBody
+    public String deleteDeployment(@PathVariable("deploymentId") String deploymentId, HttpServletRequest request,
+            @RequestParam("tenant") String tenant, HttpServletResponse response) throws Exception {
+        preLogAudit(request);
+        String json = null;
+        StringBuffer status = new StringBuffer();
+        try {
+            DeploymentHandlerClient deploymentHandlerClient = getDeploymentHandlerClient(request);
+            deploymentHandlerClient.deleteDeployment(deploymentId, tenant);
+            String self = request.getRequestURL().toString().split("\\?")[0];
+            status.append(self).append("/executions?tenant=").append(tenant);
+            DeploymentResource deplRsrc = new DeploymentResource(deploymentId,
+                    new DeploymentResourceLinks(self, "", status.toString()));
+            JSONObject statObj = new JSONObject(deplRsrc);
+            json = statObj.toString();
+        } catch (BadRequestException e) {
+            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
+            MDC.put("TargetEntity", "Deployment Handler");
+            MDC.put("TargetServiceName", "Deployment Handler");
+            MDC.put("ErrorCode", "300");
+            MDC.put("ErrorCategory", "ERROR");
+            MDC.put("ErrorDescription", "Deleting deployment " + deploymentId + " failed!");
+            logger.error(EELFLoggerDelegate.errorLogger, "deleteDeployment caught exception");
+            json = objectMapper.writeValueAsString(new RestResponseError(e.getMessage()));
+        } catch (ServerErrorException e) {
+            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
+            MDC.put("TargetEntity", "Deployment Handler");
+            MDC.put("TargetServiceName", "Deployment Handler");
+            MDC.put("ErrorCode", "300");
+            MDC.put("ErrorCategory", "ERROR");
+            MDC.put("ErrorDescription", "Deleting deployment " + deploymentId + " failed!");
+            logger.error(EELFLoggerDelegate.errorLogger, "deleteDeployment caught exception");
+            json = objectMapper.writeValueAsString(new RestResponseError(e.getMessage()));
+        } catch (DownstreamException e) {
+            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
+            MDC.put("TargetEntity", "Deployment Handler");
+            MDC.put("TargetServiceName", "Deployment Handler");
+            MDC.put("ErrorCode", "300");
+            MDC.put("ErrorCategory", "ERROR");
+            MDC.put("ErrorDescription", "Deleting deployment " + deploymentId + " failed!");
+            logger.error(EELFLoggerDelegate.errorLogger, "deleteDeployment caught exception");
+            json = objectMapper.writeValueAsString(new RestResponseError(e.getMessage()));
+        } catch (DeploymentNotFoundException e) {
+            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
+            MDC.put("TargetEntity", "Deployment Handler");
+            MDC.put("TargetServiceName", "Deployment Handler");
+            MDC.put("ErrorCode", "300");
+            MDC.put("ErrorCategory", "ERROR");
+            MDC.put("ErrorDescription", "Deleting deployment " + deploymentId + " failed!");
+            logger.error(EELFLoggerDelegate.errorLogger, "deleteDeployment caught exception");
+            json = objectMapper.writeValueAsString(new RestResponseError(e.getMessage()));
+        } catch (JsonProcessingException jpe) {
+            // Should never, ever happen
+            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
+            MDC.put("TargetEntity", "Deployment Handler");
+            MDC.put("TargetServiceName", "Deployment Handler");
+            MDC.put("ErrorCode", "300");
+            MDC.put("ErrorCategory", "ERROR");
+            MDC.put("ErrorDescription", "Deleting deployment " + deploymentId + " failed!");
+            logger.error(EELFLoggerDelegate.errorLogger, "deleteDeployment caught exception");
+            json = "{ \"error\" : \"" + jpe.toString() + "\"}";
+        } catch (Throwable t) {
+            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
+            MDC.put("TargetEntity", "Deployment Handler");
+            MDC.put("TargetServiceName", "Deployment Handler");
+            MDC.put("ErrorCode", "300");
+            MDC.put("ErrorCategory", "ERROR");
+            MDC.put("ErrorDescription", "Deleting deployment " + deploymentId + " failed!");
+            logger.error(EELFLoggerDelegate.errorLogger, "deleteDeployment caught exception");
+            json = objectMapper.writeValueAsString(new RestResponseError("deleteDeployment failed", t));
+        } finally {
+            postLogAudit(request);
+        }
+        return json;
+    }
+
+    public void preLogAudit(HttpServletRequest request) {
+        begin = new Date();
+        MDC.put(SystemProperties.AUDITLOG_BEGIN_TIMESTAMP, logDateFormat.format(begin));
+        MDC.put(SystemProperties.METRICSLOG_BEGIN_TIMESTAMP, logDateFormat.format(begin));
+        MDC.put(SystemProperties.STATUS_CODE, "COMPLETE");
+        // logger.setRequestBasedDefaultsIntoGlobalLoggingContext(request, APP_NAME);
+    }
+
+    public void postLogAudit(HttpServletRequest request) {
+        end = new Date();
+        MDC.put("AlertSeverity", "0");
+        MDC.put("TargetEntity", "Deployment Handler");
+        MDC.put("TargetServiceName", "Deployment Handler");
+        MDC.put(SystemProperties.AUDITLOG_END_TIMESTAMP, logDateFormat.format(end));
+        MDC.put(SystemProperties.METRICSLOG_END_TIMESTAMP, logDateFormat.format(end));
+        MDC.put(SystemProperties.MDC_TIMER, Long.toString((end.getTime() - begin.getTime())));
+        logger.info(EELFLoggerDelegate.auditLogger, request.getMethod() + request.getRequestURI());
+        logger.info(EELFLoggerDelegate.metricsLogger, request.getMethod() + request.getRequestURI());
+    }
 }

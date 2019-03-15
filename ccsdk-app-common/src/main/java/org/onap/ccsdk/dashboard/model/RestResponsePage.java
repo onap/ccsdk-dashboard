@@ -25,51 +25,50 @@ package org.onap.ccsdk.dashboard.model;
  * Model for a response with count of items available, count of pages required
  * to display all items, and one page worth of data items.
  * 
- * @param <T>
- *            Model class for item
+ * @param <T> Model class for item
  */
 public class RestResponsePage<T> extends ECTransportModel {
 
-	private int totalItems;
-	private int totalPages;
-	private T items;
+    private int totalItems;
+    private int totalPages;
+    private T items;
 
-	public RestResponsePage() {
-	}
+    public RestResponsePage() {
+    }
 
-	public RestResponsePage(final int totalItems, final int totalPages, final T items) {
-		this.totalItems = totalItems;
-		this.totalPages = totalPages;
-		this.items = items;
-	}
+    public RestResponsePage(final int totalItems, final int totalPages, final T items) {
+        this.totalItems = totalItems;
+        this.totalPages = totalPages;
+        this.items = items;
+    }
 
-	public int getTotalItems() {
-		return totalItems;
-	}
+    public int getTotalItems() {
+        return totalItems;
+    }
 
-	public void setTotalItems(int items) {
-		this.totalItems = items;
-	}
+    public void setTotalItems(int items) {
+        this.totalItems = items;
+    }
 
-	public int getTotalPages() {
-		return totalPages;
-	}
+    public int getTotalPages() {
+        return totalPages;
+    }
 
-	public void setTotalPages(int pages) {
-		this.totalPages = pages;
-	}
+    public void setTotalPages(int pages) {
+        this.totalPages = pages;
+    }
 
-	public T getItems() {
-		return items;
-	}
+    public T getItems() {
+        return items;
+    }
 
-	public void setItems(final T data) {
-		this.items = data;
-	}
+    public void setItems(final T data) {
+        this.items = data;
+    }
 
-	@Override
-	public String toString() {
-		return "RestResponsePage[totalItems=" + totalItems + ", totalPages=" + totalPages + ", items=" + items + "]";
-	}
+    @Override
+    public String toString() {
+        return "RestResponsePage[totalItems=" + totalItems + ", totalPages=" + totalPages + ", items=" + items + "]";
+    }
 
 }

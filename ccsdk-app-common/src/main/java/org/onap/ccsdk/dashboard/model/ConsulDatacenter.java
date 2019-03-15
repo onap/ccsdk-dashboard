@@ -28,17 +28,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Model for message returned by Consul about monitored datacenters.
  * 
  * <pre>
-   "dcname" 
-   </pre>
+ * "dcname"
+ * </pre>
  */
 public final class ConsulDatacenter extends ECTransportModel {
 
-	public final String name;
+    public final String name;
 
-	@JsonCreator
-	public ConsulDatacenter(
-			@JsonProperty("ID") String name) {
-		this.name = name;
-	}
+    @JsonCreator
+    public ConsulDatacenter(@JsonProperty("ID") String name) {
+        this.name = name;
+    }
 
 }

@@ -25,12 +25,12 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CloudifyNodeId extends ECTransportModel {
-	/** The id of the node */
-	public final String id;
-	
-	@JsonCreator
-	public CloudifyNodeId(@JsonProperty("id") String id) {
-		this.id = id;
-	}
+    /** The id of the node */
+    public final String id;
+
+    @JsonCreator
+    public CloudifyNodeId(@JsonProperty("id") String id) {
+        this.id = id;
+    }
 
 }

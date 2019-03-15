@@ -23,14 +23,14 @@
 package org.onap.ccsdk.dashboard.exceptions;
 
 public class DeploymentNotFoundException extends Exception {
-	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -5983803277201006988L;
 
-	public DeploymentNotFoundException (String message) {
-		super(message);
-	}
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -5983803277201006988L;
+
+    public DeploymentNotFoundException(String message) {
+        super(message);
+    }
 
 }

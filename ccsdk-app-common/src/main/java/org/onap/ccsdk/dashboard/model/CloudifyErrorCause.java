@@ -26,28 +26,26 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CloudifyErrorCause extends ECTransportModel {
 
-	/** Error message */
-	public final String message;
-	
-	/** Stack trace at the point where the exception was raised */
-	public final String traceback;
-	
-	/** Exception type */
-	public final String type;
-	
-	@JsonCreator
-	public CloudifyErrorCause(
-			@JsonProperty("message") String message, 
-			@JsonProperty("traceback") String traceback,
-			@JsonProperty("type") String type) {
+    /** Error message */
+    public final String message;
 
-		this.message = message;
-		this.traceback = traceback;
-		this.type = type;
-	}
+    /** Stack trace at the point where the exception was raised */
+    public final String traceback;
 
-	@Override
-	public String toString() {
-		return "CloudifyErrorCause [message=" + message + ", traceback=" + traceback + ", type=" + type + "]";
-	}
+    /** Exception type */
+    public final String type;
+
+    @JsonCreator
+    public CloudifyErrorCause(@JsonProperty("message") String message, @JsonProperty("traceback") String traceback,
+            @JsonProperty("type") String type) {
+
+        this.message = message;
+        this.traceback = traceback;
+        this.type = type;
+    }
+
+    @Override
+    public String toString() {
+        return "CloudifyErrorCause [message=" + message + ", traceback=" + traceback + ", type=" + type + "]";
+    }
 }

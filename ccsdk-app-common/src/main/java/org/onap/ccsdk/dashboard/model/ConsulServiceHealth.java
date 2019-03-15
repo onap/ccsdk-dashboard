@@ -39,44 +39,39 @@ import com.fasterxml.jackson.annotation.JsonProperty;
     "ServiceName": "pgaasServer1",
     "CreateIndex": 190199,
     "ModifyIndex": 199395
-  } </pre>
-  *
-  */
+  }
+ * </pre>
+ *
+ */
 public final class ConsulServiceHealth extends ECTransportModel {
 
-	public final String node;
-	public final String checkID;
-	public final String name;
-	public final String status;
-	public final String notes;
-	public final String output;
-	public final String serviceID;
-	public final String serviceName;
-	public final int createIndex;
-	public final int modifyIndex;
+    public final String node;
+    public final String checkID;
+    public final String name;
+    public final String status;
+    public final String notes;
+    public final String output;
+    public final String serviceID;
+    public final String serviceName;
+    public final int createIndex;
+    public final int modifyIndex;
 
-	@JsonCreator
-	public ConsulServiceHealth(
-			@JsonProperty("Node") String node,
-			@JsonProperty("CheckID") String checkID,
-			@JsonProperty("Name") String name,
-			@JsonProperty("Status") String status,
-			@JsonProperty("Notes") String notes,
-			@JsonProperty("Output") String output,
-			@JsonProperty("ServiceID") String serviceID,
-			@JsonProperty("ServiceName") String serviceName,
-			@JsonProperty("CreateIndex") int createIndex,
-			@JsonProperty("ModifyIndex") int modifyIndex) {
-		this.node = node;
-		this.checkID = checkID;
-		this.name = name;
-		this.status = status;
-		this.notes = notes;
-		this.output = output;
-		this.serviceID = serviceID;
-		this.serviceName = serviceName;
-		this.createIndex = createIndex;
-		this.modifyIndex = modifyIndex;
-	}
+    @JsonCreator
+    public ConsulServiceHealth(@JsonProperty("Node") String node, @JsonProperty("CheckID") String checkID,
+            @JsonProperty("Name") String name, @JsonProperty("Status") String status,
+            @JsonProperty("Notes") String notes, @JsonProperty("Output") String output,
+            @JsonProperty("ServiceID") String serviceID, @JsonProperty("ServiceName") String serviceName,
+            @JsonProperty("CreateIndex") int createIndex, @JsonProperty("ModifyIndex") int modifyIndex) {
+        this.node = node;
+        this.checkID = checkID;
+        this.name = name;
+        this.status = status;
+        this.notes = notes;
+        this.output = output;
+        this.serviceID = serviceID;
+        this.serviceName = serviceName;
+        this.createIndex = createIndex;
+        this.modifyIndex = modifyIndex;
+    }
 
 }

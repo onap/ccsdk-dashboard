@@ -22,14 +22,14 @@
 package org.onap.ccsdk.dashboard.exceptions;
 
 public class ServerErrorException extends Exception {
-	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 8366380783861251332L;
 
-	public ServerErrorException(String message) {
-		super(message);
-	}
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 8366380783861251332L;
+
+    public ServerErrorException(String message) {
+        super(message);
+    }
 
 }

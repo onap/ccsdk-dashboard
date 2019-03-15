@@ -22,14 +22,14 @@
 package org.onap.ccsdk.dashboard.exceptions;
 
 public class ServiceAlreadyExistsException extends Exception {
-	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -4696234983451006280L;
 
-	public ServiceAlreadyExistsException (String message) {
-		super(message);
-	}
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -4696234983451006280L;
+
+    public ServiceAlreadyExistsException(String message) {
+        super(message);
+    }
 
 }

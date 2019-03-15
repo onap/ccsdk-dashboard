@@ -26,19 +26,18 @@ import java.util.List;
 import org.onap.ccsdk.dashboard.domain.EcdComponent;
 
 public class EcdAppComponent {
-	
-	public String app;
-	
-	public List<EcdComponent> comps;
-/*
-	@JsonCreator
-	public EcdAppComponent(@JsonProperty("app") String app,
-			@JsonProperty("comps") List<EcdComponent> comps) {
-		this(app, comps);
-	}
-	*/
-	public EcdAppComponent(String app, List<EcdComponent> comps) {
-		this.app = app;
-		this.comps = comps;
-	}
+
+    public String app;
+
+    public List<EcdComponent> comps;
+
+    /*
+     * @JsonCreator public EcdAppComponent(@JsonProperty("app") String app,
+     * 
+     * @JsonProperty("comps") List<EcdComponent> comps) { this(app, comps); }
+     */
+    public EcdAppComponent(String app, List<EcdComponent> comps) {
+        this.app = app;
+        this.comps = comps;
+    }
 }

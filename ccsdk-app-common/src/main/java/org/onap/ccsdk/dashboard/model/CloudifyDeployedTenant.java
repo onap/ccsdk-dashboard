@@ -25,20 +25,19 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CloudifyDeployedTenant extends ECTransportModel {
-	
-	/** A unique identifier for the deployment. */
-	public final String id;
-	/** tenant where the deployment was done */
-	public final String tenant_name;
-	/** The id of the blueprint the deployment is based on. */
-	public final String blueprint_id;
-	
-	@JsonCreator
-	public CloudifyDeployedTenant(@JsonProperty("id") String id,
-			@JsonProperty("blueprint_id") String blueprint_id, 
-			@JsonProperty("tenant_name") String tenant_name) {
-		this.id = id;
-		this.blueprint_id = blueprint_id;
-		this.tenant_name = tenant_name;
-	}
+
+    /** A unique identifier for the deployment. */
+    public final String id;
+    /** tenant where the deployment was done */
+    public final String tenant_name;
+    /** The id of the blueprint the deployment is based on. */
+    public final String blueprint_id;
+
+    @JsonCreator
+    public CloudifyDeployedTenant(@JsonProperty("id") String id, @JsonProperty("blueprint_id") String blueprint_id,
+            @JsonProperty("tenant_name") String tenant_name) {
+        this.id = id;
+        this.blueprint_id = blueprint_id;
+        this.tenant_name = tenant_name;
+    }
 }

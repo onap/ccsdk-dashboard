@@ -42,13 +42,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public final class ConsulServiceInfo extends ECTransportModel {
 
-	public final String name;
-	public final List<String> addresses;
+    public final String name;
+    public final List<String> addresses;
 
-	@JsonCreator
-	public ConsulServiceInfo(@JsonProperty("name") String name, @JsonProperty("addresses") List<String> addresses) {
-		this.name = name;
-		this.addresses = addresses;
-	}
+    @JsonCreator
+    public ConsulServiceInfo(@JsonProperty("name") String name, @JsonProperty("addresses") List<String> addresses) {
+        this.name = name;
+        this.addresses = addresses;
+    }
 
 }

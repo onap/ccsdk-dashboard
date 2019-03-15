@@ -29,75 +29,72 @@ import org.onap.portalsdk.core.onboarding.util.CipherUtil;
  */
 public class ControllerEndpointCredentials extends ControllerEndpointTransport {
 
-	public String username;
-	public String password;
-	public boolean isEncryptedPass;
+    public String username;
+    public String password;
+    public boolean isEncryptedPass;
 
-	public ControllerEndpointCredentials(boolean selected, String name, String url, String inventoryUrl, String dhandlerUrl,
-			String consulUrl, String username, String password, boolean isEncryptedPass) {
-		super(selected, name, url, inventoryUrl, dhandlerUrl, consulUrl);
-		this.username = username;
-		this.password = password;
-		this.isEncryptedPass = isEncryptedPass;
-	}
+    public ControllerEndpointCredentials(boolean selected, String name, String url, String inventoryUrl,
+            String dhandlerUrl, String consulUrl, String username, String password, boolean isEncryptedPass) {
+        super(selected, name, url, inventoryUrl, dhandlerUrl, consulUrl);
+        this.username = username;
+        this.password = password;
+        this.isEncryptedPass = isEncryptedPass;
+    }
 
-	public String getUsername() {
-		return username;
-	}
+    public String getUsername() {
+        return username;
+    }
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
-	public String getPassword() {
-		return password;
-	}
+    public String getPassword() {
+        return password;
+    }
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
-	public boolean getEncryptedPassword() {
-		return isEncryptedPass;
-	}
+    public boolean getEncryptedPassword() {
+        return isEncryptedPass;
+    }
 
-	public void setEncryptedPassword(boolean isEncryptedPass) {
-		this.isEncryptedPass = isEncryptedPass;
-	}
+    public void setEncryptedPassword(boolean isEncryptedPass) {
+        this.isEncryptedPass = isEncryptedPass;
+    }
 
-	/**
-	 * Convenience method to yield a ControllerEndpointTransport object.
-	 * 
-	 * @return ControllerEndpoint with copy of the non-privileged data
-	 */
-	public ControllerEndpointTransport toControllerEndpointTransport() {
-		return new ControllerEndpointTransport(getSelected(), getName(), getUrl(), 
-				getInventoryUrl(), getDhandlerUrl(), getConsulUrl());
-	}
+    /**
+     * Convenience method to yield a ControllerEndpointTransport object.
+     * 
+     * @return ControllerEndpoint with copy of the non-privileged data
+     */
+    public ControllerEndpointTransport toControllerEndpointTransport() {
+        return new ControllerEndpointTransport(getSelected(), getName(), getUrl(), getInventoryUrl(), getDhandlerUrl(),
+                getConsulUrl());
+    }
 
-	/**
-	 * Accepts clear text and stores an encrypted value; as a side effect, sets
-	 * the encrypted flag to true.
-	 * 
-	 * @param plainText
-	 *            Clear-text password
-	 * @throws Exception
-	 *             If encryption fails
-	 */
-	public void encryptPassword(final String plainText) throws Exception {
-		this.password = CipherUtil.encrypt(plainText);
-		this.isEncryptedPass = true;
-	}
+    /**
+     * Accepts clear text and stores an encrypted value; as a side effect, sets the
+     * encrypted flag to true.
+     * 
+     * @param plainText Clear-text password
+     * @throws Exception If encryption fails
+     */
+    public void encryptPassword(final String plainText) throws Exception {
+        this.password = CipherUtil.encrypt(plainText);
+        this.isEncryptedPass = true;
+    }
 
-	/**
-	 * Client should call this method if {@link #getEncryptedPassword()} returns
-	 * true.
-	 * 
-	 * @return Clear-text password.
-	 * @throws Exception
-	 *             If decryption fails
-	 */
-	public String decryptPassword() throws Exception {
-		return CipherUtil.decrypt(password);
-	}
+    /**
+     * Client should call this method if {@link #getEncryptedPassword()} returns
+     * true.
+     * 
+     * @return Clear-text password.
+     * @throws Exception If decryption fails
+     */
+    public String decryptPassword() throws Exception {
+        return CipherUtil.decrypt(password);
+    }
 }

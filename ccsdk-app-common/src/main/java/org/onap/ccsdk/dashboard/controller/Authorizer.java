@@ -35,114 +35,115 @@ import org.onap.portalsdk.core.web.support.AppUtils;
 
 public class Authorizer {
 
-	private static Authorizer authorizer = new Authorizer();
-	private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate.getLogger(Authorizer.class);
-	private static final String AUTH_PROP_FILE_NAME = "authorizer.properties";
-	private static final String DCAE_ROLES_KEY = "dcae_roles";
+    private static Authorizer authorizer = new Authorizer();
+    private static final EELFLoggerDelegate LOGGER = EELFLoggerDelegate.getLogger(Authorizer.class);
+    private static final String AUTH_PROP_FILE_NAME = "authorizer.properties";
+    private static final String DCAE_ROLES_KEY = "dcae_roles";
 
-	public static Authorizer getAuthorizer() {
-		return authorizer;
-	}
-	
-	public boolean isAuthorized(HttpServletRequest request) {
-		final String method = request.getMethod();
-		final String resource = request.getRequestURI();
+    public static Authorizer getAuthorizer() {
+        return authorizer;
+    }
 
-		final Set<Authorizer.Role> authorizedRoles = getAuthorizedRoles(method, resource);
+    public boolean isAuthorized(HttpServletRequest request) {
+        final String method = request.getMethod();
+        final String resource = request.getRequestURI();
 
-		// Anybody can access this page, no need to check
-		if (authorizedRoles.contains(Role.ANY)) {
-			return true;
-		}
+        final Set<Authorizer.Role> authorizedRoles = getAuthorizedRoles(method, resource);
 
-		final Set<Authorizer.Role> roles = getRoles(request);
-		final Set<Authorizer.Role> intersection = new HashSet<> (roles);
+        // Anybody can access this page, no need to check
+        if (authorizedRoles.contains(Role.ANY)) {
+            return true;
+        }
 
-		intersection.retainAll(authorizedRoles); // Removes all roles in roles that aren't contained in authorizedRoles.
+        final Set<Authorizer.Role> roles = getRoles(request);
+        final Set<Authorizer.Role> intersection = new HashSet<>(roles);
 
-		return !intersection.isEmpty(); //If the intersection is not empty, then this user is authorized
-	}
+        intersection.retainAll(authorizedRoles); // Removes all roles in roles that aren't contained in authorizedRoles.
 
-	// Helper method to set roles
-	public void putRoles(HttpServletRequest request, Set<Role> roles) {
-		request.getSession().setAttribute(DCAE_ROLES_KEY, roles);
-	}
+        return !intersection.isEmpty(); // If the intersection is not empty, then this user is authorized
+    }
 
-	// Returns roles for the current user making the request
-	@SuppressWarnings("unchecked")
-	private Set<Authorizer.Role> getRoles(HttpServletRequest request) {
+    // Helper method to set roles
+    public void putRoles(HttpServletRequest request, Set<Role> roles) {
+        request.getSession().setAttribute(DCAE_ROLES_KEY, roles);
+    }
 
-		// If roles is empty, then write the user's roles to the session
-		if (request.getSession().getAttribute(DCAE_ROLES_KEY) == null) {
+    // Returns roles for the current user making the request
+    @SuppressWarnings("unchecked")
+    private Set<Authorizer.Role> getRoles(HttpServletRequest request) {
 
-			// HashSet to be used to for putRoles
-			HashSet<Role> roles = new HashSet<>();
-			roles.add(Role.READER);
-			
-			// Get roles and turn into list of role objects
-			HttpSession session = AppUtils.getSession(request);
-			String roleType = (String)session.getAttribute("auth_role");
-			if (roleType != null) {
-				switch (roleType) {
-					case "ADMIN": 	roles.add(Role.ADMIN);
-									break;
-					case "WRITE":	roles.add(Role.WRITER);
-									break;
-					case "READ": 	roles.add(Role.READER);
-									break;
-					default:		roles.add(Role.READER);
-									break;
-				}
-			}
-			// Write user roles
-			putRoles(request, roles);
-		}
-		
-		// Check if attribute DCAE_ROLES_KEY is valid
-		final Object rawRoles = request.getSession().getAttribute(DCAE_ROLES_KEY);
-		
-		if (!(rawRoles instanceof Set<?>)) {
-			throw new RuntimeException("Unrecognized object found in session for key=" + DCAE_ROLES_KEY);
-		}
+        // If roles is empty, then write the user's roles to the session
+        if (request.getSession().getAttribute(DCAE_ROLES_KEY) == null) {
 
-		return (Set<Authorizer.Role>) request.getSession().getAttribute(DCAE_ROLES_KEY);
-	}
+            // HashSet to be used to for putRoles
+            HashSet<Role> roles = new HashSet<>();
+            roles.add(Role.READER);
 
-	// Returns roles authorized to perform the requested method (i.e. getAuthorizedRoles("POST", "/ecd-app-att/deployments"))
-	private Set<Authorizer.Role> getAuthorizedRoles(String method, String resource) {
-		final Properties resourceRoles = new Properties();
+            // Get roles and turn into list of role objects
+            HttpSession session = AppUtils.getSession(request);
+            String roleType = (String) session.getAttribute("auth_role");
+            if (roleType != null) {
+                switch (roleType) {
+                case "ADMIN":
+                    roles.add(Role.ADMIN);
+                    break;
+                case "WRITE":
+                    roles.add(Role.WRITER);
+                    break;
+                case "READ":
+                    roles.add(Role.READER);
+                    break;
+                default:
+                    roles.add(Role.READER);
+                    break;
+                }
+            }
+            // Write user roles
+            putRoles(request, roles);
+        }
 
-		try {
-			resourceRoles.load(Thread.currentThread().getContextClassLoader().getResourceAsStream(AUTH_PROP_FILE_NAME));
+        // Check if attribute DCAE_ROLES_KEY is valid
+        final Object rawRoles = request.getSession().getAttribute(DCAE_ROLES_KEY);
 
-			final String[] splitMethodResourceKey = (method + resource.replace("/", ".")).split("\\.",0);
-			final String methodResourceKey = splitMethodResourceKey[0] + "." + splitMethodResourceKey[2];
-	
-			if (!resourceRoles.containsKey(methodResourceKey)) {
-				LOGGER.warn(AUTH_PROP_FILE_NAME + " does not contain roles for " + methodResourceKey + "; defaulting " + Authorizer.Role.ANY);
-				return new HashSet<> (Collections.singleton(Role.ANY));
-			}
-	
-			final String[] rawAuthorizedRoles = ((String) resourceRoles.get(methodResourceKey)).split(",");
-			final Set<Authorizer.Role> authorizedRoles = new HashSet<> ();
-	
-			for (String rawAuthorizedRole : rawAuthorizedRoles) {
-				authorizedRoles.add(Authorizer.Role.valueOf(rawAuthorizedRole));
-			}
-	
-			return authorizedRoles;
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
+        if (!(rawRoles instanceof Set<?>)) {
+            throw new RuntimeException("Unrecognized object found in session for key=" + DCAE_ROLES_KEY);
+        }
 
-	public enum Role {
-		ADMIN,
-		READER,
-		WRITER,
-		ANY,
-		NONE;
-	}
-	
-	
+        return (Set<Authorizer.Role>) request.getSession().getAttribute(DCAE_ROLES_KEY);
+    }
+
+    // Returns roles authorized to perform the requested method (i.e.
+    // getAuthorizedRoles("POST", "/ecd-app-att/deployments"))
+    private Set<Authorizer.Role> getAuthorizedRoles(String method, String resource) {
+        final Properties resourceRoles = new Properties();
+
+        try {
+            resourceRoles.load(Thread.currentThread().getContextClassLoader().getResourceAsStream(AUTH_PROP_FILE_NAME));
+
+            final String[] splitMethodResourceKey = (method + resource.replace("/", ".")).split("\\.", 0);
+            final String methodResourceKey = splitMethodResourceKey[0] + "." + splitMethodResourceKey[2];
+
+            if (!resourceRoles.containsKey(methodResourceKey)) {
+                LOGGER.warn(AUTH_PROP_FILE_NAME + " does not contain roles for " + methodResourceKey + "; defaulting "
+                        + Authorizer.Role.ANY);
+                return new HashSet<>(Collections.singleton(Role.ANY));
+            }
+
+            final String[] rawAuthorizedRoles = ((String) resourceRoles.get(methodResourceKey)).split(",");
+            final Set<Authorizer.Role> authorizedRoles = new HashSet<>();
+
+            for (String rawAuthorizedRole : rawAuthorizedRoles) {
+                authorizedRoles.add(Authorizer.Role.valueOf(rawAuthorizedRole));
+            }
+
+            return authorizedRoles;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public enum Role {
+        ADMIN, READER, WRITER, ANY, NONE;
+    }
+
 }

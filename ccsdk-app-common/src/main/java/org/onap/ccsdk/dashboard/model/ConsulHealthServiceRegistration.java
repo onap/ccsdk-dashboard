@@ -61,56 +61,56 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public final class ConsulHealthServiceRegistration extends ECTransportModel {
 
-	public final List<ConsulServiceRegistration> services;
+    public final List<ConsulServiceRegistration> services;
 
-	@JsonCreator
-	public ConsulHealthServiceRegistration(@JsonProperty("services") List<ConsulServiceRegistration> services) {
-		this.services = services;
-	}
+    @JsonCreator
+    public ConsulHealthServiceRegistration(@JsonProperty("services") List<ConsulServiceRegistration> services) {
+        this.services = services;
+    }
 
-	public static final class ConsulServiceRegistration {
+    public static final class ConsulServiceRegistration {
 
-		public final String id;
-		public final String name;
-		public final String address;
-		public final String port;
-		public final List<String> tags;
-		public final List<EndpointCheck> checks;
+        public final String id;
+        public final String name;
+        public final String address;
+        public final String port;
+        public final List<String> tags;
+        public final List<EndpointCheck> checks;
 
-		@JsonCreator
-		public ConsulServiceRegistration(@JsonProperty("id") String id, //
-				@JsonProperty("name") String name, //
-				@JsonProperty("address") String address, //
-				@JsonProperty("port") String port, //
-				@JsonProperty("tags") List<String> tags,//
-				@JsonProperty("checks") List<EndpointCheck> checks) {
-			this.id = id;
-			this.name = name;
-			this.address = address;
-			this.port = port;
-			this.tags = tags;
-			this.checks = checks;
-		}
+        @JsonCreator
+        public ConsulServiceRegistration(@JsonProperty("id") String id, //
+                @JsonProperty("name") String name, //
+                @JsonProperty("address") String address, //
+                @JsonProperty("port") String port, //
+                @JsonProperty("tags") List<String> tags, //
+                @JsonProperty("checks") List<EndpointCheck> checks) {
+            this.id = id;
+            this.name = name;
+            this.address = address;
+            this.port = port;
+            this.tags = tags;
+            this.checks = checks;
+        }
 
-	}
+    }
 
-	public static final class EndpointCheck {
+    public static final class EndpointCheck {
 
-		public final String endpoint;
-		public final String interval;
-		public final String description;
-		public final String name;
+        public final String endpoint;
+        public final String interval;
+        public final String description;
+        public final String name;
 
-		@JsonCreator
-		public EndpointCheck(@JsonProperty("endpoint") String endpoint, //
-				@JsonProperty("interval") String interval, //
-				@JsonProperty("description") String description, //
-				@JsonProperty("name") String name) {
-			this.endpoint = endpoint;
-			this.interval = interval;
-			this.description = description;
-			this.name = name;
-		}
-	}
+        @JsonCreator
+        public EndpointCheck(@JsonProperty("endpoint") String endpoint, //
+                @JsonProperty("interval") String interval, //
+                @JsonProperty("description") String description, //
+                @JsonProperty("name") String name) {
+            this.endpoint = endpoint;
+            this.interval = interval;
+            this.description = description;
+            this.name = name;
+        }
+    }
 
 }

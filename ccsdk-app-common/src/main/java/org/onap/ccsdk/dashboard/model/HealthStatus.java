@@ -25,29 +25,29 @@ package org.onap.ccsdk.dashboard.model;
  * Model for JSON response with health-check results.
  */
 public class HealthStatus {
-	// Either 200 or 503
-	public int statusCode;
-	// Additional detail in case of error, empty in case of success.
-	public String message;
+    // Either 200 or 503
+    public int statusCode;
+    // Additional detail in case of error, empty in case of success.
+    public String message;
 
-	public HealthStatus(int code, String msg) {
-		this.statusCode = code;
-		this.message = msg;
-	}
+    public HealthStatus(int code, String msg) {
+        this.statusCode = code;
+        this.message = msg;
+    }
 
-	public int getStatusCode() {
-		return statusCode;
-	}
+    public int getStatusCode() {
+        return statusCode;
+    }
 
-	public void setStatusCode(int code) {
-		this.statusCode = code;
-	}
+    public void setStatusCode(int code) {
+        this.statusCode = code;
+    }
 
-	public String getMessage() {
-		return message;
-	}
+    public String getMessage() {
+        return message;
+    }
 
-	public void setMessage(String msg) {
-		this.message = msg;
-	}
+    public void setMessage(String msg) {
+        this.message = msg;
+    }
 }

@@ -27,36 +27,42 @@ import org.onap.portalsdk.core.domain.support.DomainVo;
 
 public class EcdComponent extends DomainVo {
 
-	private static final long serialVersionUID = 1L;
-	
-	private Long compId;
-	private String cname; // component name
-	private String dname; // component display name
-	public Long getCompId() {
-		return compId;
-	}
-	public void setCompId(Long compId) {
-		this.compId = compId;
-	}
-	public String getCname() {
-		return cname;
-	}
-	public void setCname(String cname) {
-		this.cname = cname;
-	}
-	public String getDname() {
-		return dname;
-	}
-	public void setDname(String dname) {
-		this.dname = dname;
-	}
-	
-	public boolean contains(String searchString) {
-		if (StringUtils.containsIgnoreCase(this.getCname(), searchString) ||
-			StringUtils.containsIgnoreCase(this.getDname(), searchString)) {
-			return true;
-		}
-		return false;
-	}
-	
+    private static final long serialVersionUID = 1L;
+
+    private Long compId;
+    private String cname; // component name
+    private String dname; // component display name
+
+    public Long getCompId() {
+        return compId;
+    }
+
+    public void setCompId(Long compId) {
+        this.compId = compId;
+    }
+
+    public String getCname() {
+        return cname;
+    }
+
+    public void setCname(String cname) {
+        this.cname = cname;
+    }
+
+    public String getDname() {
+        return dname;
+    }
+
+    public void setDname(String dname) {
+        this.dname = dname;
+    }
+
+    public boolean contains(String searchString) {
+        if (StringUtils.containsIgnoreCase(this.getCname(), searchString)
+                || StringUtils.containsIgnoreCase(this.getDname(), searchString)) {
+            return true;
+        }
+        return false;
+    }
+
 }

@@ -29,16 +29,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CloudifyNodeInstance extends ECTransportModel {
 
-	/** The id of the node instance. */
-	public final String id;
-	
-	/** The runtime properties of the node instance. */
-	public final Map<String, Object> runtime_properties;
+    /** The id of the node instance. */
+    public final String id;
 
-	@JsonCreator
-	public CloudifyNodeInstance(@JsonProperty("id") String id,
-			@JsonProperty("runtime_properties") Map<String, Object> runtime_properties) {
-				this.id = id;
-				this.runtime_properties = runtime_properties;
-	}
+    /** The runtime properties of the node instance. */
+    public final Map<String, Object> runtime_properties;
+
+    @JsonCreator
+    public CloudifyNodeInstance(@JsonProperty("id") String id,
+            @JsonProperty("runtime_properties") Map<String, Object> runtime_properties) {
+        this.id = id;
+        this.runtime_properties = runtime_properties;
+    }
 }

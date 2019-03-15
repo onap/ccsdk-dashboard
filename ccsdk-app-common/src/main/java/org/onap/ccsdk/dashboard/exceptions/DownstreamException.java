@@ -23,12 +23,12 @@ package org.onap.ccsdk.dashboard.exceptions;
 
 public class DownstreamException extends Exception {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 142869535142369337L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 142869535142369337L;
 
-	public DownstreamException (String message) {
-		super(message);
-	}
+    public DownstreamException(String message) {
+        super(message);
+    }
 }

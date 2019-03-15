@@ -26,19 +26,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CloudifyTenant extends ECTransportModel {
 
-	/** A unique identifier for the tenant */
-	public final String id;
-	/** The tenant's name. */
-	public final String name;
-	/** tenant display name */
-	public String dName;
-	
-	@JsonCreator
-	public CloudifyTenant(@JsonProperty("name") String name,
-			@JsonProperty("dName") String dName,
-			@JsonProperty("id") String id) {
-		this.name = name;
-		this.dName = dName;
-		this.id = id;
-	}
+    /** A unique identifier for the tenant */
+    public final String id;
+    /** The tenant's name. */
+    public final String name;
+    /** tenant display name */
+    public String dName;
+
+    @JsonCreator
+    public CloudifyTenant(@JsonProperty("name") String name, @JsonProperty("dName") String dName,
+            @JsonProperty("id") String id) {
+        this.name = name;
+        this.dName = dName;
+        this.id = id;
+    }
 }

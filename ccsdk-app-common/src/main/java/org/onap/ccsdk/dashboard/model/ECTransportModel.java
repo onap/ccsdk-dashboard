@@ -32,32 +32,32 @@ import com.fasterxml.jackson.databind.SerializationFeature;
  */
 public abstract class ECTransportModel {
 
-	protected final ObjectMapper mapper = new ObjectMapper();
+    protected final ObjectMapper mapper = new ObjectMapper();
 
-	public ECTransportModel() {
-		// Do not serialize null values
-		mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-		// toString should yield pretty version
-		mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-		// tolerate empty strings where object is expected
-		mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
-	}
+    public ECTransportModel() {
+        // Do not serialize null values
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        // toString should yield pretty version
+        mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+        // tolerate empty strings where object is expected
+        mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
+    }
 
-	/**
-	 * Convenience method that serializes content as JSON and catches any
-	 * exception so this method can be easily used in a catch clause.
-	 * 
-	 * @return A REST error response object as well-formed JSON
-	 */
-	public String toString() {
-		String json = null;
-		try {
-			json = mapper.writeValueAsString(this);
-		} catch (JsonProcessingException jpe) {
-			// Should never, ever happen
-			json = "{ \"error\" : \"" + jpe.toString() + "\"}";
-		}
-		return json;
-	}
+    /**
+     * Convenience method that serializes content as JSON and catches any exception
+     * so this method can be easily used in a catch clause.
+     * 
+     * @return A REST error response object as well-formed JSON
+     */
+    public String toString() {
+        String json = null;
+        try {
+            json = mapper.writeValueAsString(this);
+        } catch (JsonProcessingException jpe) {
+            // Should never, ever happen
+            json = "{ \"error\" : \"" + jpe.toString() + "\"}";
+        }
+        return json;
+    }
 
 }

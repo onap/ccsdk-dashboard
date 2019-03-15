@@ -29,16 +29,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public final class CloudifyBlueprintContent extends ECTransportModel {
 
-	/** A unique identifier for the blueprint. */
-	public final String id;
-	/** The content of the blueprint as YAML */
-	public final String content;
+    /** A unique identifier for the blueprint. */
+    public final String id;
+    /** The content of the blueprint as YAML */
+    public final String content;
 
-	@JsonCreator
-	public CloudifyBlueprintContent(@JsonProperty("id") String id,
-			@JsonProperty("content") String content) {
-		this.id = id;
-		this.content = content;
-	}
+    @JsonCreator
+    public CloudifyBlueprintContent(@JsonProperty("id") String id, @JsonProperty("content") String content) {
+        this.id = id;
+        this.content = content;
+    }
 
 }

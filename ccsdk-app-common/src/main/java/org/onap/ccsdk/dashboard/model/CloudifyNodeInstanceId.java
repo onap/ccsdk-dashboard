@@ -30,32 +30,33 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public final class CloudifyNodeInstanceId extends ECTransportModel {
 
-	/** The id of the node instance. */
-	public final String id;
-	
+    /** The id of the node instance. */
+    public final String id;
 
+    /** The name of the user that created the node instance */
+    // public final String created_by;
+    /** The id of the deployment the node instance belongs to. */
+    // public final String deployment_id;
+    /** The Compute node instance id the node is contained within. */
+    // public final String host_id;
+    /** The relationships the node has with other nodes. */
+    // public final List relationships;
+    /** The runtime properties of the node instance. */
+    // public final String runtime_properties;
+    /** The node instance state. */
+    // public final String state;
+    /** The name of the tenant that owns the node instance. */
 
-	/** The name of the user that created the node instance */
-	//public final String created_by;
-	/** The id of the deployment the node instance belongs to. */
-	//public final String deployment_id;
-	/** The Compute node instance id the node is contained within. */
-	//public final String host_id;
-	/** The relationships the node has with other nodes. */
-	//public final List relationships;
-	/** The runtime properties of the node instance. */
-	//public final String runtime_properties;
-	/** The node instance state. */
-	//public final String state;
-	/** The name of the tenant that owns the node instance. */
-	//public final String tenant_name;
-	/** A version attribute used for optimistic locking when updating the node instance. */
-	//public final String version;
+    // public final String tenant_name;
+    /**
+     * A version attribute used for optimistic locking when updating the node
+     * instance.
+     */
+    // public final String version;
 
-
-	@JsonCreator
-	public CloudifyNodeInstanceId(@JsonProperty("id") String id) {
-		this.id = id;
-	}
+    @JsonCreator
+    public CloudifyNodeInstanceId(@JsonProperty("id") String id) {
+        this.id = id;
+    }
 
 }

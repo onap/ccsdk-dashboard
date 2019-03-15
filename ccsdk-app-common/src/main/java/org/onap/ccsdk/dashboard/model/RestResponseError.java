@@ -29,65 +29,62 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class RestResponseError extends ECTransportModel {
 
-	private String error;
+    private String error;
 
-	public RestResponseError() {
-	}
+    public RestResponseError() {
+    }
 
-	/**
-	 * Convenience constructor
-	 * 
-	 * @param message
-	 *            Message body
-	 */
-	public RestResponseError(final String message) {
-		this.error = message;
-	}
+    /**
+     * Convenience constructor
+     * 
+     * @param message Message body
+     */
+    public RestResponseError(final String message) {
+        this.error = message;
+    }
 
-	/**
-	 * Convenience constructor that limits the size of the throwable message.
-	 * 
-	 * @param message
-	 *            Message body
-	 * @param t
-	 *            Throwable used to construct body
-	 */
-	public RestResponseError(final String message, final Throwable t) {
-		final int enough = 512;
-		String exString = t.toString();
-		String exceptionMsg = exString.length() > enough ? exString.substring(0, enough) : exString;
-		this.error = message + ": " + exceptionMsg;
-	}
+    /**
+     * Convenience constructor that limits the size of the throwable message.
+     * 
+     * @param message Message body
+     * @param t       Throwable used to construct body
+     */
+    public RestResponseError(final String message, final Throwable t) {
+        final int enough = 512;
+        String exString = t.toString();
+        String exceptionMsg = exString.length() > enough ? exString.substring(0, enough) : exString;
+        this.error = message + ": " + exceptionMsg;
+    }
 
-	public String getError() {
-		return error;
-	}
+    public String getError() {
+        return error;
+    }
 
-	public void setError(String message) {
-		this.error = message;
-	}
+    public void setError(String message) {
+        this.error = message;
+    }
 
-	/**
-	 * Convenience method that serializes content as JSON and catches any
-	 * exception so this can be easily used in a catch clause.
-	 * 
-	 * @return A REST error response object as well-formed JSON
-	 */
-	public String toJson() {
-		String json = null;
-		try {
-			ObjectMapper mapper = new ObjectMapper();
-			json = mapper.writeValueAsString(this);
-		} catch (JsonProcessingException jpe) {
-			// Should never, ever happen
-			json = "{ \"error\" : \"" + jpe.toString() + "\"}";
-		}
-		return json;
-	}
+    /**
+     * Convenience method that serializes content as JSON and catches any exception
+     * so this can be easily used in a catch clause.
+     * 
+     * @return A REST error response object as well-formed JSON
+     */
+    public String toJson() {
+        String json = null;
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            json = mapper.writeValueAsString(this);
+        } catch (JsonProcessingException jpe) {
+            // Should never, ever happen
+            json = "{ \"error\" : \"" + jpe.toString() + "\"}";
+        }
+        return json;
+    }
 
-	@Override
-	public String toString() {
-		return "RestErrorResponse[message=" + error + "]";
-	}
+    @Override
+    public String toString() {
+        return "RestErrorResponse[message=" + error + "]";
+    }
 
 }

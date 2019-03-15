@@ -26,33 +26,28 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CloudifySecretUpload extends ECTransportModel {
 
-	/** The secret's name */
-	public final String name;
-	/** The secret’s value */
-	public final String value;
-	/** Update value if secret already exists */
-	public final boolean update_if_exists;
-	/** Defines who can see the secret. Can be private, tenant or global*/
-	public final String visibility;
-	/** Determines who can see the value of the secret. */
-	public final boolean is_hidden_value;
-	/** The tenant name for this secret */
-	public final String tenant;
-	
-	@JsonCreator
-	public CloudifySecretUpload(
-			@JsonProperty("name") String name,
-			@JsonProperty("value") String value,
-			@JsonProperty("update_if_exists") boolean update_if_exists,
-			@JsonProperty("visibility") String visibility,
-			@JsonProperty("is_hidden_value") boolean is_hidden_value,
-			@JsonProperty("tenant") String tenant)  {
-		this.name = name;
-		this.value = value;
-		this.update_if_exists = update_if_exists;
-		this.visibility = visibility;
-		this.is_hidden_value = is_hidden_value;
-		this.tenant = tenant;
-	}
-}
+    /** The secret's name */
+    public final String name;
+    /** The secret’s value */
+    public final String value;
+    /** Update value if secret already exists */
+    public final boolean update_if_exists;
+    /** Defines who can see the secret. Can be private, tenant or global */
+    public final String visibility;
+    /** Determines who can see the value of the secret. */
+    public final boolean is_hidden_value;
+    /** The tenant name for this secret */
+    public final String tenant;
 
+    @JsonCreator
+    public CloudifySecretUpload(@JsonProperty("name") String name, @JsonProperty("value") String value,
+            @JsonProperty("update_if_exists") boolean update_if_exists, @JsonProperty("visibility") String visibility,
+            @JsonProperty("is_hidden_value") boolean is_hidden_value, @JsonProperty("tenant") String tenant) {
+        this.name = name;
+        this.value = value;
+        this.update_if_exists = update_if_exists;
+        this.visibility = visibility;
+        this.is_hidden_value = is_hidden_value;
+        this.tenant = tenant;
+    }
+}

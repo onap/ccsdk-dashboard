@@ -32,30 +32,30 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public final class CloudifyBlueprint extends ECTransportModel {
 
-	/** A unique identifier for the blueprint. */
-	public final String id;
-	/** The blueprint’s main file name. */
-	public final String main_file_name;
-	/** The blueprint’s description. */
-	public final String description;
-	/** The time the blueprint was uploaded to the manager. */
-	public final String created_at;
-	/** The last time the blueprint was updated. */
-	public final String updated_at;
-	/** The parsed result of the blueprint. */
-	public final Map<String, Object> plan;
+    /** A unique identifier for the blueprint. */
+    public final String id;
+    /** The blueprint’s main file name. */
+    public final String main_file_name;
+    /** The blueprint’s description. */
+    public final String description;
+    /** The time the blueprint was uploaded to the manager. */
+    public final String created_at;
+    /** The last time the blueprint was updated. */
+    public final String updated_at;
+    /** The parsed result of the blueprint. */
+    public final Map<String, Object> plan;
 
-	@JsonCreator
-	public CloudifyBlueprint(@JsonProperty("main_file_name") String main_file_name,
-			@JsonProperty("description") String description, @JsonProperty("created_at") String created_at,
-			@JsonProperty("updated_at") String updated_at, @JsonProperty("id") String id,
-			@JsonProperty("plan") Map<String, Object> plan) {
-		this.main_file_name = main_file_name;
-		this.description = description;
-		this.created_at = created_at;
-		this.updated_at = updated_at;
-		this.id = id;
-		this.plan = plan;
-	}
+    @JsonCreator
+    public CloudifyBlueprint(@JsonProperty("main_file_name") String main_file_name,
+            @JsonProperty("description") String description, @JsonProperty("created_at") String created_at,
+            @JsonProperty("updated_at") String updated_at, @JsonProperty("id") String id,
+            @JsonProperty("plan") Map<String, Object> plan) {
+        this.main_file_name = main_file_name;
+        this.description = description;
+        this.created_at = created_at;
+        this.updated_at = updated_at;
+        this.id = id;
+        this.plan = plan;
+    }
 
 }

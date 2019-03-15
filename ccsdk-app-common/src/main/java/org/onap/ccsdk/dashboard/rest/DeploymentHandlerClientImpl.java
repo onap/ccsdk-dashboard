@@ -1,3 +1,24 @@
+/*******************************************************************************
+ * =============LICENSE_START=========================================================
+ *
+ * =================================================================================
+ *  Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
+ * ================================================================================
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *  
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *  
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ * ============LICENSE_END=========================================================
+ *
+ *  ECOMP is a trademark and service mark of AT&T Intellectual Property.
+ *******************************************************************************/
 package org.onap.ccsdk.dashboard.rest;
 
 import java.io.IOException;
@@ -30,184 +51,174 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
 public class DeploymentHandlerClientImpl extends RestClientBase implements DeploymentHandlerClient {
 
-	private final String baseUrl;
-	//private final RestTemplate restTemplate;
-	private static final String DEPLOYMENTS = "dcae-deployments";
-	private static final String UPDATE_PATH = "dcae-deployment-update";
-	
-	protected final ObjectMapper objectMapper = new ObjectMapper();
-	
-	public DeploymentHandlerClientImpl(String webapiUrl) {
-		this(webapiUrl, null, null);
-	}
-	
-	/**
-	 * Builds a restTemplate. If username and password are supplied, uses basic
-	 * HTTP authentication.
-	 * 
-	 * @param webapiUrl
-	 *            URL of the web endpoint
-	 * @param user
-	 *            user name; ignored if null
-	 * @param pass
-	 *            password
-	 */
-	public DeploymentHandlerClientImpl(String webapiUrl, String user, String pass) {
-		super();
-		if (webapiUrl == null)
-			throw new IllegalArgumentException("Null URL not permitted");
-		URL url = null;
-		String urlScheme = "http";
-		try {
-			url = new URL(webapiUrl);
-			baseUrl = url.toExternalForm();
-		} catch (MalformedURLException ex) {
-			throw new RuntimeException("Failed to parse URL", ex);
-		}
-		urlScheme = webapiUrl.split(":")[0];
-		createRestTemplate(url, user, pass, urlScheme);
-		// Do not serialize null values
-		objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-		// Register Jdk8Module() for Stream and Optional types
-		objectMapper.registerModule(new Jdk8Module());
-	}
-	
-	public Stream<DeploymentLink> getDeployments() {
-		String url = buildUrl(new String[] {baseUrl, DEPLOYMENTS}, null);
-		ResponseEntity<DeploymentsListResponse> response = restTemplate.exchange(url, HttpMethod.GET, null, 
-				new ParameterizedTypeReference<DeploymentsListResponse>() {
-				});
-		DeploymentsListResponse result = response.getBody();
-		return result.getDeployments().stream();
-	}
+    private final String baseUrl;
+    // private final RestTemplate restTemplate;
+    private static final String DEPLOYMENTS = "dcae-deployments";
+    private static final String UPDATE_PATH = "dcae-deployment-update";
 
-	@Override
-	public Stream<DeploymentLink> getDeployments(String serviceTypeId) {
-		String url = buildUrl(new String[] {baseUrl, DEPLOYMENTS}, new String[] {"serviceTypeId", serviceTypeId});
-		ResponseEntity<DeploymentsListResponse> response = restTemplate.exchange(url, HttpMethod.GET, null,
-				new ParameterizedTypeReference<DeploymentsListResponse>() {
-				});
-		DeploymentsListResponse result = response.getBody();
-		return result.getDeployments().stream();
-	}
+    protected final ObjectMapper objectMapper = new ObjectMapper();
 
-	@Override
-	public DeploymentResponse putDeployment(String deploymentId, String tenant, DeploymentRequest deploymentRequest)
-			throws BadRequestException, ServiceAlreadyExistsException, ServerErrorException, DownstreamException {
-		String url = buildUrl(new String[] {baseUrl, DEPLOYMENTS, deploymentId}, new String[] {"cfy_tenant_name",tenant});
-		try {
-			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.APPLICATION_JSON);
-			ResponseEntity<DeploymentResponse> result = restTemplate.exchange(url,  HttpMethod.PUT, new HttpEntity<DeploymentRequest>(deploymentRequest, headers),
-					new ParameterizedTypeReference<DeploymentResponse>() {
-			});
-			return result.getBody();
-		} catch(HttpServerErrorException  | HttpClientErrorException e) { 
-			DeploymentErrorResponse errBody = null;
-			String errMsg = "";
-			try {
-				errBody = objectMapper.readValue(e.getResponseBodyAsString(), DeploymentErrorResponse.class);
-			} catch (IOException e1) {
-				errBody = null;
-			}
-			if (errBody != null) {
-				errMsg = errBody.getMessage();
-			}
-			StringBuilder errDetails = new StringBuilder();
-			errDetails.append(e.getMessage()).append("  ").append(errMsg);
-			if (e.getStatusCode().value() == 400 || e.getStatusCode().value() == 415 || e.getStatusCode().value() == 404) {
-				throw new BadRequestException(errDetails.toString());
-			}
-			else if(e.getStatusCode().value() == 409) {
-				throw new ServiceAlreadyExistsException(errDetails.toString());
-			}
-			else if(e.getStatusCode().value() == 500) {
-				throw new ServerErrorException(errDetails.toString());
-			}
-			else if(e.getStatusCode().value() == 502 || e.getStatusCode().value() == 504) {
-				throw new DownstreamException(errDetails.toString());
-			}
-		}
-		return null;
-	}
+    public DeploymentHandlerClientImpl(String webapiUrl) {
+        this(webapiUrl, null, null);
+    }
 
-	@Override
-	public DeploymentResponse updateDeployment(String deploymentId, String tenant, 
-	DeploymentRequest deploymentRequest) throws BadRequestException,
-	ServiceAlreadyExistsException,
-	ServerErrorException,
-	DownstreamException {
-		String url = buildUrl(new String[] {baseUrl, UPDATE_PATH, deploymentId}, new String[] {"cfy_tenant_name",tenant});
-		try {
-			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.APPLICATION_JSON);
-			ResponseEntity<DeploymentResponse> result = restTemplate.exchange(url,  HttpMethod.PUT, new HttpEntity<DeploymentRequest>(deploymentRequest, headers),
-					new ParameterizedTypeReference<DeploymentResponse>() {
-			});
-			return result.getBody();
-		} catch(HttpServerErrorException  | HttpClientErrorException e) { 
-			DeploymentErrorResponse errBody = null;
-			String errMsg = "";
-			try {
-				errBody = objectMapper.readValue(e.getResponseBodyAsString(), DeploymentErrorResponse.class);
-			} catch (IOException e1) {
-				errBody = null;
-			}
-			if (errBody != null) {
-				errMsg = errBody.getMessage();
-			}
-			StringBuilder errDetails = new StringBuilder();
-			errDetails.append(e.getMessage()).append("  ").append(errMsg);
-			if (e.getStatusCode().value() == 400 || e.getStatusCode().value() == 415 || e.getStatusCode().value() == 404) {
-				throw new BadRequestException(errDetails.toString());
-			}
-			else if(e.getStatusCode().value() == 409) {
-				throw new ServiceAlreadyExistsException(errDetails.toString());
-			}
-			else if(e.getStatusCode().value() == 500) {
-				throw new ServerErrorException(errDetails.toString());
-			}
-			else if(e.getStatusCode().value() == 502 || e.getStatusCode().value() == 504) {
-				throw new DownstreamException(errDetails.toString());
-			}
-		}
-		return null; // Perhaps this should be a proper JSON error response.
-	}
+    /**
+     * Builds a restTemplate. If username and password are supplied, uses basic HTTP
+     * authentication.
+     * 
+     * @param webapiUrl URL of the web endpoint
+     * @param user      user name; ignored if null
+     * @param pass      password
+     */
+    public DeploymentHandlerClientImpl(String webapiUrl, String user, String pass) {
+        super();
+        if (webapiUrl == null)
+            throw new IllegalArgumentException("Null URL not permitted");
+        URL url = null;
+        String urlScheme = "http";
+        try {
+            url = new URL(webapiUrl);
+            baseUrl = url.toExternalForm();
+        } catch (MalformedURLException ex) {
+            throw new RuntimeException("Failed to parse URL", ex);
+        }
+        urlScheme = webapiUrl.split(":")[0];
+        createRestTemplate(url, user, pass, urlScheme);
+        // Do not serialize null values
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        // Register Jdk8Module() for Stream and Optional types
+        objectMapper.registerModule(new Jdk8Module());
+    }
 
-	
-	@Override
-	public void deleteDeployment(String deploymentId, String tenant)
-			throws BadRequestException, ServerErrorException, DownstreamException, DeploymentNotFoundException {
-		String url = buildUrl(new String[] {baseUrl, DEPLOYMENTS, deploymentId}, new String[] {"cfy_tenant_name",tenant, "ignore_failure", "true"});
-		try {
-			restTemplate.exchange(url, HttpMethod.DELETE, null,
-					new ParameterizedTypeReference<DeploymentResponse>() {
-			});
-		} catch(HttpServerErrorException  | HttpClientErrorException e) { 
-			DeploymentErrorResponse errBody = null;
-			String errMsg = "";
-			try {
-				errBody = objectMapper.readValue(e.getResponseBodyAsString(), DeploymentErrorResponse.class);
-			} catch (IOException e1) {
-				errBody = null;
-			}
-			if (errBody != null) {
-				errMsg = errBody.getMessage();
-			}
-			StringBuilder errDetails = new StringBuilder();
-			errDetails.append(e.getMessage()).append("  ").append(errMsg);
-			if (e.getStatusCode().value() == 400 || e.getStatusCode().value() == 415) {
-				throw new BadRequestException(errDetails.toString());
-			}
-			else if (e.getStatusCode().value() == 404) {
-				throw new DeploymentNotFoundException(e.getMessage());
-			}
-			else if(e.getStatusCode().value() == 500) {
-				throw new ServerErrorException(errDetails.toString());
-			}
-			else if(e.getStatusCode().value() == 502 || e.getStatusCode().value() == 504) {
-				throw new DownstreamException(errDetails.toString());
-			}
-		}
-	}
+    public Stream<DeploymentLink> getDeployments() {
+        String url = buildUrl(new String[] { baseUrl, DEPLOYMENTS }, null);
+        ResponseEntity<DeploymentsListResponse> response = restTemplate.exchange(url, HttpMethod.GET, null,
+                new ParameterizedTypeReference<DeploymentsListResponse>() {
+                });
+        DeploymentsListResponse result = response.getBody();
+        return result.getDeployments().stream();
+    }
+
+    @Override
+    public Stream<DeploymentLink> getDeployments(String serviceTypeId) {
+        String url = buildUrl(new String[] { baseUrl, DEPLOYMENTS }, new String[] { "serviceTypeId", serviceTypeId });
+        ResponseEntity<DeploymentsListResponse> response = restTemplate.exchange(url, HttpMethod.GET, null,
+                new ParameterizedTypeReference<DeploymentsListResponse>() {
+                });
+        DeploymentsListResponse result = response.getBody();
+        return result.getDeployments().stream();
+    }
+
+    @Override
+    public DeploymentResponse putDeployment(String deploymentId, String tenant, DeploymentRequest deploymentRequest)
+            throws BadRequestException, ServiceAlreadyExistsException, ServerErrorException, DownstreamException {
+        String url = buildUrl(new String[] { baseUrl, DEPLOYMENTS, deploymentId },
+                new String[] { "cfy_tenant_name", tenant });
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            ResponseEntity<DeploymentResponse> result = restTemplate.exchange(url, HttpMethod.PUT,
+                    new HttpEntity<DeploymentRequest>(deploymentRequest, headers),
+                    new ParameterizedTypeReference<DeploymentResponse>() {
+                    });
+            return result.getBody();
+        } catch (HttpServerErrorException | HttpClientErrorException e) {
+            DeploymentErrorResponse errBody = null;
+            String errMsg = "";
+            try {
+                errBody = objectMapper.readValue(e.getResponseBodyAsString(), DeploymentErrorResponse.class);
+            } catch (IOException e1) {
+                errBody = null;
+            }
+            if (errBody != null) {
+                errMsg = errBody.getMessage();
+            }
+            StringBuilder errDetails = new StringBuilder();
+            errDetails.append(e.getMessage()).append("  ").append(errMsg);
+            if (e.getStatusCode().value() == 400 || e.getStatusCode().value() == 415
+                    || e.getStatusCode().value() == 404) {
+                throw new BadRequestException(errDetails.toString());
+            } else if (e.getStatusCode().value() == 409) {
+                throw new ServiceAlreadyExistsException(errDetails.toString());
+            } else if (e.getStatusCode().value() == 500) {
+                throw new ServerErrorException(errDetails.toString());
+            } else if (e.getStatusCode().value() == 502 || e.getStatusCode().value() == 504) {
+                throw new DownstreamException(errDetails.toString());
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public DeploymentResponse updateDeployment(String deploymentId, String tenant, DeploymentRequest deploymentRequest)
+            throws BadRequestException, ServiceAlreadyExistsException, ServerErrorException, DownstreamException {
+        String url = buildUrl(new String[] { baseUrl, UPDATE_PATH, deploymentId },
+                new String[] { "cfy_tenant_name", tenant });
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            ResponseEntity<DeploymentResponse> result = restTemplate.exchange(url, HttpMethod.PUT,
+                    new HttpEntity<DeploymentRequest>(deploymentRequest, headers),
+                    new ParameterizedTypeReference<DeploymentResponse>() {
+                    });
+            return result.getBody();
+        } catch (HttpServerErrorException | HttpClientErrorException e) {
+            DeploymentErrorResponse errBody = null;
+            String errMsg = "";
+            try {
+                errBody = objectMapper.readValue(e.getResponseBodyAsString(), DeploymentErrorResponse.class);
+            } catch (IOException e1) {
+                errBody = null;
+            }
+            if (errBody != null) {
+                errMsg = errBody.getMessage();
+            }
+            StringBuilder errDetails = new StringBuilder();
+            errDetails.append(e.getMessage()).append("  ").append(errMsg);
+            if (e.getStatusCode().value() == 400 || e.getStatusCode().value() == 415
+                    || e.getStatusCode().value() == 404) {
+                throw new BadRequestException(errDetails.toString());
+            } else if (e.getStatusCode().value() == 409) {
+                throw new ServiceAlreadyExistsException(errDetails.toString());
+            } else if (e.getStatusCode().value() == 500) {
+                throw new ServerErrorException(errDetails.toString());
+            } else if (e.getStatusCode().value() == 502 || e.getStatusCode().value() == 504) {
+                throw new DownstreamException(errDetails.toString());
+            }
+        }
+        return null; // Perhaps this should be a proper JSON error response.
+    }
+
+    @Override
+    public void deleteDeployment(String deploymentId, String tenant)
+            throws BadRequestException, ServerErrorException, DownstreamException, DeploymentNotFoundException {
+        String url = buildUrl(new String[] { baseUrl, DEPLOYMENTS, deploymentId },
+                new String[] { "cfy_tenant_name", tenant, "ignore_failure", "true" });
+        try {
+            restTemplate.exchange(url, HttpMethod.DELETE, null, new ParameterizedTypeReference<DeploymentResponse>() {
+            });
+        } catch (HttpServerErrorException | HttpClientErrorException e) {
+            DeploymentErrorResponse errBody = null;
+            String errMsg = "";
+            try {
+                errBody = objectMapper.readValue(e.getResponseBodyAsString(), DeploymentErrorResponse.class);
+            } catch (IOException e1) {
+                errBody = null;
+            }
+            if (errBody != null) {
+                errMsg = errBody.getMessage();
+            }
+            StringBuilder errDetails = new StringBuilder();
+            errDetails.append(e.getMessage()).append("  ").append(errMsg);
+            if (e.getStatusCode().value() == 400 || e.getStatusCode().value() == 415) {
+                throw new BadRequestException(errDetails.toString());
+            } else if (e.getStatusCode().value() == 404) {
+                throw new DeploymentNotFoundException(e.getMessage());
+            } else if (e.getStatusCode().value() == 500) {
+                throw new ServerErrorException(errDetails.toString());
+            } else if (e.getStatusCode().value() == 502 || e.getStatusCode().value() == 504) {
+                throw new DownstreamException(errDetails.toString());
+            }
+        }
+    }
 }
