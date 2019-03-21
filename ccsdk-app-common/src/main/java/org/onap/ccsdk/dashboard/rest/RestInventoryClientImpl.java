@@ -33,6 +33,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.PostConstruct;
+
 import org.onap.ccsdk.dashboard.exceptions.inventory.ServiceAlreadyDeactivatedException;
 import org.onap.ccsdk.dashboard.exceptions.inventory.ServiceNotFoundException;
 import org.onap.ccsdk.dashboard.exceptions.inventory.ServiceTypeAlreadyDeactivatedException;
@@ -51,34 +53,26 @@ import org.onap.ccsdk.dashboard.model.inventory.ServiceType;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeList;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeQueryParams;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeRequest;
+import org.onap.ccsdk.dashboard.util.DashboardProperties;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 
+@org.springframework.stereotype.Service
 public class RestInventoryClientImpl extends RestClientBase implements InventoryClient {
 
-    private final String baseUrl;
-    // private final RestTemplate restTemplate;
+    private String baseUrl;
     public static final String SERVICE_TYPES = "dcae-service-types";
     public static final String SERVICES = "dcae-services";
     public static final String SERVICES_GROUPBY = "dcae-services-groupby";
 
-    public RestInventoryClientImpl(String webapiUrl) {
-        this(webapiUrl, null, null);
-    }
-
-    /**
-     * Builds a restTemplate. If username and password are supplied, uses basic HTTP
-     * authentication.
-     * 
-     * @param webapiUrl URL of the web endpoint
-     * @param user      user name; ignored if null
-     * @param pass      password
-     */
-    public RestInventoryClientImpl(String webapiUrl, String user, String pass) {
-        super();
+    @PostConstruct
+    public void init() {
+        String webapiUrl = DashboardProperties.getControllerProperty("dev",
+            DashboardProperties.CONTROLLER_SUBKEY_INVENTORY_URL);
         if (webapiUrl == null)
             throw new IllegalArgumentException("Null URL not permitted");
         URL url = null;
@@ -90,7 +84,10 @@ public class RestInventoryClientImpl extends RestClientBase implements Inventory
             throw new RuntimeException("Failed to parse URL", ex);
         }
         urlScheme = webapiUrl.split(":")[0];
-        createRestTemplate(url, user, pass, urlScheme);
+        if (restTemplate == null) {
+            createRestTemplate(url, null, null, urlScheme);
+        }
+
     }
 
     public Stream<ServiceType> getServiceTypes() {
@@ -311,14 +308,14 @@ public class RestInventoryClientImpl extends RestClientBase implements Inventory
         return collection.stream();
     }
 
-    public Set<InventoryProperty> getPropertiesOfServices(String propertyName) {
-        String url = buildUrl(new String[] { baseUrl, SERVICES_GROUPBY, propertyName }, null);
-        ResponseEntity<ServiceGroupByResults> response = restTemplate.exchange(url, HttpMethod.GET, null,
-                new ParameterizedTypeReference<ServiceGroupByResults>() {
-                });
-        return response.getBody().propertyValues;
-    }
-
+    /*
+     * public Set<InventoryProperty> getPropertiesOfServices(String propertyName) {
+     * String url = buildUrl(new String[] {baseUrl, SERVICES_GROUPBY, propertyName},
+     * null); ResponseEntity<ServiceGroupByResults> response =
+     * restTemplate.exchange(url, HttpMethod.GET, null, new
+     * ParameterizedTypeReference<ServiceGroupByResults>() { }); return
+     * response.getBody().propertyValues; }
+     */
     public Optional<Service> getService(String serviceId) {
         String url = buildUrl(new String[] { baseUrl, SERVICES, serviceId }, null);
         ResponseEntity<Service> response = restTemplate.exchange(url, HttpMethod.GET, null,

@@ -148,9 +148,9 @@ public interface InventoryClient {
      * 
      * @return Set<InventoryProperty>
      */
-
-    public Set<InventoryProperty> getPropertiesOfServices(String propertyName);
-
+    /*
+     * public Set<InventoryProperty> getPropertiesOfServices(String propertyName);
+     */
     /**
      * Gets a single DCAE Service object corresponding to the specified serviceId.
      * 

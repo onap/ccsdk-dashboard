@@ -244,6 +244,9 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
         } catch (RestClientException ex) {
             logger.debug("isPortalAvailable failed", ex);
             avail = false;
+        } catch (Exception e) {
+            logger.debug("isPortalAvailable failed", e);
+            avail = false;
         }
         return avail;
     }

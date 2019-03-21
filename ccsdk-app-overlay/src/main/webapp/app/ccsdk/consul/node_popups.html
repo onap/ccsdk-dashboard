@@ -7,11 +7,13 @@
 				ng-click="$dismiss('cancel')"></button>
 		</div>
 	</div>
+	<div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
+		role="region" aria-label="Modal body content">
 
 	<!-- show progress indicator -->
 	<div ng-show="ecdapp.isDataLoading">
 		<div class="span" style="margin-bottom: 20px;">
-			<i class="icon-primary-spinner small" role="img"
+			<i class="icon-spinner small" role="img"
 				aria-label="Please wait while the content loads"></i> Please wait
 			while the content loads.
 		</div>
@@ -54,6 +56,7 @@
 			</div> <!--table-->
 		</div> <!--failed-->
 	</div> <!--hide-->
+	</div>
 
 	<div class="b2b-modal-footer ng-scope ng-isolate-scope">
 		<div class="cta-button-group in">

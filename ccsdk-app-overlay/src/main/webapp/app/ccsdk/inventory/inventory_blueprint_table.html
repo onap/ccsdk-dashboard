@@ -1,6 +1,6 @@
 <div id="page-content">
 
-	<h1 class="heading-page" id="blueprints">EOM Inventory > Blueprints</h1>
+	<h1 class="heading-page" id="blueprints">Inventory > Blueprints</h1>
    	<!-- show progress indicator -->
 	<div ng-show="ecdapp.isDataLoading">
 		<div class="span" style="margin-bottom:20px;">
@@ -17,13 +17,6 @@
             Create
             <span class="arrow"></span>
         	</a>
-        	<!--  
-			<button class="btn btn-alt btn-small tooltip-element" data-placement="right" 
-				type="submit"
-				ng-click="ecdapp.uploadBlueprintModalPopup();"> 
-				Create
-				<span class="arrow"></span>
-			</button>-->
 			<span class="tooltip-wrapper">
             <span class="tooltip-size-control">
                 <span id="tooltiptextBtn" role="tooltip" aria-live="polite" aria-hidden="true" class="helpertext" tabindex="-1">  
@@ -38,9 +31,9 @@
     </span>
 			<div style="float:right;"> 
 				<div class="group">
-					<button tabindex="-1" class="btn btn-small" title="Reset Filters" type="button" ng-click="ecdapp.loadTable()"><i class="icon-arrows-update&#45;refresh&#45;sync"></i></button>
+					<button tabindex="-1" class="btn btn-small" title="Reset Filters" type="button" ng-click="ecdapp.loadTable()"><i class="icon-arrows-replay-restart"></i></button>
 					<input tabindex="0" class="btn btn-small" type="text" placeholder="Search Blueprints" ng-model="ecdapp.searchBy"></input>
-	         		<button tabindex="1" class="btn btn-small" title="Search" type="button" ng-click="ecdapp.searchTable(ecdapp.searchBy)"><i class="icon-controls-magnifyingglass"></i></button>
+	         		<button tabindex="1" class="btn btn-small" title="Search" type="button" ng-click="ecdapp.searchTable(ecdapp.searchBy)"><i class="ion-search"></i></button>
 				</div>
 			</div>
 		</div>
@@ -70,7 +63,7 @@
 							<th b2b-table-header sortable="false" key="created_at" ng-click="ecdapp.sortTable('created')">Created Date</th>
 							<th b2b-table-header sortable="false" key="deployment_ref">Deployments
 								<button style="margin-bottom:-5px; box-shadow:0 0 0 0 rgba(0, 0, 0, 0.15); min-width:0;" tabindex="1" class="btn btn-small" title="Refresh Deployments" type="button" ng-click="ecdapp.updateTable()">
-								<i class="icon-arrows-update&#45;refresh&#45;sync"></i>
+								<i class="icon-arrows-replay-restart"></i>
 								</button>							
 								<div ng-show="ecdapp.isSrvcDataLoading">
 									<div class="span" style="margin-bottom:5px;">
@@ -79,13 +72,6 @@
 								    </div>
 								</div>
 							</th>
-							<!--
-							<th b2b-table-header sortable="false" key="deployment_info" style="margin-left:-10px;">Deployments
-								<button style="margin-bottom:-5px; box-shadow:0 0 0 0 rgba(0, 0, 0, 0.15); min-width:0;" tabindex="1" class="btn btn-small" title="Refresh Deployments" type="button" ng-click="ecdapp.updateTable()">
-								<i class="icon-arrows-update&#45;refresh&#45;sync"></i>
-								</button>
-							</th>
-							-->
 							<th b2b-table-header sortable="false">Actions</th>
 							<th b2b-table-header sortable="false" key="owner" ng-click="ecdapp.sortTable('owner')">Owner</th>
 							<th b2b-table-header sortable="false" key="type_id" ng-click="ecdapp.sortTable('typeId')">ID</th>
@@ -114,26 +100,26 @@
 							</td>
 							<td b2b-table-body >
 								<div class="btn-group btn-actions" style="margin-bottom:0;box-shadow:none;">
-									<button type="button" class="btn dropdown-toggle" data-toggle="dropdown" title="More Actions"><i class="icon-controls-moreapplications"></i></button>									
+									<button type="button" class="btn dropdown-toggle" data-toggle="dropdown" title="More Actions"><i class="icon-apps-marketplace"></i></button>									
 										<ul class="dropdown-menu">
     										<li>
     											<div ng-click="ecdapp.viewBlueprintModalPopup(rowData);">
-    												<i class="icon-people-preview ecd-icon-action"></i><a href="">View</a>
+    												<i class="icon-documents-book ecd-icon-action"></i><a href="">View</a>
     											</div>		
     										</li>
     										<li>
     											<div ng-click="ecdapp.exportJson(rowData);">
-    												<i class="icon-people-preview ecd-icon-action"></i><a href="">Export</a>
+    												<i class="icon-documents-copy ecd-icon-action"></i><a href="">Export</a>
     											</div>		
     										</li>
     										<li>
 												<div ng-show="rowData.canDeploy  && rowData.deployments.totalCount === 0" ng-click="ecdapp.updateBlueprintModalPopup(rowData);">
-													<i class="icon-misc-trash ecd-icon-action"></i><a href="">Update</a>
+													<i class="icon-misc-pen ecd-icon-action"></i><a href="">Update</a>
 												</div>		
 											</li>
 											<li>
 												<div ng-show="rowData.canDeploy" ng-click="ecdapp.deployBlueprintModalPopup(rowData);">
-													<i class="icon-datanetwork-cloudupload ecd-icon-action"></i><a href="">Deploy</a>
+													<i class="icon-arrows-download ecd-icon-action"></i><a href="">Deploy</a>
 												</div>		
 											</li>
 											<li>

@@ -1,24 +1,3 @@
-/*******************************************************************************
- * =============LICENSE_START=========================================================
- *
- * =================================================================================
- *  Copyright (c) 2017 AT&T Intellectual Property. All rights reserved.
- * ================================================================================
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *  
- *      http://www.apache.org/licenses/LICENSE-2.0
- *  
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- * ============LICENSE_END=========================================================
- *
- *  ECOMP is a trademark and service mark of AT&T Intellectual Property.
- *******************************************************************************/
 appDS2.controller('nodeTableController', function($scope, $log, $modal, NodeHealthService) {
 
 	'use strict';
@@ -31,9 +10,42 @@ appDS2.controller('nodeTableController', function($scope, $log, $modal, NodeHeal
 	$scope.ecdapp.viewPerPage = 10;
 	// other
 	$scope.ecdapp.errMsg = null;
-	$scope.ecdapp.isDataLoading = true;
+	$scope.ecdapp.isDataLoading = false;
 	$scope.ecdapp.isRequestFailed = false;
+	$scope.ecdapp.isDcLoaded = false;
+	$scope.ecdapp.activeImg = "static/fusion/images/active.png";
+	$scope.ecdapp.inactiveImg = "static/fusion/images/inactive.png";
+	$scope.ecdapp.datacenter = "";
+	$scope.ecdapp.datacenters = [];
+	var getDataCenters = function() {
+		NodeHealthService.getDatacentersHealth().then(
+				function(jsonObj) {
+					if (jsonObj.error) {
+						$log.error("datacentersController.loadTable failed: "
+								+ jsonObj.error);
+						$scope.ecdapp.isRequestFailed = true;
+						$scope.ecdapp.errMsg = jsonObj.error;
+						$scope.ecdapp.tableData = [];
+					} else {
+						// $log.debug("datacentersController.loadTable
+						// succeeded, size " + jsonObj.data.length);
+						$scope.ecdapp.errMsg = null;
+						$scope.ecdapp.datacenters = jsonObj.items;
+						$scope.ecdapp.datacenter = $scope.ecdapp.datacenters[0].name;
+						$scope.ecdapp.isDcLoaded = true;
+						$scope.ecdapp.isRequestFailed = false;
+						$scope.pageChangeHandler(1);
+					}
 
+				},
+				function(error) {
+					$log.error("datacentersController.loadTable failed: "
+							+ error);
+					$scope.ecdapp.isRequestFailed = true;
+					$scope.ecdapp.errMsg = error;
+					$scope.ecdapp.tableData = [];
+				});
+	};
 	/**
 	 * Answers an array of the specified size - makes Angular iteration easy.
 	 */
@@ -48,9 +60,10 @@ appDS2.controller('nodeTableController', function($scope, $log, $modal, NodeHeal
 	 * tableData, or an error to be shown.
 	 */
 	$scope.ecdapp.loadTable = function() {
+		if ($scope.ecdapp.datacenter != 'Select Datacenter') {
 		$scope.ecdapp.isDataLoading = true;
 		NodeHealthService.getNodesHealth($scope.ecdapp.currentPageNum,
-				$scope.ecdapp.viewPerPage).then(
+				$scope.ecdapp.viewPerPage, $scope.ecdapp.datacenter).then(
 				function(jsonObj) {
 					if (jsonObj.error) {
 						$log.error("nodeHealthController.loadTable failed: "
@@ -76,6 +89,7 @@ appDS2.controller('nodeTableController', function($scope, $log, $modal, NodeHeal
 					$scope.ecdapp.tableData = [];
 					$scope.ecdapp.isDataLoading = false;
 				});
+		}
 	};
 
 	/**
@@ -86,19 +100,22 @@ appDS2.controller('nodeTableController', function($scope, $log, $modal, NodeHeal
 		// console.log('pageChangeHandler: current is ' +
 		// $scope.ecdapp.currentPageNum + ' new is ' + page);
 		$scope.ecdapp.currentPageNum = page;
-		$scope.ecdapp.loadTable();
+		if ($scope.ecdapp.isDcLoaded) {
+			$scope.ecdapp.loadTable();
+		}
 	}
 
 
 	/**
 	 * Shows a modal pop-up with services on this node.
 	 */
-	$scope.ecdapp.viewServicesModalPopup = function(nodeInfo) {
+	$scope.ecdapp.viewServicesModalPopup = function(nodeInfo, dc) {
+		nodeInfo.dc = dc;
 		var modalInstance = $modal.open({
 			templateUrl : 'node_services_popup.html',
 			controller : 'nodeServicesCtrl',
 			windowClass: 'modal-docked',
-			sizeClass: 'modal-large',
+			sizeClass: 'modal-jumbo',
 			resolve : {
 				message : function() {
 					return nodeInfo ;
@@ -115,4 +132,5 @@ appDS2.controller('nodeTableController', function($scope, $log, $modal, NodeHeal
 	// Do not call this here to avoid double load:
 	// $scope.ecdapp.loadTable();
 
+	getDataCenters();
 });

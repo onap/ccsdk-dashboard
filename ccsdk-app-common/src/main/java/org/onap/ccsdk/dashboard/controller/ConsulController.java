@@ -21,7 +21,6 @@
  *******************************************************************************/
 package org.onap.ccsdk.dashboard.controller;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -45,6 +44,7 @@ import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 import org.onap.portalsdk.core.util.SystemProperties;
 import org.onap.portalsdk.core.web.support.UserUtils;
 import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -66,6 +66,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 public class ConsulController extends DashboardRestrictedBaseController {
 
     private static EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(ConsulController.class);
+
+    @Autowired
+    ConsulClient consulClient;
 
     /**
      * Enum for selecting an item type.
@@ -118,28 +121,28 @@ public class ConsulController extends DashboardRestrictedBaseController {
      * @return JSON block as String, see above.
      * @throws Exception On any error; e.g., Network failure.
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    private String getItemListForPage(long userId, ConsulDataItem option, int pageNum, int pageSize, String dc)
-            throws Exception {
-        ConsulClient restClient = getConsulRestClient(userId);
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private String getItemListForPage(long userId, ConsulDataItem option, int pageNum, int pageSize,
+        String dc) throws Exception {
         List itemList = null;
         switch (option) {
-        case NODES:
-            itemList = restClient.getNodes(dc);
-            Collections.sort(itemList, nodeHealthComparator);
-            break;
-        case DATACENTERS:
-            itemList = restClient.getDatacenters();
-            break;
-        default:
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "Consul");
-            MDC.put("TargetServiceName", "Consul");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Getting page of items failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "getItemListForPage caught exception");
-            throw new Exception("getItemListForPage failed: unimplemented case: " + option.name());
+            case NODES:
+                itemList = consulClient.getNodes(dc);
+                Collections.sort(itemList, nodeHealthComparator);
+                break;
+            case DATACENTERS:
+                itemList = consulClient.getDatacenters();
+                break;
+            default:
+                MDC.put(SystemProperties.STATUS_CODE, "ERROR");
+                MDC.put("TargetEntity", "Consul");
+                MDC.put("TargetServiceName", "Consul");
+                MDC.put("ErrorCode", "300");
+                MDC.put("ErrorCategory", "ERROR");
+                MDC.put("ErrorDescription", "Getting page of items failed!");
+                logger.error(EELFLoggerDelegate.errorLogger, "getItemListForPage caught exception");
+                throw new Exception(
+                    "getItemListForPage failed: unimplemented case: " + option.name());
         }
         final int totalItems = itemList.size();
         // Shrink if needed
@@ -204,9 +207,8 @@ public class ConsulController extends DashboardRestrictedBaseController {
         preLogAudit(request);
         Object result = null;
         try {
-            ConsulClient restClient = getConsulRestClient(request);
-            result = restClient.getServiceHealth(dc, serviceId);
-        } catch (Throwable t) {
+            result = consulClient.getServiceHealth(dc, serviceId);
+        } catch (Exception t) {
             MDC.put(SystemProperties.STATUS_CODE, "ERROR");
             MDC.put("TargetEntity", "Consul");
             MDC.put("TargetServiceName", "Consul");
@@ -240,10 +242,9 @@ public class ConsulController extends DashboardRestrictedBaseController {
         ECTransportModel result = null;
         try {
             List<ConsulServiceHealth> itemList = new ArrayList<>();
-            ConsulClient restClient = getConsulRestClient(request);
-            List<ConsulServiceInfo> svcInfoList = restClient.getServices(dc);
+            List<ConsulServiceInfo> svcInfoList = consulClient.getServices(dc);
             for (ConsulServiceInfo csi : svcInfoList) {
-                List<ConsulServiceHealth> csh = restClient.getServiceHealth(dc, csi.name);
+                List<ConsulServiceHealth> csh = consulClient.getServiceHealth(dc, csi.name);
                 itemList.addAll(csh);
             }
             Collections.sort(itemList, serviceHealthComparator);
@@ -256,7 +257,7 @@ public class ConsulController extends DashboardRestrictedBaseController {
             if (totalItems > pageSize)
                 itemList = getPageOfList(pageNum, pageSize, itemList);
             result = new RestResponsePage<>(totalItems, pageCount, itemList);
-        } catch (Throwable t) {
+        } catch (Exception t) {
             MDC.put(SystemProperties.STATUS_CODE, "ERROR");
             MDC.put("TargetEntity", "Consul");
             MDC.put("TargetServiceName", "Consul");
@@ -301,9 +302,8 @@ public class ConsulController extends DashboardRestrictedBaseController {
         preLogAudit(request);
         Object result = null;
         try {
-            ConsulClient restClient = getConsulRestClient(request);
-            result = restClient.getNodeServicesHealth(dc, nodeName);
-        } catch (Throwable t) {
+            result = consulClient.getNodeServicesHealth(dc, nodeName);
+        } catch (Exception t) {
             MDC.put(SystemProperties.STATUS_CODE, "ERROR");
             MDC.put("TargetEntity", "Consul");
             MDC.put("TargetServiceName", "Consul");
@@ -365,8 +365,7 @@ public class ConsulController extends DashboardRestrictedBaseController {
                     throw new Exception("Required fields : [endpoint, interval] in checks");
                 }
             }
-            ConsulClient restClient = getConsulRestClient(request);
-            result = new RestResponseSuccess(restClient.registerService(registration));
+            result = new RestResponseSuccess(consulClient.registerService(registration));
         } catch (HttpStatusCodeException e) {
             MDC.put(SystemProperties.STATUS_CODE, "ERROR");
             MDC.put("TargetEntity", "Consul");
@@ -376,7 +375,7 @@ public class ConsulController extends DashboardRestrictedBaseController {
             MDC.put("ErrorDescription", "Registering service failed!");
             logger.error(EELFLoggerDelegate.errorLogger, "registerService caught exception");
             result = new RestResponseError(e.getResponseBodyAsString());
-        } catch (Throwable t) {
+        } catch (Exception t) {
             MDC.put(SystemProperties.STATUS_CODE, "ERROR");
             MDC.put("TargetEntity", "Consul");
             MDC.put("TargetServiceName", "Consul");
@@ -406,9 +405,9 @@ public class ConsulController extends DashboardRestrictedBaseController {
         preLogAudit(request);
         ECTransportModel result = null;
         try {
-            ConsulClient restClient = getConsulRestClient(request);
-            int code = restClient.deregisterService(serviceName);
-            result = new RestResponseSuccess("Deregistration yielded code " + Integer.toString(code));
+            int code = consulClient.deregisterService(serviceName);
+            result =
+                new RestResponseSuccess("Deregistration yielded code " + Integer.toString(code));
         } catch (HttpStatusCodeException e) {
             MDC.put(SystemProperties.STATUS_CODE, "ERROR");
             MDC.put("TargetEntity", "Consul");

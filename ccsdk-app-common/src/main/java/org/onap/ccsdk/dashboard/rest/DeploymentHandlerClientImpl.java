@@ -26,6 +26,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.stream.Stream;
 
+import javax.annotation.PostConstruct;
+
 import org.onap.ccsdk.dashboard.exceptions.BadRequestException;
 import org.onap.ccsdk.dashboard.exceptions.DeploymentNotFoundException;
 import org.onap.ccsdk.dashboard.exceptions.DownstreamException;
@@ -36,6 +38,7 @@ import org.onap.ccsdk.dashboard.model.deploymenthandler.DeploymentLink;
 import org.onap.ccsdk.dashboard.model.deploymenthandler.DeploymentRequest;
 import org.onap.ccsdk.dashboard.model.deploymenthandler.DeploymentResponse;
 import org.onap.ccsdk.dashboard.model.deploymenthandler.DeploymentsListResponse;
+import org.onap.ccsdk.dashboard.util.DashboardProperties;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -49,45 +52,34 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
+@org.springframework.stereotype.Service
 public class DeploymentHandlerClientImpl extends RestClientBase implements DeploymentHandlerClient {
 
-    private final String baseUrl;
-    // private final RestTemplate restTemplate;
+    private String baseUrl;
+
     private static final String DEPLOYMENTS = "dcae-deployments";
     private static final String UPDATE_PATH = "dcae-deployment-update";
 
     protected final ObjectMapper objectMapper = new ObjectMapper();
 
-    public DeploymentHandlerClientImpl(String webapiUrl) {
-        this(webapiUrl, null, null);
-    }
-
-    /**
-     * Builds a restTemplate. If username and password are supplied, uses basic HTTP
-     * authentication.
-     * 
-     * @param webapiUrl URL of the web endpoint
-     * @param user      user name; ignored if null
-     * @param pass      password
-     */
-    public DeploymentHandlerClientImpl(String webapiUrl, String user, String pass) {
-        super();
+    @PostConstruct
+    public void init() {
+        String webapiUrl = DashboardProperties.getControllerProperty("dev",
+            DashboardProperties.CONTROLLER_SUBKEY_DHANDLER_URL);
         if (webapiUrl == null)
             throw new IllegalArgumentException("Null URL not permitted");
         URL url = null;
-        String urlScheme = "http";
         try {
             url = new URL(webapiUrl);
             baseUrl = url.toExternalForm();
         } catch (MalformedURLException ex) {
             throw new RuntimeException("Failed to parse URL", ex);
         }
-        urlScheme = webapiUrl.split(":")[0];
-        createRestTemplate(url, user, pass, urlScheme);
-        // Do not serialize null values
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        // Register Jdk8Module() for Stream and Optional types
-        objectMapper.registerModule(new Jdk8Module());
+        String urlScheme = webapiUrl.split(":")[0];
+        if (restTemplate == null) {
+            createRestTemplate(url, null, null, urlScheme);
+        }
+
     }
 
     public Stream<DeploymentLink> getDeployments() {

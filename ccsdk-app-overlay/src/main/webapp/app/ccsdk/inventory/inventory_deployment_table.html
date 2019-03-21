@@ -1,6 +1,6 @@
 <div id="page-content">
 
-	<h1 class="heading-page" id="deployments-page">EOM Inventory > Deployments</h1>
+	<h1 class="heading-page" id="deployments-page">Inventory > Deployments</h1>
 
 	<!-- show progress indicator -->
 	<div ng-show="ecdapp.isDataLoading">
@@ -14,9 +14,9 @@
 		<div id="button-search-row">
 			<div style="float:right;">
 				<div class="group">
-					<button tabindex="-1" class="btn btn-small" title="Reset Filters" type="button" ng-click="ecdapp.loadTable()"><i class="icon-arrows-update&#45;refresh&#45;sync"></i></button>
+					<button tabindex="-1" class="btn btn-small" title="Reset Filters" type="button" ng-click="ecdapp.loadTable()"><i class="icon-arrows-replay-restart"></i></button>
 					<input tabindex="0" class="btn btn-small" type="text" placeholder="Search Deployments" ng-model="ecdapp.searchBy"></input>
-					<button tabindex="1" class="btn btn-small" type="button" ng-click="ecdapp.searchTable(ecdapp.searchBy)"><i class="icon-controls-magnifyingglass"></i></button>
+					<button tabindex="1" class="btn btn-small" type="button" ng-click="ecdapp.searchTable(ecdapp.searchBy)"><i class="ion-search"></i></button>
 				</div>
 			</div>
 		</div>
@@ -41,7 +41,7 @@
 						<th b2b-table-header sortable="false" key="updated" ng-click="ecdapp.sortTable('modified')">Modified</th>
 						<th b2b-table-header sortable="false" key="tenant" style="background-color:#dbefef;">Tenant
 								<button style="margin-bottom:-5px; box-shadow:0 0 0 0 rgba(0, 0, 0, 0.15); min-width:0;" tabindex="1" class="btn btn-small" title="Refresh Tenant and Status" type="button" ng-click="ecdapp.updateTable()">
-								<i class="icon-arrows-update&#45;refresh&#45;sync"></i>
+								<i class="icon-arrows-replay-restart"></i>
 								</button>
 								<div ng-show="ecdapp.isSrvcDataLoading">
 									<div class="span" style="margin-bottom:5px;">
@@ -76,26 +76,26 @@
 						</td>
 						<td b2b-table-body ng-class="{'td-error' : rowData.statusInfo === undefined}">
 							<div class="btn-group btn-actions" style="margin-bottom:0;box-shadow:none;">
-									<button type="button" class="btn dropdown-toggle" data-toggle="dropdown" title="More Actions"><i class="icon-controls-moreapplications"></i></button>									
+									<button type="button" class="btn dropdown-toggle" data-toggle="dropdown" title="More Actions"><i class="icon-apps-marketplace"></i></button>									
 										<ul class="dropdown-menu">
     										<li>
     											<div ng-click="ecdapp.viewBlueprintDataModal(rowData);">
-													<i class="icon-documents-document ecd-icon-action"></i><a href="">View blueprint</a>
+													<i class="icon-documents-book ecd-icon-action"></i><a href="">View blueprint</a>
 												</div>
 											</li>
 											<li>
 												<div ng-click="ecdapp.viewDeploymentInputsModalPopup(rowData);">
-													<i class="icon-misc-operations ecd-icon-action"></i><a href="">View Inputs</a>
+													<i class="icoDocuments-report ecd-icon-action"></i><a href="">View Inputs</a>
 												</div>
 											</li>
 											<li>
 												<div ng-click="ecdapp.viewDeploymentExecutionsModalPopup(rowData);">
-													<i class="icon-people-preview ecd-icon-action"></i><a href="">View executions</a>
+													<i class="icon-overview ecd-icon-action"></i><a href="">View executions</a>
 												</div>
 											</li>
 											<li>
 												<div ng-show="rowData.canDeploy && rowData.statusInfo.status === 'completed'" ng-click="ecdapp.updateDeploymentModalPopup(rowData);">
-													<i class="icon-misc-operations ecd-icon-action"></i><a href="">Update deployment</a>
+													<i class="icon-misc-pen ecd-icon-action"></i><a href="">Update deployment</a>
 												</div>
 											</li>
 											<li>
@@ -105,17 +105,17 @@
 											</li>
 											<li>
 												<div ng-show="rowData.statusInfo.is_helm && rowData.statusInfo.helm_status && rowData.statusInfo.status === 'completed'" ng-click="ecdapp.checkHelmStatus(rowData);">
-													<i class="icon-misc-operations ecd-icon-action"></i><a href="">Helm Status</a>
+													<i class="icoDocuments-report ecd-icon-action"></i><a href="">Helm Status</a>
 												</div>
 											</li>
 											<li>
 												<div ng-show="rowData.canDeploy && rowData.statusInfo.is_helm && rowData.statusInfo.status === 'completed'" ng-click="ecdapp.upgradeDeploymentModalPopup(rowData);">
-													<i class="icon-datanetwork-contentdelivery ecd-icon-action"></i><a href="#">Helm upgrade deployment</a>
+													<i class="icon-controls-down ecd-icon-action"></i><a href="#">Helm upgrade deployment</a>
 												</div>
 											</li>
 											<li>
 												<div ng-show="rowData.canDeploy && rowData.statusInfo.is_helm && rowData.statusInfo.status === 'completed'" ng-click="ecdapp.rollbackDeploymentModalPopup(rowData);">
-													<i class="icon-datanetwork-software ecd-icon-action"></i><a href="#">Helm rollback deployment</a>
+													<i class="icon-controls-up"></i><a href="#">Helm rollback deployment</a>
 												</div>
 											</li>
 											<li>

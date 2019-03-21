@@ -4,11 +4,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <!-- Add oparent parent -->
+
     <parent>
         <groupId>org.onap.oparent</groupId>
         <artifactId>oparent</artifactId>
         <version>1.2.3</version>
     </parent>
+
     <!-- Maven parent project for convenience of building and cleaning -->
     <groupId>org.onap.ccsdk.dashboard</groupId>
     <artifactId>ccsdk-app-parent</artifactId>
@@ -19,7 +21,7 @@
     <modules>
         <module>ccsdk-app-common</module>
         <module>ccsdk-app-overlay</module>
-        <!-- <module>ccsdk-app-os</module> -->
+        <module>ccsdk-app-os</module>
     </modules>
     <distributionManagement>
         <repository>

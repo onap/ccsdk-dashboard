@@ -41,6 +41,7 @@ import org.onap.ccsdk.dashboard.rest.DeploymentHandlerClient;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 import org.onap.portalsdk.core.util.SystemProperties;
 import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -60,7 +61,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 @RequestMapping("/deploymenthandler")
 public class DeploymentHandlerController extends DashboardRestrictedBaseController {
 
-    private static EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(DeploymentHandlerController.class);
+    private static EELFLoggerDelegate logger =
+        EELFLoggerDelegate.getLogger(DeploymentHandlerController.class);
+
+    @Autowired
+    DeploymentHandlerClient deploymentHandlerClient;
 
     private static final String DEPLOYMENTS_PATH = "dcae-deployments";
 
@@ -74,7 +79,6 @@ public class DeploymentHandlerController extends DashboardRestrictedBaseControll
         preLogAudit(request);
         String json = null;
         try {
-            DeploymentHandlerClient deploymentHandlerClient = getDeploymentHandlerClient(request);
             if (deploymentRequestObject.getMethod().equals("create")) {
                 json = objectMapper.writeValueAsString(deploymentHandlerClient.putDeployment(
                         deploymentRequestObject.getDeploymentId(), deploymentRequestObject.getTenant(),
@@ -121,18 +125,9 @@ public class DeploymentHandlerController extends DashboardRestrictedBaseControll
             MDC.put("ErrorCategory", "ERROR");
             MDC.put("ErrorDescription", "Deployment failed! Downstream Exception");
             logger.error(EELFLoggerDelegate.errorLogger, "putDeployment caught exception");
-            json = objectMapper.writeValueAsString(new RestResponseError("Downstream Exception " + e.getMessage()));
-        } catch (JsonProcessingException jpe) {
-            // Should never, ever happen
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "Deployment Handler");
-            MDC.put("TargetServiceName", "Deployment Handler");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Deployment failed! Json Processing Exception");
-            logger.error(EELFLoggerDelegate.errorLogger, "putDeployment caught exception");
-            json = "{ \"error\" : \"" + jpe.toString() + "\"}";
-        } catch (Throwable t) {
+            json = objectMapper.writeValueAsString(
+                new RestResponseError("Downstream Exception " + e.getMessage()));
+        } catch (Exception t) {
             MDC.put(SystemProperties.STATUS_CODE, "ERROR");
             MDC.put("TargetEntity", "Deployment Handler");
             MDC.put("TargetServiceName", "Deployment Handler");
@@ -156,7 +151,8 @@ public class DeploymentHandlerController extends DashboardRestrictedBaseControll
         String json = null;
         StringBuffer status = new StringBuffer();
         try {
-            DeploymentHandlerClient deploymentHandlerClient = getDeploymentHandlerClient(request);
+            // DeploymentHandlerClient deploymentHandlerClient =
+            // getDeploymentHandlerClient(request);
             deploymentHandlerClient.deleteDeployment(deploymentId, tenant);
             String self = request.getRequestURL().toString().split("\\?")[0];
             status.append(self).append("/executions?tenant=").append(tenant);
@@ -200,17 +196,7 @@ public class DeploymentHandlerController extends DashboardRestrictedBaseControll
             MDC.put("ErrorDescription", "Deleting deployment " + deploymentId + " failed!");
             logger.error(EELFLoggerDelegate.errorLogger, "deleteDeployment caught exception");
             json = objectMapper.writeValueAsString(new RestResponseError(e.getMessage()));
-        } catch (JsonProcessingException jpe) {
-            // Should never, ever happen
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "Deployment Handler");
-            MDC.put("TargetServiceName", "Deployment Handler");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Deleting deployment " + deploymentId + " failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "deleteDeployment caught exception");
-            json = "{ \"error\" : \"" + jpe.toString() + "\"}";
-        } catch (Throwable t) {
+        } catch (Exception t) {
             MDC.put(SystemProperties.STATUS_CODE, "ERROR");
             MDC.put("TargetEntity", "Deployment Handler");
             MDC.put("TargetServiceName", "Deployment Handler");

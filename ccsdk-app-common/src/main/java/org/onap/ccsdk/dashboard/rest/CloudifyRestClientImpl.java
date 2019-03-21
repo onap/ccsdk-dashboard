@@ -25,13 +25,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
+
 import org.json.JSONObject;
-import org.onap.ccsdk.dashboard.model.CloudifyBlueprintContent;
 import org.onap.ccsdk.dashboard.model.CloudifyBlueprintList;
-import org.onap.ccsdk.dashboard.model.CloudifyBlueprintUpload;
 import org.onap.ccsdk.dashboard.model.CloudifyDeployedTenantList;
 import org.onap.ccsdk.dashboard.model.CloudifyDeploymentList;
-import org.onap.ccsdk.dashboard.model.CloudifyDeploymentRequest;
 import org.onap.ccsdk.dashboard.model.CloudifyDeploymentUpdateRequest;
 import org.onap.ccsdk.dashboard.model.CloudifyDeploymentUpdateResponse;
 import org.onap.ccsdk.dashboard.model.CloudifyEventList;
@@ -41,8 +40,8 @@ import org.onap.ccsdk.dashboard.model.CloudifyExecutionRequest;
 import org.onap.ccsdk.dashboard.model.CloudifyNodeIdList;
 import org.onap.ccsdk.dashboard.model.CloudifyNodeInstanceIdList;
 import org.onap.ccsdk.dashboard.model.CloudifyNodeInstanceList;
-import org.onap.ccsdk.dashboard.model.CloudifySecret;
 import org.onap.ccsdk.dashboard.model.CloudifyTenantList;
+import org.onap.ccsdk.dashboard.util.DashboardProperties;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -50,44 +49,45 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+@org.springframework.stereotype.Service
 public class CloudifyRestClientImpl extends RestClientBase implements CloudifyClient {
 
-    private static EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(CloudifyRestClientImpl.class);
-    private final String baseUrl;
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
+    private static EELFLoggerDelegate logger =
+        EELFLoggerDelegate.getLogger(CloudifyRestClientImpl.class);
+    private String baseUrl;
     private static final String BLUEPRINTS = "blueprints";
-    private static final String VIEW_BLUEPRINTS = "viewblueprints";
     private static final String DEPLOYMENTS = "deployments";
     private static final String EXECUTIONS = "executions";
     private static final String TENANTS = "tenants";
     private static final String NODES = "nodes";
     private static final String NODE_INSTANCES = "node-instances";
     private static final String UPDATE_DEPLOYMENT = "update-deployment";
-    private static final String SECRETS = "secrets";
     private static final String EVENTS = "events";
     private static final String TENANT = "tenant_name";
 
-    public CloudifyRestClientImpl(String webapiUrl, String user, String pass) {
-        super();
-        if (webapiUrl == null)
+    @PostConstruct
+    public void init() {
+        String webapiUrl = DashboardProperties.getControllerProperty("dev",
+            DashboardProperties.CONTROLLER_SUBKEY_URL);
+        if (webapiUrl == null) {
             throw new IllegalArgumentException("Null URL not permitted");
-
+        }
+        String user = DashboardProperties.getControllerProperty("dev",
+            DashboardProperties.CONTROLLER_SUBKEY_USERNAME);
+        String pass = DashboardProperties.getControllerProperty("dev",
+            DashboardProperties.CONTROLLER_SUBKEY_PASS);
         URL url = null;
-        String urlScheme = "http";
         try {
             url = new URL(webapiUrl);
             baseUrl = url.toExternalForm();
         } catch (MalformedURLException ex) {
             throw new RuntimeException("Failed to parse URL", ex);
         }
-
-        urlScheme = webapiUrl.split(":")[0];
-        createRestTemplate(url, user, pass, urlScheme);
+        String urlScheme = webapiUrl.split(":")[0];
+        if (restTemplate == null) {
+            createRestTemplate(url, user, pass, urlScheme);
+        }
     }
 
     @Override
@@ -151,10 +151,8 @@ public class CloudifyRestClientImpl extends RestClientBase implements CloudifyCl
 
     @Override
     public CloudifyNodeInstanceIdList getNodeInstanceId(final String bpId, String tenant) {
-        // GET
-        // /api/v3.1/nodes?deployment_id=clamp_967&type=onap.nodes.component&_include=id
-        String url = buildUrl(new String[] { baseUrl, NODES },
-                new String[] { "deployment_id", bpId, "type", "onap.nodes.component", "_include", "id" });
+        String url = buildUrl(new String[] {baseUrl, NODES},
+            new String[] {"deployment_id", bpId, "type", "onap.nodes.component", "_include", "id"});
         logger.debug(EELFLoggerDelegate.debugLogger, "getNodeInstanceId: url {}", url);
         HttpEntity<String> entity = getTenantHeader(tenant);
         ResponseEntity<CloudifyNodeIdList> response = restTemplate.exchange(url, HttpMethod.GET, entity,
@@ -202,18 +200,6 @@ public class CloudifyRestClientImpl extends RestClientBase implements CloudifyCl
     }
 
     @Override
-    public CloudifyExecutionList getExecution(String executionId, String deploymentId) {
-        String url = buildUrl(new String[] { baseUrl, EXECUTIONS, executionId },
-                new String[] { "deployment_id", deploymentId });
-        logger.debug(EELFLoggerDelegate.debugLogger, "getExecution: url {}", url);
-
-        ResponseEntity<CloudifyExecutionList> response = restTemplate.exchange(url, HttpMethod.GET, null,
-                new ParameterizedTypeReference<CloudifyExecutionList>() {
-                });
-        return response.getBody();
-    }
-
-    @Override
     public CloudifyExecution startExecution(CloudifyExecutionRequest execution) {
         String url = buildUrl(new String[] { baseUrl, EXECUTIONS }, null);
         logger.debug(EELFLoggerDelegate.debugLogger, "startExecution: url {}", url);
@@ -243,19 +229,8 @@ public class CloudifyRestClientImpl extends RestClientBase implements CloudifyCl
         headers.set("Tenant", tenant);
         headers.set("Content-Type", "application/json");
         HttpEntity<String> entity = new HttpEntity<String>(requestJson.toString(), headers);
-        ResponseEntity<CloudifyExecution> response = restTemplate.exchange(url, HttpMethod.POST, entity,
-                new ParameterizedTypeReference<CloudifyExecution>() {
-                });
-        return response.getBody(); // getStatusCode().value();
-    }
-
-    @Override
-    public CloudifyBlueprintList getBlueprints() {
-        String url = buildUrl(new String[] { baseUrl, BLUEPRINTS }, null);
-        logger.debug(EELFLoggerDelegate.debugLogger, "getBlueprints: url {}", url);
-        ResponseEntity<CloudifyBlueprintList> response = restTemplate.exchange(url, HttpMethod.GET, null,
-                new ParameterizedTypeReference<CloudifyBlueprintList>() {
-                });
+        ResponseEntity<CloudifyExecution> response = restTemplate.exchange(url, HttpMethod.POST,
+            entity, new ParameterizedTypeReference<CloudifyExecution>() {});
         return response.getBody();
     }
 
@@ -268,32 +243,6 @@ public class CloudifyRestClientImpl extends RestClientBase implements CloudifyCl
                 new ParameterizedTypeReference<CloudifyBlueprintList>() {
                 });
         return response.getBody();
-    }
-
-    @Override
-    public CloudifyBlueprintContent viewBlueprint(final String id) {
-        String url = buildUrl(new String[] { baseUrl, VIEW_BLUEPRINTS }, new String[] { "id", id });
-        logger.debug(EELFLoggerDelegate.debugLogger, "viewBlueprint: url {}", url);
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, null, String.class);
-        String yaml = response.getBody();
-        return new CloudifyBlueprintContent(id, yaml);
-    }
-
-    @Override
-    public CloudifyBlueprintList uploadBlueprint(CloudifyBlueprintUpload blueprint) {
-        String url = buildUrl(new String[] { baseUrl, BLUEPRINTS }, null);
-        logger.debug(EELFLoggerDelegate.debugLogger, "uploadBlueprint: url {}", url);
-        return restTemplate.postForObject(url, blueprint, CloudifyBlueprintList.class);
-    }
-
-    @Override
-    public int deleteBlueprint(final String id) {
-        String url = buildUrl(new String[] { baseUrl, BLUEPRINTS, id }, null);
-        logger.debug(EELFLoggerDelegate.debugLogger, "deleteBlueprint: url {}", url);
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, null,
-                new ParameterizedTypeReference<String>() {
-                });
-        return response.getStatusCode().value();
     }
 
     @Override
@@ -332,43 +281,8 @@ public class CloudifyRestClientImpl extends RestClientBase implements CloudifyCl
         String url = buildUrl(new String[] { baseUrl, DEPLOYMENTS }, new String[] { "id", id, "_include", "inputs" });
         logger.debug(EELFLoggerDelegate.debugLogger, "getDeployment: url {}", url);
         HttpEntity<String> entity = getTenantHeader(tenant);
-        ResponseEntity<CloudifyDeploymentList> response = restTemplate.exchange(url, HttpMethod.GET, entity,
-                new ParameterizedTypeReference<CloudifyDeploymentList>() {
-                });
+        ResponseEntity<CloudifyDeploymentList> response = restTemplate.exchange(url, HttpMethod.GET,
+            entity, new ParameterizedTypeReference<CloudifyDeploymentList>() {});
         return response.getBody();
     }
-
-    @Override
-    public CloudifyDeploymentList createDeployment(CloudifyDeploymentRequest deployment) {
-        String url = buildUrl(new String[] { baseUrl, DEPLOYMENTS }, null);
-        logger.debug(EELFLoggerDelegate.debugLogger, "createDeployment: url {}", url);
-        return restTemplate.postForObject(url, deployment, CloudifyDeploymentList.class);
-    }
-
-    @Override
-    public int deleteDeployment(final String id, boolean ignoreLiveNodes) {
-        String url = buildUrl(new String[] { baseUrl, DEPLOYMENTS, id },
-                new String[] { "ignore_live_nodes", Boolean.toString(ignoreLiveNodes) });
-        logger.debug(EELFLoggerDelegate.debugLogger, "deleteDeployment: url {}", url);
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, null,
-                new ParameterizedTypeReference<String>() {
-                });
-        return response.getStatusCode().value();
-    }
-
-    /**
-     * Get a cloudify secret
-     * 
-     * @return CloudifySecret
-     */
-    @Override
-    public CloudifySecret getSecret(String secretName, String tenant) {
-        String url = buildUrl(new String[] { baseUrl, SECRETS, secretName }, new String[] { TENANT, tenant });
-        logger.debug(EELFLoggerDelegate.debugLogger, "getSecrets: url {}", url);
-        ResponseEntity<CloudifySecret> response = restTemplate.exchange(url, HttpMethod.GET, null,
-                new ParameterizedTypeReference<CloudifySecret>() {
-                });
-        return response.getBody();
-    }
-
 }

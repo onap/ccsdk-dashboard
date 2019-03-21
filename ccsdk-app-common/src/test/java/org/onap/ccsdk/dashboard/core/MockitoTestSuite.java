@@ -3,7 +3,7 @@
  * ============LICENSE_START==========================================
  * ONAP Portal
  * ===================================================================
- * Copyright (C) 2017 AT&T Intellectual Property. All rights reserved.
+ * Copyright (C) 2019 AT&T Intellectual Property. All rights reserved.
  * ===================================================================
  *
  * Unless otherwise specified, all software contained herein is licensed
@@ -38,6 +38,10 @@
  */
 package org.onap.ccsdk.dashboard.core;
 
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
@@ -51,45 +55,77 @@ import org.mockito.runners.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class MockitoTestSuite {
 
+    public MockHttpServletRequestWrapper mockedRequest =
+        new MockHttpServletRequestWrapper(Mockito.mock(HttpServletRequest.class));
+    public HttpServletResponse mockedResponse = Mockito.mock(HttpServletResponse.class);
 
-	public MockHttpServletRequestWrapper mockedRequest = new MockHttpServletRequestWrapper(
-			Mockito.mock(HttpServletRequest.class));
-	public HttpServletResponse mockedResponse = Mockito.mock(HttpServletResponse.class);
+    public MockHttpServletRequestWrapper getMockedRequest() {
+        return mockedRequest;
+    }
 
-	public MockHttpServletRequestWrapper getMockedRequest() {
-		return mockedRequest;
-	}
+    public HttpServletResponse getMockedResponse() {
+        return mockedResponse;
+    }
 
-	public HttpServletResponse getMockedResponse() {
-		return mockedResponse;
-	}
+    public class MockHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
-	public class MockHttpServletRequestWrapper extends HttpServletRequestWrapper {
+        HashMap<String, String> params = new HashMap<>();
 
-		HttpSession session = Mockito.mock(HttpSession.class);
+        HttpSession session = Mockito.mock(HttpSession.class);
 
-		public MockHttpServletRequestWrapper(HttpServletRequest request) {
-			super(request);
+        public MockHttpServletRequestWrapper(HttpServletRequest request) {
+            super(request);
 
-		}
+        }
 
-		@Override
-		public HttpSession getSession() {
+        @Override
+        public HttpSession getSession() {
+            return session;
+        }
 
-			return session;
-		}
+        @Override
+        public HttpSession getSession(boolean create) {
 
-		@Override
-		public HttpSession getSession(boolean create) {
+            return session;
+        }
 
-			return session;
-		}
+        @Override
+        public String getParameter(final String name) {
+            // if we added one with the given name, return that one
+            if (params.get(name) != null) {
+                return (String) params.get(name);
+            } else {
+                // otherwise return what's in the original request
+                return super.getParameter(name);
+            }
+        }
 
-	}
-    
-	@Test
-	public void test()
-	{
-		assert(true);
-	}
+        public void addParameter(String name, String value) {
+            params.put(name, value);
+        }
+
+        @Override
+        public Map<String, String[]> getParameterMap() {
+            return super.getParameterMap();
+        }
+
+        @Override
+        public Enumeration<String> getParameterNames() {
+            // defaulf impl, should be overridden for an approprivate map of request params
+            // names
+            return super.getParameterNames();
+        }
+
+        @Override
+        public String[] getParameterValues(final String name) {
+            // defaulf impl, should be overridden for an approprivate map of request params
+            // values
+            return super.getParameterValues(name);
+        }
+    }
+
+    @Test
+    public void test() {
+        assert (true);
+    }
 }

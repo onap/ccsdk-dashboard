@@ -1,18 +1,27 @@
 <div id="page-content">
 
+	<div style="float: right;" ng-show="ecdapp.isDcLoaded">
+		<div class="field-group span10">
+		<label for="dc">*Datacenters</label>
+		<select id="dc" name="dc" b2b-dropdown class="span8" placeholder-text="Select Datacenter" data-ng-model="ecdapp.datacenter" ng-change="ecdapp.loadTable()" required>
+			<option b2b-dropdown-list option-repeat="d in ecdapp.datacenters" value="{{d.name}}">{{d.name}}</option>
+		</select>
+		</div>
+	</div>
 	<h1 class="heading-page" id="consul_services">Monitored Services</h1>
 
 	<!-- show progress indicator -->
 	<div ng-show="ecdapp.isDataLoading">
 		<div class="span" style="margin-bottom: 20px;">
-			<i class="icon-primary-spinner small" role="img"
+			<i class="icon-spinner small" role="img"
 				aria-label="Please wait while the content loads"></i> Please wait
 			while the content loads.
 		</div>
 	</div>
-
-	<div ng-hide="ecdapp.isDataLoading">
-
+	<div ng-show="ecdapp.isRequestFailed">
+		<span class="ecd-error-message">{{ecdapp.errMsg}}</span>
+	</div>
+	<div ng-hide="ecdapp.isDataLoading" style="margin-top: 10px;">
 		<div id="button-search-row">
 			<button class="btn btn-alt btn-small" 
 				type="submit"
@@ -27,10 +36,6 @@
 			</div>
 		</div>
 
-		<div ng-show="ecdapp.isRequestFailed">
-			<span class="ecd-error-message">{{ecdapp.errMsg}}</span>
-		</div>
-
 		<div ng-hide="ecdapp.isRequestFailed">
 
 			<div b2b-table id="consul-services-table" class="b2b-table-div"
@@ -39,16 +44,15 @@
 				next-sort="ecdapp.nextSortIgnored">
 
 				<table>
-
 					<thead b2b-table-row type="header">
 						<tr id="th-header-row">
 							<th b2b-table-header key="serviceName">Service Name</th>
-							<th b2b-table-header key="serviceID">Service ID</th>
-							<th b2b-table-header key="node">Node Name</th>
 							<th b2b-table-header key="status">Status</th>
+							<th b2b-table-header key="node">Node Name</th>
+							<th b2b-table-header key="serviceID">Service ID</th>
 							<th b2b-table-header key="notes">Notes</th>
 							<th b2b-table-header key="output">Output</th>
-				  			<th b2b-table-header sortable="false"><i class="icon-controls-gear ecd-icon-display"></i></th>
+				  			<th b2b-table-header sortable="false"><i class="icon-settings ecd-icon-display"></i></th>
 						</tr>
 					</thead>
 
@@ -56,14 +60,20 @@
 						row-repeat="rowData in ecdapp.tableData">
 						<tr id="tr-rowData">
 							<td b2b-table-body ng-bind="rowData.serviceName" />
-							<td b2b-table-body ng-bind="rowData.serviceID" />
+							<td b2b-table-body> 
+							<!--  <span>{{rowData.status}}</span> -->
+							<span ng-if="rowData.status === 'passing'"><img ng-src="{{ecdapp.activeImg}}" title="{{rowData.status}}"/>
+							</span>
+							<span ng-if="rowData.status != 'passing'"><img ng-src="{{ecdapp.inactiveImg}}" title="{{rowData.status}}"/>
+							</span>
+							</td>
 							<td b2b-table-body ng-bind="rowData.node" />
-							<td b2b-table-body ng-bind="rowData.status" />
+							<td b2b-table-body ng-bind="rowData.serviceID" />
 							<td b2b-table-body ng-bind="rowData.notes" />
 							<td b2b-table-body ng-bind="rowData.output" />
 							<td b2b-table-body> 
 						    	<div ng-click="ecdapp.viewHealthHistoryModalPopup(rowData);">
-						    		<a href="" title="View history" class="icon-datanetwork-history ecd-icon-action"></a>
+						    		<a href="" title="View history" class="icoDocuments-bookmarks ecd-icon-action"></a>
 						    	</div>
 						    	<div ng-click="ecdapp.deregisterServiceModalPopup(rowData);">
 						    		<a href="" title="Deregister service" class="icon-misc-trash ecd-icon-action"></a>

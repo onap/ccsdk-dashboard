@@ -23,12 +23,9 @@ package org.onap.ccsdk.dashboard.rest;
 
 import java.util.Map;
 
-import org.onap.ccsdk.dashboard.model.CloudifyBlueprintContent;
 import org.onap.ccsdk.dashboard.model.CloudifyBlueprintList;
-import org.onap.ccsdk.dashboard.model.CloudifyBlueprintUpload;
 import org.onap.ccsdk.dashboard.model.CloudifyDeployedTenantList;
 import org.onap.ccsdk.dashboard.model.CloudifyDeploymentList;
-import org.onap.ccsdk.dashboard.model.CloudifyDeploymentRequest;
 import org.onap.ccsdk.dashboard.model.CloudifyDeploymentUpdateRequest;
 import org.onap.ccsdk.dashboard.model.CloudifyDeploymentUpdateResponse;
 import org.onap.ccsdk.dashboard.model.CloudifyEventList;
@@ -37,7 +34,6 @@ import org.onap.ccsdk.dashboard.model.CloudifyExecutionList;
 import org.onap.ccsdk.dashboard.model.CloudifyExecutionRequest;
 import org.onap.ccsdk.dashboard.model.CloudifyNodeInstanceIdList;
 import org.onap.ccsdk.dashboard.model.CloudifyNodeInstanceList;
-import org.onap.ccsdk.dashboard.model.CloudifySecret;
 import org.onap.ccsdk.dashboard.model.CloudifyTenantList;
 
 /**
@@ -106,16 +102,6 @@ public interface CloudifyClient {
     public CloudifyNodeInstanceIdList getNodeInstanceId(String id, String tenant);
 
     /**
-     * Query execution information for a deployment ID and execution ID passed as
-     * inputs
-     * 
-     * @param executionId
-     * @param deploymentId
-     * @return
-     */
-    public CloudifyExecutionList getExecution(String executionId, String deploymentId);
-
-    /**
      * Initiate a deployment update in cloudify
      * 
      * @param execution
@@ -161,23 +147,6 @@ public interface CloudifyClient {
     public CloudifyNodeInstanceList getNodeInstanceVersion(String bp_id, String tenant);
 
     /**
-     * Start Uninstall execution workflow in cloudify
-     * 
-     * @param id
-     * @param ignoreLiveNodes
-     * @return
-     */
-    public int deleteDeployment(String id, boolean ignoreLiveNodes);
-
-    /**
-     * Start install execution workflow in cloudify
-     * 
-     * @param deployment
-     * @return
-     */
-    public CloudifyDeploymentList createDeployment(CloudifyDeploymentRequest deployment);
-
-    /**
      * Query deployment object from cloudify
      * 
      * @param id
@@ -201,30 +170,6 @@ public interface CloudifyClient {
     public CloudifyDeploymentList getDeployments();
 
     /**
-     * Remove blueprint referred by ID from cloudify
-     * 
-     * @param id
-     * @return
-     */
-    public int deleteBlueprint(String id);
-
-    /**
-     * Upload blueprint into cloudify
-     * 
-     * @param blueprint
-     * @return
-     */
-    public CloudifyBlueprintList uploadBlueprint(CloudifyBlueprintUpload blueprint);
-
-    /**
-     * View blueprint YAML text
-     * 
-     * @param id
-     * @return
-     */
-    public CloudifyBlueprintContent viewBlueprint(String id);
-
-    /**
      * Query a blueprint object matching the blueprint ID in cloudify
      * 
      * @param id
@@ -234,13 +179,6 @@ public interface CloudifyClient {
     public CloudifyBlueprintList getBlueprint(String id, String tenant);
 
     /**
-     * Query all the blueprints in cloudify
-     * 
-     * @return
-     */
-    public CloudifyBlueprintList getBlueprints();
-
-    /**
      * Query deployment inputs for a deployment ID in the cloudify tenant
      * 
      * @param id
@@ -248,13 +186,4 @@ public interface CloudifyClient {
      * @return
      */
     public CloudifyDeploymentList getDeploymentInputs(String id, String tenant);
-
-    /**
-     * Query a secret object matching the input secret name in the cloudify tenant
-     * 
-     * @param secretName
-     * @param tenant
-     * @return
-     */
-    public CloudifySecret getSecret(String secretName, String tenant);
 }

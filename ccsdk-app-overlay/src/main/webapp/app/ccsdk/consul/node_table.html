@@ -1,11 +1,18 @@
 <div id="page-content">
-
+	<div style="float: right;" ng-show="ecdapp.isDcLoaded">
+		<div class="field-group span10">
+		<label for="dc">*Datacenters</label>
+		<select id="dc" name="dc" b2b-dropdown class="span8" placeholder-text="Select Datacenter" data-ng-model="ecdapp.datacenter" ng-change="ecdapp.loadTable()" required>
+			<option b2b-dropdown-list option-repeat="d in ecdapp.datacenters" value="{{d.name}}">{{d.name}}</option>
+		</select>
+		</div>
+	</div>
 	<h1 class="heading-page" id="consul_nodes">Monitored Nodes</h1>
 
 	<!-- show progress indicator -->
 	<div ng-show="ecdapp.isDataLoading">
 		<div class="span" style="margin-bottom: 20px;">
-			<i class="icon-primary-spinner small" role="img"
+			<i class="icon-spinner small" role="img"
 				aria-label="Please wait while the content loads"></i> Please wait
 			while the content loads.
 		</div>
@@ -40,7 +47,7 @@
 							<th b2b-table-header key="node">Node Name</th>
 							<th b2b-table-header key="id">Node ID</th>
 							<th b2b-table-header key="address">Address</th>
-				  			<th b2b-table-header sortable="false"><i class="icon-controls-gear ecd-icon-display"></i></th>
+				  			<th b2b-table-header sortable="false"><i class="icon-settings ecd-icon-display"></i></th>
 						</tr>
 					</thead>
 
@@ -51,8 +58,8 @@
 							<td b2b-table-body ng-bind="rowData.id" />
 							<td b2b-table-body ng-bind="rowData.address" />
 							<td b2b-table-body> 
-						    	<div ng-click="ecdapp.viewServicesModalPopup(rowData);">
-						    		<a href="" title="View node services" class="icon-people-preview ecd-icon-action"></a>
+						    	<div ng-click="ecdapp.viewServicesModalPopup(rowData, ecdapp.datacenter);">
+						    		<a href="" title="View node services" class="icon-overview ecd-icon-action"></a>
 						    	</div>
 					     	</td>
 						</tr>

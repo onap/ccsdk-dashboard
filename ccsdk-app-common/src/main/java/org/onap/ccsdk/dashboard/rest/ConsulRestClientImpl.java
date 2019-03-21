@@ -27,11 +27,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.onap.ccsdk.dashboard.model.ConsulDatacenter;
 import org.onap.ccsdk.dashboard.model.ConsulHealthServiceRegistration;
 import org.onap.ccsdk.dashboard.model.ConsulHealthServiceRegistration.EndpointCheck;
+import org.onap.ccsdk.dashboard.util.DashboardProperties;
 import org.onap.ccsdk.dashboard.model.ConsulNodeInfo;
 import org.onap.ccsdk.dashboard.model.ConsulServiceHealth;
 import org.onap.ccsdk.dashboard.model.ConsulServiceInfo;
@@ -46,10 +49,12 @@ import org.springframework.http.ResponseEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+@org.springframework.stereotype.Service
 public class ConsulRestClientImpl extends RestClientBase implements ConsulClient {
 
-    private static EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(ConsulRestClientImpl.class);
-    private final String baseUrl;
+    private static EELFLoggerDelegate logger =
+        EELFLoggerDelegate.getLogger(ConsulRestClientImpl.class);
+    private String baseUrl;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final String API_VER = "v1";
@@ -57,24 +62,24 @@ public class ConsulRestClientImpl extends RestClientBase implements ConsulClient
     private static final String SERVICES = "services";
     private static final String HEALTH = "health";
     private static final String CHECKS = "checks";
-    private static final String HEALTH_SERVICES = "healthservices";
 
-    public ConsulRestClientImpl(String webapiUrl, String user, String pass) {
-        super();
+    @PostConstruct
+    public void init() {
+        String webapiUrl = DashboardProperties.getControllerProperty("dev",
+            DashboardProperties.CONTROLLER_SUBKEY_CONSUL_URL);
         if (webapiUrl == null)
             throw new IllegalArgumentException("Null URL not permitted");
-
         URL url = null;
-        String urlScheme = "http";
         try {
             url = new URL(webapiUrl);
             baseUrl = url.toExternalForm();
         } catch (MalformedURLException ex) {
             throw new RuntimeException("Failed to parse URL", ex);
         }
-
-        urlScheme = webapiUrl.split(":")[0];
-        createRestTemplate(url, user, pass, urlScheme);
+        String urlScheme = webapiUrl.split(":")[0];
+        if (restTemplate == null) {
+            createRestTemplate(url, null, null, urlScheme);
+        }
     }
 
     @Override

@@ -65,8 +65,10 @@ public class ServiceRequest {
         final Collection<ServiceComponent> serviceComponents = service.getComponents();
         final Collection<ServiceComponentRequest> serviceComponentRequests = new ArrayList<ServiceComponentRequest>();
 
-        for (ServiceComponent sc : serviceComponents) {
-            serviceComponentRequests.add(ServiceComponentRequest.from(sc));
+        if (serviceComponents != null) {
+            for (ServiceComponent sc : serviceComponents) {
+                serviceComponentRequests.add(ServiceComponentRequest.from(sc));
+            }
         }
 
         return new ServiceRequest(typeId, service.getVnfId(), service.getVnfType(), service.getVnfLocation(),

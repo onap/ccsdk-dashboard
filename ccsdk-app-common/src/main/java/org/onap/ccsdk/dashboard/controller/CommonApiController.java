@@ -26,11 +26,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Scanner;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -77,7 +75,6 @@ import org.onap.ccsdk.dashboard.rest.CloudifyClient;
 import org.onap.ccsdk.dashboard.rest.DeploymentHandlerClient;
 import org.onap.ccsdk.dashboard.rest.InventoryClient;
 import org.onap.ccsdk.dashboard.service.ControllerEndpointService;
-import org.onap.ccsdk.dashboard.util.DashboardProperties;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 import org.onap.portalsdk.core.util.SystemProperties;
 import org.slf4j.MDC;
@@ -97,26 +94,30 @@ import org.springframework.web.client.HttpStatusCodeException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 
 @RestController
 @RequestMapping("/ecomp-api")
 public class CommonApiController extends DashboardRestrictedBaseController {
-    private static EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(DeploymentHandlerController.class);
+    private static EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(CommonApiController.class);
 
     private static final String COMPONENTS_PATH = "components";
     private static final String DEPLOYMENTS_PATH = "deployments";
     private static final String SERVICE_TYPES_PATH = "blueprints";
     private static final String EXECUTIONS_PATH = "executions";
-    private static final String API_HELP = "docs";
-    private static final String DOCS_FILE_NAME = "ecompApiHelp.txt";
-    private static final String DEP_IDS_FOR_TYPE = "deployments/typeIds";
     private static final String DEP_TENANT_STATUS = "deployment-status";
     private static final String TENANTS_PATH = "tenants";
 
     @Autowired
     private ControllerEndpointService controllerEndpointService;
+
+    @Autowired
+    InventoryClient inventoryClient;
+
+    @Autowired
+    DeploymentHandlerClient deploymentHandlerClient;
+
+    @Autowired
+    CloudifyClient cloudifyClient;
 
     /**
      * Enum for selecting an item type.
@@ -160,8 +161,7 @@ public class CommonApiController extends DashboardRestrictedBaseController {
     @ResponseBody
     public String getTenants(HttpServletRequest request) throws Exception {
         preLogAudit(request);
-        CloudifyClient restClient = getCloudifyRestClient();
-        List itemList = restClient.getTenants().items;
+        List itemList = cloudifyClient.getTenants().items;
         final int totalItems = itemList.size();
         final int pageSize = 20;
         final int pageNum = 1;
@@ -189,15 +189,14 @@ public class CommonApiController extends DashboardRestrictedBaseController {
          * the list from step#3, get the execution status info and generate the final
          * response
          */
+        String outboundJson = "";
         ECTransportModel result = null;
-        HashMap<String, Object> resultMap = new HashMap<String, Object>();
         List<CloudifyDeployedTenant> tenantList = new ArrayList<CloudifyDeployedTenant>();
         List<CloudifyExecution> cfyExecList = new ArrayList<CloudifyExecution>();
         try {
-            CloudifyClient restClient = getCloudifyRestClient();
-            List<CloudifyTenant> cldfyTen = restClient.getTenants().items;
+            List<CloudifyTenant> cldfyTen = cloudifyClient.getTenants().items;
             for (CloudifyTenant ct : (List<CloudifyTenant>) cldfyTen) {
-                result = restClient.getTenantInfoFromDeploy(ct.name);
+                result = cloudifyClient.getTenantInfoFromDeploy(ct.name);
                 tenantList.addAll(((CloudifyDeployedTenantList) result).items);
             }
             result = null;
@@ -213,13 +212,15 @@ public class CommonApiController extends DashboardRestrictedBaseController {
             }
             // Get concise execution status for each of the tenant deployment items
             for (CloudifyDeployedTenant deplItem : currSrvcTenants) {
-                CloudifyExecutionList execResults = restClient.getExecutionsSummary(deplItem.id, deplItem.tenant_name);
+                CloudifyExecutionList execResults =
+                    cloudifyClient.getExecutionsSummary(deplItem.id, deplItem.tenant_name);
                 for (CloudifyExecution cfyExec : execResults.items) {
                     if (cfyExec.workflow_id.equalsIgnoreCase("install")) {
                         cfyExecList.add(cfyExec);
                     }
                 }
             }
+            outboundJson = objectMapper.writeValueAsString(cfyExecList);
         } catch (HttpStatusCodeException e) {
             MDC.put(SystemProperties.STATUS_CODE, "ERROR");
             MDC.put("TargetEntity", "Cloudify Manager");
@@ -229,7 +230,13 @@ public class CommonApiController extends DashboardRestrictedBaseController {
             MDC.put("ErrorDescription", "Getting deployments failed!");
             logger.error(EELFLoggerDelegate.errorLogger, "getTenantStatusForService caught exception");
             result = new RestResponseError(e.getResponseBodyAsString());
-        } catch (Throwable t) {
+            try {
+                outboundJson = objectMapper.writeValueAsString(result);
+            } catch (JsonProcessingException jpe) {
+                // Should never, ever happen
+                outboundJson = "{ \"error\" : \"" + jpe.toString() + "\"}";
+            }
+        } catch (Exception t) {
             MDC.put(SystemProperties.STATUS_CODE, "ERROR");
             MDC.put("TargetEntity", "Cloudify Manager");
             MDC.put("TargetServiceName", "Cloudify Manager");
@@ -238,11 +245,17 @@ public class CommonApiController extends DashboardRestrictedBaseController {
             MDC.put("ErrorDescription", "Getting deployments failed!");
             logger.error(EELFLoggerDelegate.errorLogger, "getTenantStatusForService caught exception");
             result = new RestResponseError("getTenantStatusForService failed", t);
+            try {
+                outboundJson = objectMapper.writeValueAsString(result);
+            } catch (JsonProcessingException jpe) {
+                // Should never, ever happen
+                outboundJson = "{ \"error\" : \"" + jpe.toString() + "\"}";
+            }
         } finally {
             postLogAudit(request);
         }
 
-        return objectMapper.writeValueAsString(cfyExecList);
+        return outboundJson;
     }
 
     @RequestMapping(value = { SERVICE_TYPES_PATH }, method = RequestMethod.POST, produces = "application/json")
@@ -251,7 +264,7 @@ public class CommonApiController extends DashboardRestrictedBaseController {
         String json = null;
         try {
             Blueprint.parse(serviceTypeUplReq.getBlueprintTemplate());
-            InventoryClient inventoryClient = getInventoryClient();
+            // InventoryClient inventoryClient = getInventoryClient();
             Collection<String> serviceIds = new ArrayList<String>();
             Collection<String> vnfTypes = new ArrayList<String>();
             Collection<String> serviceLocations = new ArrayList<String>();
@@ -397,47 +410,46 @@ public class CommonApiController extends DashboardRestrictedBaseController {
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private String getItemListForPage(InventoryDataItem option, int pageNum, int pageSize, String searchBy,
             String filters) throws Exception {
-
-        InventoryClient inventoryClient = getInventoryClient();
         String outboundJson = "";
         List itemList = null;
 
         switch (option) {
-        case SERVICES:
-            itemList = inventoryClient.getServices().collect(Collectors.toList());
-            if (searchBy != null) {
-                itemList = (List) itemList.stream().filter(s -> ((Service) s).contains(searchBy))
-                        .collect(Collectors.toList());
-            }
-            // Get the tenant names for all the deployments from Cloudify/API handler
-            ECTransportModel result = null;
-            List<CloudifyDeployedTenant> tenantList = new ArrayList<CloudifyDeployedTenant>();
-            try {
-                CloudifyClient restClient = getCloudifyRestClient();
-                List<CloudifyTenant> cldfyTen = restClient.getTenants().items;
-                for (CloudifyTenant ct : (List<CloudifyTenant>) cldfyTen) {
-                    result = restClient.getTenantInfoFromDeploy(ct.name);
-                    tenantList.addAll(((CloudifyDeployedTenantList) result).items);
+            case SERVICES:
+                itemList = inventoryClient.getServices().collect(Collectors.toList());
+                if (searchBy != null) {
+                    itemList = (List) itemList.stream()
+                        .filter(s -> ((Service) s).contains(searchBy)).collect(Collectors.toList());
                 }
-            } catch (HttpStatusCodeException e) {
-                MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-                MDC.put("TargetEntity", "Cloudify Manager");
-                MDC.put("TargetServiceName", "Cloudify Manager");
-                MDC.put("ErrorCode", "300");
-                MDC.put("ErrorCategory", "ERROR");
-                MDC.put("ErrorDescription", "Getting deployments failed!");
-                logger.error(EELFLoggerDelegate.errorLogger, "getTenantInfoFromDeploy caught exception");
-                result = new RestResponseError(e.getResponseBodyAsString());
-            } catch (Throwable t) {
-                MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-                MDC.put("TargetEntity", "Cloudify Manager");
-                MDC.put("TargetServiceName", "Cloudify Manager");
-                MDC.put("ErrorCode", "300");
-                MDC.put("ErrorCategory", "ERROR");
-                MDC.put("ErrorDescription", "Getting deployments failed!");
-                logger.error(EELFLoggerDelegate.errorLogger, "getDeploymentById caught exception");
-                result = new RestResponseError("getTenantInfoFromDeploy failed", t);
-            } finally {
+                // Get the tenant names for all the deployments from Cloudify/API handler
+                ECTransportModel result = null;
+                List<CloudifyDeployedTenant> tenantList = new ArrayList<CloudifyDeployedTenant>();
+                try {
+                    List<CloudifyTenant> cldfyTen = cloudifyClient.getTenants().items;
+                    for (CloudifyTenant ct : (List<CloudifyTenant>) cldfyTen) {
+                        result = cloudifyClient.getTenantInfoFromDeploy(ct.name);
+                        tenantList.addAll(((CloudifyDeployedTenantList) result).items);
+                    }
+                } catch (HttpStatusCodeException e) {
+                    MDC.put(SystemProperties.STATUS_CODE, "ERROR");
+                    MDC.put("TargetEntity", "Cloudify Manager");
+                    MDC.put("TargetServiceName", "Cloudify Manager");
+                    MDC.put("ErrorCode", "300");
+                    MDC.put("ErrorCategory", "ERROR");
+                    MDC.put("ErrorDescription", "Getting deployments failed!");
+                    logger.error(EELFLoggerDelegate.errorLogger,
+                        "getTenantInfoFromDeploy caught exception");
+                    //result = new RestResponseError(e.getResponseBodyAsString());
+                } catch (Throwable t) {
+                    MDC.put(SystemProperties.STATUS_CODE, "ERROR");
+                    MDC.put("TargetEntity", "Cloudify Manager");
+                    MDC.put("TargetServiceName", "Cloudify Manager");
+                    MDC.put("ErrorCode", "300");
+                    MDC.put("ErrorCategory", "ERROR");
+                    MDC.put("ErrorDescription", "Getting deployments failed!");
+                    logger.error(EELFLoggerDelegate.errorLogger,
+                        "getDeploymentById caught exception");
+                    //result = new RestResponseError("getTenantInfoFromDeploy failed", t);
+                } finally {
 
             }
 
@@ -471,7 +483,9 @@ public class CommonApiController extends DashboardRestrictedBaseController {
                             bpOut.setTypeName(bp.getTypeName());
                             break;
                         case "typeId":
+                            if (bp.getTypeId().isPresent()) {
                             bpOut.setTypeId(bp.getTypeId().get());
+                            }
                             break;
                         case "typeVersion":
                             bpOut.setTypeVersion(bp.getTypeVersion());
@@ -512,7 +526,7 @@ public class CommonApiController extends DashboardRestrictedBaseController {
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private String getBlueprintTypeId(String searchBy, Optional<Integer> version, String typeId) throws Exception {
 
-        InventoryClient inventoryClient = getInventoryClient();
+        // InventoryClient inventoryClient = getInventoryClient();
         ServiceTypeQueryParams serviceQueryParams = null;
 
         if (version.isPresent()) {
@@ -551,12 +565,10 @@ public class CommonApiController extends DashboardRestrictedBaseController {
         preLogAudit(request);
         ECTransportModel result = null;
         try {
-            String cloudPrimTenant = getAppProperties().getProperty(DashboardProperties.CLOUDIFY_TENANT_PRIM);
             if (tenant == null) {
-                tenant = cloudPrimTenant;
+                throw new Exception("tenant name is missing");
             }
-            CloudifyClient restClient = getCloudifyRestClient();
-            result = restClient.getNodeInstanceVersion(deploymentId, tenant);
+            result = cloudifyClient.getNodeInstanceVersion(deploymentId, tenant);
         } catch (HttpStatusCodeException e) {
             MDC.put(SystemProperties.STATUS_CODE, "ERROR");
             MDC.put("TargetEntity", "Cloudify Manager");
@@ -593,16 +605,15 @@ public class CommonApiController extends DashboardRestrictedBaseController {
     @RequestMapping(value = {
             DEPLOYMENTS_PATH + "/{deploymentId}/inputs" }, method = RequestMethod.GET, produces = "application/json")
     public String getDeploymentInputs(@PathVariable("deploymentId") String deploymentId,
-            @RequestParam(value = "tenant") String tenant, HttpServletRequest request) throws Exception {
+        @RequestParam(value = "tenant", required = true) String tenant, HttpServletRequest request)
+        throws Exception {
         preLogAudit(request);
         ECTransportModel result = null;
         try {
-            String cloudPrimTenant = getAppProperties().getProperty(DashboardProperties.CLOUDIFY_TENANT_PRIM);
             if (tenant == null) {
-                tenant = cloudPrimTenant;
+                throw new Exception("tenant name is missing");
             }
-            CloudifyClient restClient = getCloudifyRestClient();
-            result = restClient.getDeploymentInputs(deploymentId, tenant);
+            result = cloudifyClient.getDeploymentInputs(deploymentId, tenant);
         } catch (HttpStatusCodeException e) {
             MDC.put(SystemProperties.STATUS_CODE, "ERROR");
             MDC.put("TargetEntity", "Cloudify Manager");
@@ -642,7 +653,6 @@ public class CommonApiController extends DashboardRestrictedBaseController {
         preLogAudit(request);
         ECTransportModel result = null;
         try {
-            CloudifyClient restClient = getCloudifyRestClient();
             String nodeInstId = "";
             Map<String, Object> parameters = objectMapper.readValue(upgParams,
                     new TypeReference<Map<String, Object>>() {
@@ -652,14 +662,15 @@ public class CommonApiController extends DashboardRestrictedBaseController {
             parameters.remove("tenant");
             parameters.remove("workflow");
             // get the node instance ID for the deployment
-            CloudifyNodeInstanceIdList nodeInstList = restClient.getNodeInstanceId(deploymentId, tenant);
+            CloudifyNodeInstanceIdList nodeInstList =
+                cloudifyClient.getNodeInstanceId(deploymentId, tenant);
             if (nodeInstList != null) {
                 nodeInstId = nodeInstList.items.get(0).id;
             }
             parameters.put("node_instance_id", nodeInstId);
-            CloudifyExecutionRequest execution = new CloudifyExecutionRequest(deploymentId, workflow, false, false,
-                    tenant, parameters);
-            result = restClient.startExecution(execution);
+            CloudifyExecutionRequest execution = new CloudifyExecutionRequest(deploymentId,
+                workflow, false, false, tenant, parameters);
+            result = cloudifyClient.startExecution(execution);
         } catch (HttpStatusCodeException e) {
             MDC.put(SystemProperties.STATUS_CODE, "ERROR");
             MDC.put("TargetEntity", "Cloudify Manager");
@@ -690,7 +701,7 @@ public class CommonApiController extends DashboardRestrictedBaseController {
             throws Exception {
         preLogAudit(request);
         List<ServiceTypeServiceMap> result = new ArrayList<ServiceTypeServiceMap>();
-        InventoryClient inventoryClient = getInventoryClient();
+        // InventoryClient inventoryClient = getInventoryClient();
         ServiceQueryParams qryParams = new ServiceQueryParams.Builder().typeId(typeId).build();
         ServiceRefList srvcRefs = inventoryClient.getServicesForType(qryParams);
         ServiceTypeServiceMap srvcMap = new ServiceTypeServiceMap(typeId, srvcRefs);
@@ -747,11 +758,9 @@ public class CommonApiController extends DashboardRestrictedBaseController {
                 postLogAudit(request);
             }
         }
-        DeploymentHandlerClient deploymentHandlerClient = null;
         try {
-            deploymentHandlerClient = getDeploymentHandlerClient();
-            DeploymentResponse resp = deploymentHandlerClient.putDeployment(depName,
-                    deploymentRequestObject.getTenant(),
+            DeploymentResponse resp =
+                deploymentHandlerClient.putDeployment(depName, deploymentRequestObject.getTenant(),
                     new DeploymentRequest(srvcTypeId, deploymentRequestObject.getInputs()));
             DeploymentResponseLinks deplLinks = resp.getLinks();
             String deplStatus = deplLinks.getStatus();
@@ -800,16 +809,6 @@ public class CommonApiController extends DashboardRestrictedBaseController {
             MDC.put("ErrorDescription", "Deployment failed!");
             logger.error(EELFLoggerDelegate.errorLogger, "putDeployment caught exception");
             json = objectMapper.writeValueAsString(new RestResponseError(e.getMessage()));
-        } catch (JsonProcessingException jpe) {
-            // Should never, ever happen
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "Deployment Handler");
-            MDC.put("TargetServiceName", "Deployment Handler");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Deployment failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "putDeployment caught exception");
-            json = "{ \"error\" : \"" + jpe.toString() + "\"}";
         } catch (Throwable t) {
             MDC.put(SystemProperties.STATUS_CODE, "ERROR");
             MDC.put("TargetEntity", "Deployment Handler");
@@ -863,12 +862,10 @@ public class CommonApiController extends DashboardRestrictedBaseController {
         } finally {
             postLogAudit(request);
         }
-        DeploymentHandlerClient deploymentHandlerClient = null;
         try {
-            deploymentHandlerClient = getDeploymentHandlerClient();
-            json = objectMapper.writeValueAsString(
-                    deploymentHandlerClient.updateDeployment(deploymentId, deploymentRequestObject.getTenant(),
-                            new DeploymentRequest(srvcTypeId, deploymentRequestObject.getInputs())));
+            json = objectMapper.writeValueAsString(deploymentHandlerClient.updateDeployment(
+                deploymentId, deploymentRequestObject.getTenant(),
+                new DeploymentRequest(srvcTypeId, deploymentRequestObject.getInputs())));
         } catch (BadRequestException e) {
             MDC.put(SystemProperties.STATUS_CODE, "ERROR");
             MDC.put("TargetEntity", "Deployment Handler");
@@ -948,12 +945,10 @@ public class CommonApiController extends DashboardRestrictedBaseController {
         preLogAudit(request);
         ECTransportModel result = null;
         try {
-            String cloudPrimTenant = getAppProperties().getProperty(DashboardProperties.CLOUDIFY_TENANT_PRIM);
             if (tenant == null) {
-                tenant = cloudPrimTenant;
+                throw new Exception("tenant name is missing");
             }
-            CloudifyClient restClient = getCloudifyRestClient();
-            result = restClient.getExecutionsSummary(deploymentId, tenant);
+            result = cloudifyClient.getExecutionsSummary(deploymentId, tenant);
         } catch (HttpStatusCodeException e) {
             MDC.put(SystemProperties.STATUS_CODE, "ERROR");
             MDC.put("TargetEntity", "Cloudify Manager");
@@ -995,7 +990,7 @@ public class CommonApiController extends DashboardRestrictedBaseController {
         preLogAudit(request);
         String json = "{\"202\": \"OK\"}";
         try {
-            InventoryClient inventoryClient = getInventoryClient();
+            // InventoryClient inventoryClient = getInventoryClient();
             ServiceQueryParams qryParams = new ServiceQueryParams.Builder().typeId(typeId).build();
             ServiceRefList srvcRefs = inventoryClient.getServicesForType(qryParams);
             if (srvcRefs != null && srvcRefs.totalCount > 0) {
@@ -1045,15 +1040,20 @@ public class CommonApiController extends DashboardRestrictedBaseController {
      * @return
      * @throws Exception
      */
-    @RequestMapping(value = {
-            DEPLOYMENTS_PATH + "/{deploymentId}" }, method = RequestMethod.DELETE, produces = "application/json")
-    public String deleteDeployment(@PathVariable("deploymentId") String deploymentId, HttpServletRequest request,
-            @RequestParam("tenant") String tenant, HttpServletResponse response) throws Exception {
+    @RequestMapping(
+        value = {DEPLOYMENTS_PATH + "/{deploymentId}"},
+        method = RequestMethod.DELETE,
+        produces = "application/json")
+    public String deleteDeployment(@PathVariable("deploymentId") String deploymentId,
+        HttpServletRequest request, @RequestParam(value = "tenant", required = true) String tenant,
+        HttpServletResponse response) throws Exception {
         preLogAudit(request);
         String json = null;
         StringBuffer status = new StringBuffer();
         try {
-            DeploymentHandlerClient deploymentHandlerClient = getDeploymentHandlerClient();
+            if (tenant == null) {
+                throw new Exception("tenant name is missing");
+            }
             deploymentHandlerClient.deleteDeployment(deploymentId, tenant);
             String self = request.getRequestURL().toString().split("\\?")[0];
             status.append(self).append("/executions?tenant=").append(tenant);
@@ -1097,16 +1097,6 @@ public class CommonApiController extends DashboardRestrictedBaseController {
             MDC.put("ErrorDescription", "Deleting deployment " + deploymentId + " failed!");
             logger.error(EELFLoggerDelegate.errorLogger, "deleteDeployment caught exception");
             json = objectMapper.writeValueAsString(new RestResponseError(e.getMessage()));
-        } catch (JsonProcessingException jpe) {
-            // Should never, ever happen
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "Deployment Handler");
-            MDC.put("TargetServiceName", "Deployment Handler");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Deleting deployment " + deploymentId + " failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "deleteDeployment caught exception");
-            json = "{ \"error\" : \"" + jpe.toString() + "\"}";
         } catch (Throwable t) {
             MDC.put(SystemProperties.STATUS_CODE, "ERROR");
             MDC.put("TargetEntity", "Deployment Handler");
@@ -1143,8 +1133,7 @@ public class CommonApiController extends DashboardRestrictedBaseController {
         List<String> tenant = null;
         try {
             tenant = headers.get("tenant");
-            CloudifyClient restClient = getCloudifyRestClient();
-            result = restClient.cancelExecution(id, parameters, tenant.get(0));
+            result = cloudifyClient.cancelExecution(id, parameters, tenant.get(0));
         } catch (HttpStatusCodeException e) {
             MDC.put(SystemProperties.STATUS_CODE, "ERROR");
             MDC.put("TargetEntity", "Cloudify Manager");
@@ -1177,8 +1166,6 @@ public class CommonApiController extends DashboardRestrictedBaseController {
         MDC.put(SystemProperties.AUDITLOG_BEGIN_TIMESTAMP, logDateFormat.format(begin));
         MDC.put(SystemProperties.METRICSLOG_BEGIN_TIMESTAMP, logDateFormat.format(begin));
         MDC.put(SystemProperties.STATUS_CODE, "COMPLETE");
-        // logger.setRequestBasedDefaultsIntoGlobalLoggingContext(request,
-        // APP_NAME);
     }
 
     private void postLogAudit(HttpServletRequest request) {
@@ -1188,7 +1175,7 @@ public class CommonApiController extends DashboardRestrictedBaseController {
         MDC.put("TargetServiceName", "Deployment Handler");
         MDC.put(SystemProperties.AUDITLOG_END_TIMESTAMP, logDateFormat.format(end));
         MDC.put(SystemProperties.METRICSLOG_END_TIMESTAMP, logDateFormat.format(end));
-        MDC.put(SystemProperties.MDC_TIMER, Long.toString((end.getTime() - begin.getTime())));
+        //MDC.put(SystemProperties.MDC_TIMER, Long.toString((end.getTime() - begin.getTime())));
         logger.info(EELFLoggerDelegate.auditLogger, request.getMethod() + request.getRequestURI());
         logger.info(EELFLoggerDelegate.metricsLogger, request.getMethod() + request.getRequestURI());
     }

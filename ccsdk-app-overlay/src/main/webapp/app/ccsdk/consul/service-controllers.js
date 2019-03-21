@@ -1,24 +1,3 @@
-/*******************************************************************************
- * =============LICENSE_START=========================================================
- *
- * =================================================================================
- *  Copyright (c) 2017 AT&T Intellectual Property. All rights reserved.
- * ================================================================================
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *  
- *      http://www.apache.org/licenses/LICENSE-2.0
- *  
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- * ============LICENSE_END=========================================================
- *
- *  ECOMP is a trademark and service mark of AT&T Intellectual Property.
- *******************************************************************************/
 appDS2.controller('serviceHealthTableController', function($scope, $log, $modal, modalService, ServiceHealthService) {
 
 	'use strict';
@@ -31,18 +10,55 @@ appDS2.controller('serviceHealthTableController', function($scope, $log, $modal,
 	$scope.ecdapp.viewPerPage = 100;
 	// other
 	$scope.ecdapp.errMsg = null;
-	$scope.ecdapp.isDataLoading = true;
+	$scope.ecdapp.isDataLoading = false;
+	$scope.ecdapp.isDcLoaded = false;
+	$scope.ecdapp.isDcAvail = false;
 	$scope.ecdapp.isRequestFailed = false;
+	$scope.ecdapp.activeImg = "static/fusion/images/active.png";
+	$scope.ecdapp.inactiveImg = "static/fusion/images/inactive.png";
+	$scope.ecdapp.datacenter = "";
+	$scope.ecdapp.datacenters = [];
+	
+	var getDataCenters = function() {
+		ServiceHealthService.getDatacentersHealth().then(
+				function(jsonObj) {
+					if (jsonObj.error) {
+						$log.error("datacentersController.loadTable failed: "
+								+ jsonObj.error);
+						$scope.ecdapp.isRequestFailed = true;
+						$scope.ecdapp.errMsg = jsonObj.error;
+						$scope.ecdapp.tableData = [];
+					} else {
+						// $log.debug("datacentersController.loadTable
+						// succeeded, size " + jsonObj.data.length);
+						$scope.ecdapp.errMsg = null;
+						//$scope.ecdapp.totalPages = jsonObj.totalPages;
+						$scope.ecdapp.datacenters = jsonObj.items;
+						$scope.ecdapp.datacenter = $scope.ecdapp.datacenters[0].name;
+						$scope.ecdapp.isDcLoaded = true;
+						$scope.ecdapp.isRequestFailed = false;
+						$scope.pageChangeHandler(1);
+					}
 
+				},
+				function(error) {
+					$log.error("datacentersController.loadTable failed: "
+							+ error);
+					$scope.ecdapp.isRequestFailed = true;
+					$scope.ecdapp.errMsg = error;
+					$scope.ecdapp.tableData = [];
+				});
+	};
 	/**
 	 * Loads the table. Interprets the remote controller's response and copies
 	 * to scope variables. The response is either list to be assigned to
 	 * tableData, or an error to be shown.
 	 */
 	$scope.ecdapp.loadTable = function() {
+		if ($scope.ecdapp.datacenter != 'Select Datacenter') {
 		$scope.ecdapp.isDataLoading = true;
 		ServiceHealthService.getServicesHealth($scope.ecdapp.currentPageNum,
-				$scope.ecdapp.viewPerPage).then(
+				$scope.ecdapp.viewPerPage, $scope.ecdapp.datacenter).then(
 				function(jsonObj) {
 					if (jsonObj.error) {
 						$log.error("serviceHealthTableController.loadTable failed: "
@@ -68,6 +84,7 @@ appDS2.controller('serviceHealthTableController', function($scope, $log, $modal,
 					$scope.ecdapp.tableData = [];
 					$scope.ecdapp.isDataLoading = false;
 				});
+		}
 	};
 
 	/**
@@ -78,7 +95,9 @@ appDS2.controller('serviceHealthTableController', function($scope, $log, $modal,
 		// console.log('pageChangeHandler: current is ' +
 		// $scope.ecdapp.currentPageNum + ' new is ' + page);
 		$scope.ecdapp.currentPageNum = page;
+		if ($scope.ecdapp.isDcLoaded) {
 		$scope.ecdapp.loadTable();
+		}
 	}
 
 	/**
@@ -103,8 +122,8 @@ appDS2.controller('serviceHealthTableController', function($scope, $log, $modal,
 			}
 			else {
 				if (response.error != null) {
-					$log.error('uploadBlueprintModalPopup failed: ' + response.error);
-					alert('Failed to upload blueprint:\n' + response.error);
+					$log.error('registerServiceModalPopup failed: ' + response.error);
+					alert('Failed to register service:\n' + response.error);
 				}
 				else {
 					// success, get the updated list.
@@ -172,6 +191,7 @@ appDS2.controller('serviceHealthTableController', function($scope, $log, $modal,
 		})
 	};
 
+	getDataCenters();
 	// Populate the table on load. Note that the b2b selector code
 	// sets the page-number value, and the change event calls load table.
 	// Do not call this here to avoid double load:
@@ -180,13 +200,13 @@ appDS2.controller('serviceHealthTableController', function($scope, $log, $modal,
 });
 
 
-appDS2.controller('serviceRegisterCtrl', function($scope, $log, message, ServiceHealthService) {
+appDS2.controller('serviceRegisterCtrl', function($scope, $log, $modalInstance, message, ServiceHealthService) {
 
 	'use strict';
 	
 	// this object holds all app data and functions
 	$scope.ecdapp = {};
-	
+	$scope.ecdapp.uploadInProgress = false;
 	$scope.ecdapp.label = 'Register Service';
 	// Model the data simply here.  
 	// Build the complex request later.
@@ -228,6 +248,7 @@ appDS2.controller('serviceRegisterCtrl', function($scope, $log, message, Service
 	}
 	
 	$scope.ecdapp.registerService = function(edit_req) {
+		$scope.ecdapp.uploadInProgress = true;
 		var validateMsg = $scope.ecdapp.validateRequest(edit_req);
 		if (validateMsg != null) {
 			alert('Invalid registration request:\n' + validateMsg);
@@ -244,9 +265,9 @@ appDS2.controller('serviceRegisterCtrl', function($scope, $log, message, Service
 			    	tags: [ ],				        
 			    	checks : [
 			    		{
-			    			endpoint	: edit_req.check_endoint,
+			    			endpoint	: edit_req.check_endpoint,
 			    			interval	: edit_req.check_interval,
-			    			description : edit_req.description,
+			    			description : edit_req.check_description,
 			    			name		: edit_req.check_name
 			    		}
 			    	]
@@ -256,11 +277,16 @@ appDS2.controller('serviceRegisterCtrl', function($scope, $log, message, Service
 		
 		ServiceHealthService.registerService(request)
 			.then(function(response) {
-				if (response.error)
+				if (response && response.error) {
 					alert('Failed to register service:\n' + response.error);
+				} else {
+					$modalInstance.close("success");
+				}
+				$scope.ecdapp.uploadInProgress = false;
 			},
 			function (error) {
 				$log.error('serviceRegisterCtrl: error while registering: ' + error);
+				$scope.ecdapp.uploadInProgress = false;
 				alert('Server rejected registration request:\n' + error);
 			}
 		);
@@ -362,5 +388,6 @@ appDS2.controller('serviceHistoryCtlr', function($scope, $log, $modal, message, 
 					$scope.ecdapp.isDataLoading = false;
 				});
 	};
+
 
 });
