@@ -31,8 +31,8 @@ import org.onap.portalapp.scheduler.LogRegistry;
 import org.onap.portalsdk.core.auth.LoginStrategy;
 import org.onap.portalsdk.core.conf.AppConfig;
 import org.onap.portalsdk.core.conf.Configurable;
-//import org.onap.portalsdk.core.lm.FusionLicenseManager;
-//import org.onap.portalsdk.core.lm.FusionLicenseManagerUtils;
+// import org.onap.portalsdk.core.lm.FusionLicenseManager;
+// import org.onap.portalsdk.core.lm.FusionLicenseManagerUtils;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 import org.onap.portalsdk.core.objectcache.AbstractCacheManager;
 import org.onap.portalsdk.core.scheduler.CoreRegister;
@@ -60,105 +60,115 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
  */
 @Configuration
 @EnableWebMvc
-@ComponentScan(basePackages = { "org.onap", "org.openecomp" },
-		// Exclude unused annotated classes with heavy dependencies.
-		excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = { CoreRegister.class,
-				CronRegistry.class, ElasticSearchController.class, LogRegistry.class, PostDroolsController.class,
-				PostDroolsService.class, SingleSignOnController.class }))
+@ComponentScan(
+    basePackages = {"org.onap", "org.openecomp"},
+    // Exclude unused annotated classes with heavy dependencies.
+    excludeFilters = @ComponentScan.Filter(
+        type = FilterType.ASSIGNABLE_TYPE,
+        value = {CoreRegister.class, CronRegistry.class, ElasticSearchController.class,
+            LogRegistry.class, PostDroolsController.class, PostDroolsService.class,
+            SingleSignOnController.class}))
 @Profile("src")
 @EnableAsync
 @EnableScheduling
 public class ExternalAppConfig extends AppConfig implements Configurable {
 
-	private EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(ExternalAppConfig.class);
+    private EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(ExternalAppConfig.class);
 
-	@Configuration
-	@Import(SystemProperties.class)
-	static class InnerConfiguration {
-	}
+    @Configuration
+    @Import(SystemProperties.class)
+    static class InnerConfiguration {
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.onap.portalsdk.core.conf.AppConfig#viewResolver()
-	 */
-	public ViewResolver viewResolver() {
-		return super.viewResolver();
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.onap.portalsdk.core.conf.AppConfig#viewResolver()
+     */
+    public ViewResolver viewResolver() {
+        return super.viewResolver();
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.onap.portalsdk.core.conf.AppConfig#addResourceHandlers(org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry)
-	 */
-	@Override
-	public void addResourceHandlers(ResourceHandlerRegistry registry) {
-		super.addResourceHandlers(registry);
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.onap.portalsdk.core.conf.AppConfig#addResourceHandlers(org.springframework.web.servlet.
+     * config.annotation.ResourceHandlerRegistry)
+     */
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        super.addResourceHandlers(registry);
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.onap.portalsdk.core.conf.AppConfig#dataAccessService()
-	 */
-	@Override
-	public DataAccessService dataAccessService() {
-		// Echo the JDBC URL to assist developers when starting the app.
-		systemProperties();
-		System.out.println("ExternalAppConfig: " + SystemProperties.DB_CONNECTIONURL + " is "
-				+ SystemProperties.getProperty(SystemProperties.DB_CONNECTIONURL));
-		return super.dataAccessService();
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.onap.portalsdk.core.conf.AppConfig#dataAccessService()
+     */
+    @Override
+    public DataAccessService dataAccessService() {
+        // Echo the JDBC URL to assist developers when starting the app.
+        systemProperties();
+        System.out.println("ExternalAppConfig: " + SystemProperties.DB_CONNECTIONURL + " is "
+            + SystemProperties.getProperty(SystemProperties.DB_CONNECTIONURL));
+        return super.dataAccessService();
+    }
 
-	/**
-	 * Creates a new list with a single entry that is the external app
-	 * definitions.xml path.
-	 * 
-	 * @return List of String, size 1
-	 */
-	@Override
-	public List<String> addTileDefinitions() {
-		List<String> definitions = new ArrayList<String>();
-		// DBC does not need the sample page:
-		// definitions.add("/WEB-INF/defs/definitions.xml");
-		definitions.add("/WEB-INF/oom-app-definitions.xml");
-		if (logger.isDebugEnabled())
-			logger.debug(EELFLoggerDelegate.debugLogger, "addTileDefinitions: list is " + definitions);
-		return definitions;
-	}
+    /**
+     * Creates a new list with a single entry that is the external app
+     * definitions.xml path.
+     * 
+     * @return List of String, size 1
+     */
+    @Override
+    public List<String> addTileDefinitions() {
+        List<String> definitions = new ArrayList<String>();
+        // DBC does not need the sample page:
+        // definitions.add("/WEB-INF/defs/definitions.xml");
+        definitions.add("/WEB-INF/oom-app-definitions.xml");
+        if (logger.isDebugEnabled())
+            logger.debug(EELFLoggerDelegate.debugLogger,
+                "addTileDefinitions: list is " + definitions);
+        return definitions;
+    }
 
-	/**
-	 * Adds request interceptors to the specified registry by calling
-	 * {@link AppConfig#addInterceptors(InterceptorRegistry)}, but excludes
-	 * certain paths from the session timeout interceptor.
-	 */
-	@Override
-	public void addInterceptors(InterceptorRegistry registry) {
-		super.setExcludeUrlPathsForSessionTimeout("/login_external", "*/login_external.htm", "login", "/login.htm",
-				"/api*", "/single_signon.htm", "/single_signon");
-		super.addInterceptors(registry);
-	}
+    /**
+     * Adds request interceptors to the specified registry by calling
+     * {@link AppConfig#addInterceptors(InterceptorRegistry)}, but excludes
+     * certain paths from the session timeout interceptor.
+     */
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        super.setExcludeUrlPathsForSessionTimeout("/login_external", "*/login_external.htm",
+            "login", "/login.htm", "/api*", "/single_signon.htm", "/single_signon", "/health*",
+            "/ecomp-api/**");
+        super.addInterceptors(registry);
+    }
 
-	/**
-	 * Creates and returns a new instance of a {@link CacheManager} class.
-	 * 
-	 * @return New instance of {@link CacheManager}
-	 */
-	@Bean
-	public AbstractCacheManager cacheManager() {
-		return new CacheManager();
-	}
+    /**
+     * Creates and returns a new instance of a {@link CacheManager} class.
+     * 
+     * @return New instance of {@link CacheManager}
+     */
+    @Bean
+    public AbstractCacheManager cacheManager() {
+        return new CacheManager();
+    }
 
-	/*
-        @Bean
-        public FusionLicenseManager fusionLicenseManager() {
-            return new FusionLicenseManagerImpl();
-        }
-
-        @Bean
-        public FusionLicenseManagerUtils fusionLicenseManagerUtils() {
-            return new FusionLicenseManagerUtils();
-        }
-    */
-	@Bean
-	public LoginStrategy loginStrategy() {
-		return new LoginStrategyImpl();
-	}
+    /*
+     * @Bean
+     * public FusionLicenseManager fusionLicenseManager() {
+     * return new FusionLicenseManagerImpl();
+     * }
+     * 
+     * @Bean
+     * public FusionLicenseManagerUtils fusionLicenseManagerUtils() {
+     * return new FusionLicenseManagerUtils();
+     * }
+     */
+    @Bean
+    public LoginStrategy loginStrategy() {
+        return new LoginStrategyImpl();
+    }
 }

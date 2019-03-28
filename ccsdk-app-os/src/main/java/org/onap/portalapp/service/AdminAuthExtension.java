@@ -28,7 +28,6 @@ import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
 @Service("adminAuthExtension")
 @Transactional
 /**
@@ -36,33 +35,41 @@ import org.springframework.transaction.annotation.Transactional;
  */
 public class AdminAuthExtension implements IAdminAuthExtension {
 
-	EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(AdminAuthExtension.class);
+    EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(AdminAuthExtension.class);
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.onap.portalapp.service.IAdminAuthExtension#saveUserExtension(org.onap.portalsdk.core.domain.User)
-	 */
-	@Override
-	public void saveUserExtension(User user) {
-		logger.debug("saveUserExtension");
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.onap.portalapp.service.IAdminAuthExtension#saveUserExtension(org.onap.portalsdk.core.
+     * domain.User)
+     */
+    @Override
+    public void saveUserExtension(User user) {
+        logger.debug("saveUserExtension");
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.onap.portalapp.service.IAdminAuthExtension#editUserExtension(org.onap.portalsdk.core.domain.User)
-	 */
-	@Override
-	public void editUserExtension(User user) {
-		logger.debug("editUserExtension");
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.onap.portalapp.service.IAdminAuthExtension#editUserExtension(org.onap.portalsdk.core.
+     * domain.User)
+     */
+    @Override
+    public void editUserExtension(User user) {
+        logger.debug("editUserExtension");
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.onap.portalapp.service.IAdminAuthExtension#saveUserRoleExtension(java.util.Set, org.onap.portalsdk.core.domain.User)
-	 */
-	@Override
-	public void saveUserRoleExtension(Set<Role> roles, User user) {
-		logger.debug("saveUserRoleExtension");
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.onap.portalapp.service.IAdminAuthExtension#saveUserRoleExtension(java.util.Set,
+     * org.onap.portalsdk.core.domain.User)
+     */
+    @Override
+    public void saveUserRoleExtension(Set<Role> roles, User user) {
+        logger.debug("saveUserRoleExtension");
+    }
 
 }

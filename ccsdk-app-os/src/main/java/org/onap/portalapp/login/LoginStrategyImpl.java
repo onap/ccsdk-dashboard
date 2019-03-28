@@ -34,58 +34,59 @@ import org.springframework.web.servlet.ModelAndView;
 
 public class LoginStrategyImpl extends LoginStrategy {
 
-	EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(LoginStrategyImpl.class);
+    EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(LoginStrategyImpl.class);
 
-	@Override
-	public ModelAndView doLogin(HttpServletRequest request, HttpServletResponse response) throws Exception {
-		// 'login' for opensource is same as 'external' login.
-		return doExternalLogin(request, response);
-	}
+    @Override
+    public ModelAndView doLogin(HttpServletRequest request, HttpServletResponse response)
+        throws Exception {
+        // 'login' for opensource is same as 'external' login.
+        return doExternalLogin(request, response);
+    }
 
-	@Override
-	public String getUserId(HttpServletRequest request) throws PortalAPIException {
-		// Check ECOMP Portal cookie
-		if (!isLoginCookieExist(request))
-			return null;
+    @Override
+    public String getUserId(HttpServletRequest request) throws PortalAPIException {
+        // Check ECOMP Portal cookie
+        if (!isLoginCookieExist(request))
+            return null;
 
-		String userid = null;
-		try {
-			userid = getUserIdFromCookie(request);
-		} catch (Exception e) {
-			logger.error(EELFLoggerDelegate.errorLogger, "getUserId failed", e);
-		}
-		return userid;
-	}
+        String userid = null;
+        try {
+            userid = getUserIdFromCookie(request);
+        } catch (Exception e) {
+            logger.error(EELFLoggerDelegate.errorLogger, "getUserId failed", e);
+        }
+        return userid;
+    }
 
-	private static String getUserIdFromCookie(HttpServletRequest request) throws Exception {
-		String userId = "";
-		Cookie[] cookies = request.getCookies();
-		Cookie userIdcookie = null;
-		if (cookies != null)
-			for (Cookie cookie : cookies)
-				if (cookie.getName().equals(USER_ID))
-					userIdcookie = cookie;
-		if (userIdcookie != null) {
-			userId = ""; //CipherUtil.decrypt(userIdcookie.getValue(),
-			//PortalApiProperties.getProperty(PortalApiConstants.Decryption_Key));
-		}
-		return userId;
+    private static String getUserIdFromCookie(HttpServletRequest request) throws Exception {
+        String userId = "";
+        Cookie[] cookies = request.getCookies();
+        Cookie userIdcookie = null;
+        if (cookies != null)
+            for (Cookie cookie : cookies)
+                if (cookie.getName().equals(USER_ID))
+                    userIdcookie = cookie;
+        if (userIdcookie != null) {
+            userId = ""; // CipherUtil.decrypt(userIdcookie.getValue(),
+            // PortalApiProperties.getProperty(PortalApiConstants.Decryption_Key));
+        }
+        return userId;
 
-	}
+    }
 
-	private static boolean isLoginCookieExist(HttpServletRequest request) {
-		Cookie ep = getCookie(request, EP_SERVICE);
-		return (ep != null);
-	}
+    private static boolean isLoginCookieExist(HttpServletRequest request) {
+        Cookie ep = getCookie(request, EP_SERVICE);
+        return (ep != null);
+    }
 
-	private static Cookie getCookie(HttpServletRequest request, String cookieName) {
-		Cookie[] cookies = request.getCookies();
-		if (cookies != null)
-			for (Cookie cookie : cookies)
-				if (cookie.getName().equals(cookieName))
-					return cookie;
+    private static Cookie getCookie(HttpServletRequest request, String cookieName) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null)
+            for (Cookie cookie : cookies)
+                if (cookie.getName().equals(cookieName))
+                    return cookie;
 
-		return null;
-	}
+        return null;
+    }
 
 }
