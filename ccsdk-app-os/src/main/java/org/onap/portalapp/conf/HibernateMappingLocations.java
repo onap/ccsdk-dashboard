@@ -30,33 +30,32 @@ import org.onap.portalsdk.core.conf.HibernateMappingLocatable;
 @Profile("src")
 public class HibernateMappingLocations implements HibernateMappingLocatable {
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.onap.portalsdk.core.conf.HibernateMappingLocatable#
-	 * getMappingLocations()
-	 */
-	@Override
-	public Resource[] getMappingLocations() {
-		return new Resource[] {
-				// Path is relative to WEB-INF/conf;
-				// a leading slash gets stripped so don't bother.
-				// new ClassPathResource("../fusion/orm/Fusion.hbm.xml"),
-				// This is a COPY to work around a bug in the 1.1.0 release.
-				new ClassPathResource("../fusion/orm/Fusion.hbm.xml"),
-				new ClassPathResource("../oom-app.hbm.xml")
-		};
-	}
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.onap.portalsdk.core.conf.HibernateMappingLocatable#
+     * getMappingLocations()
+     */
+    @Override
+    public Resource[] getMappingLocations() {
+        return new Resource[] {
+            // Path is relative to WEB-INF/conf;
+            // a leading slash gets stripped so don't bother.
+            // new ClassPathResource("../fusion/orm/Fusion.hbm.xml"),
+            // This is a COPY to work around a bug in the 1.1.0 release.
+            new ClassPathResource("../fusion/orm/Fusion.hbm.xml"),
+            new ClassPathResource("../oom-app.hbm.xml")};
+    }
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.onap.portalsdk.core.conf.HibernateMappingLocatable#
-	 * getPackagesToScan()
-	 */
-	@Override
-	public String[] getPackagesToScan() {
-		return new String[] { "org.onap", "org.openecomp" };
-	}
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.onap.portalsdk.core.conf.HibernateMappingLocatable#
+     * getPackagesToScan()
+     */
+    @Override
+    public String[] getPackagesToScan() {
+        return new String[] {"org.onap", "org.openecomp"};
+    }
 
 }

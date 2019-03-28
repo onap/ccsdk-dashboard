@@ -21,7 +21,7 @@
 ###############################################################################
 # OS system.properties
 
-app_display_name = OOM Dashboard
+app_display_name = ONAP Operations UI
 
 # Postgres
 db.driver=org.postgresql.Driver

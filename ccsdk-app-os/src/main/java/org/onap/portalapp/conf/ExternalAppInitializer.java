@@ -23,25 +23,26 @@ import org.onap.portalsdk.core.conf.AppInitializer;
 
 public class ExternalAppInitializer extends AppInitializer {
 
-	@Override
-	protected Class<?>[] getRootConfigClasses() {
-		return super.getRootConfigClasses();
-	}
+    @Override
+    protected Class<?>[] getRootConfigClasses() {
+        return super.getRootConfigClasses();
+    }
 
-	@Override
-	protected Class<?>[] getServletConfigClasses() {
-		Class<?> appConfigClass = ExternalAppConfig.class;
-		// Show something on stdout to indicate the app is starting.
-		System.out.println("ExternalAppInitializer: servlet configuration class is " + appConfigClass.getName());
-		return new Class[] { appConfigClass };
-	}
+    @Override
+    protected Class<?>[] getServletConfigClasses() {
+        Class<?> appConfigClass = ExternalAppConfig.class;
+        // Show something on stdout to indicate the app is starting.
+        System.out.println(
+            "ExternalAppInitializer: servlet configuration class is " + appConfigClass.getName());
+        return new Class[] {appConfigClass};
+    }
 
-	/*
-	 * URL request will direct to the Spring dispatcher for processing
-	 */
-	@Override
-	protected String[] getServletMappings() {
-		return super.getServletMappings();
-	}
+    /*
+     * URL request will direct to the Spring dispatcher for processing
+     */
+    @Override
+    protected String[] getServletMappings() {
+        return super.getServletMappings();
+    }
 
 }
