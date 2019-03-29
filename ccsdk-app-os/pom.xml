@@ -133,6 +133,7 @@
 				    </execution>
 				  </executions>
 				  <configuration>
+				  	<googleContainerRegistryEnabled>false</googleContainerRegistryEnabled>
 				  	<repository>${onap.nexus.dockerregistry.daily}</repository>
 				  	<dockerfile>Dockerfile</dockerfile>
 				    <repository>${docker.image.name}</repository>
