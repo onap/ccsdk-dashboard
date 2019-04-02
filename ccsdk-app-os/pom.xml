@@ -30,7 +30,9 @@
 		<build.version>${project.version}</build.version>
 		<!-- Tests usually require some setup that maven cannot do, so skip. -->
 		<skiptests>true</skiptests>
-		<docker.image.name>onap/org.onap.ccsdk.dashboard</docker.image.name>
+		<docker.image.name>onap/${project.groupId}.${project.artifactId}</docker.image.name>
+		<docker.push.registry>nexus3.onap.org:10003</docker.push.registry>
+		<image-name>${docker.push.registry}/${docker.image.name}</image-name>
 	</properties>
 
 	<repositories>
@@ -53,7 +55,6 @@
 			<url>${nexusproxy}${stagingNexusPath}</url>
 		</repository>
 	</repositories>
-
 	<build>
 
 		<!-- War files are labeled with build information, not POM version -->
@@ -123,6 +124,15 @@
 				<groupId>com.spotify</groupId>
 				<artifactId>dockerfile-maven-plugin</artifactId>
 				<version>1.4.10</version>
+				<configuration>
+					<useMavenSettingsForAuth>true</useMavenSettingsForAuth>
+					<repository>${image-name}</repository>
+        			<tag>latest</tag>
+        			<dockerfile>Dockerfile</dockerfile>
+        			<buildArgs>
+            			<WAR_FILE>${project.build.finalName}.war</WAR_FILE>
+        			</buildArgs>
+    			</configuration>
 				  <executions>
 				    <execution>
 				      <id>default</id>
@@ -132,16 +142,6 @@
 				      </goals>
 				    </execution>
 				  </executions>
-				  <configuration>
-				  	<googleContainerRegistryEnabled>false</googleContainerRegistryEnabled>
-				  	<repository>${onap.nexus.dockerregistry.daily}</repository>
-				  	<dockerfile>Dockerfile</dockerfile>
-				    <repository>${docker.image.name}</repository>
-				    <tag>latest</tag>
-				    <buildArgs>
-				      <WAR_FILE>${project.build.finalName}.war</WAR_FILE>
-				    </buildArgs>
-				  </configuration>
 			</plugin>
 			<!-- no deployment needed -->
 			<plugin>
