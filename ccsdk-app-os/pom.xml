@@ -30,10 +30,15 @@
 		<build.version>${project.version}</build.version>
 		<!-- Tests usually require some setup that maven cannot do, so skip. -->
 		<skiptests>true</skiptests>
-		<docker.image.name>onap/${project.groupId}.${project.artifactId}</docker.image.name>
-		<docker.push.registry>nexus3.onap.org:10003</docker.push.registry>
-		<image-name>${docker.push.registry}/${docker.image.name}</image-name>
+		
+		<image.name>onap/${project.groupId}.${project.artifactId}</image.name>
+		<ccsdk.project.version>${project.version}</ccsdk.project.version>
+		<ccsdk.build.timestamp>${maven.build.timestamp}</ccsdk.build.timestamp>
+		<ccsdk.distribution.version>${project.version}</ccsdk.distribution.version>
+		<maven.build.timestamp.format>yyyyMMdd'T'HHmmss'Z'</maven.build.timestamp.format>
+		<docker.verbose>true</docker.verbose>
 	</properties>
+
 
 	<repositories>
 		<repository>
@@ -71,7 +76,21 @@
 					<target>1.8</target>
 				</configuration>
 			</plugin>
-
+			<plugin>
+				<groupId>org.codehaus.groovy.maven</groupId>
+				<artifactId>gmaven-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>validate</phase>
+						<goals>
+							<goal>execute</goal>
+						</goals>
+						<configuration>
+							<source>${basedir}/../TagVersion.groovy</source>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-war-plugin</artifactId>
@@ -120,29 +139,7 @@
 					</overlays>
 				</configuration>
 			</plugin>
-			<plugin>
-				<groupId>com.spotify</groupId>
-				<artifactId>dockerfile-maven-plugin</artifactId>
-				<version>1.4.10</version>
-				<configuration>
-					<useMavenSettingsForAuth>true</useMavenSettingsForAuth>
-					<repository>${image-name}</repository>
-        			<tag>latest</tag>
-        			<dockerfile>Dockerfile</dockerfile>
-        			<buildArgs>
-            			<WAR_FILE>${project.build.finalName}.war</WAR_FILE>
-        			</buildArgs>
-    			</configuration>
-				  <executions>
-				    <execution>
-				      <id>default</id>
-				      <goals>
-				        <goal>build</goal>
-				        <goal>push</goal>
-				      </goals>
-				    </execution>
-				  </executions>
-			</plugin>
+
 			<!-- no deployment needed -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -154,6 +151,57 @@
 			</plugin>
 		</plugins>
 	</build>
+	
+	<profiles>
+		<profile>
+			<id>docker</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>io.fabric8</groupId>
+						<artifactId>docker-maven-plugin</artifactId>
+						<version>0.28.0</version>
+						<inherited>false</inherited>
+						<configuration>
+							<images>
+								<image>
+									<name>${image.name}</name>
+									<build>
+										<cleanup>try</cleanup>
+										<dockerFileDir>${basedir}</dockerFileDir>
+										<dockerFile>Dockerfile</dockerFile>
+										<tags>
+											<tag>${project.docker.latestminortag.version}</tag>
+											<tag>${project.docker.latestfulltag.version}</tag>
+											<tag>${project.docker.latesttagtimestamp.version}</tag>
+										</tags>
+									</build>
+								</image>
+							</images>
+						</configuration>
+						<executions>
+							<execution>
+								<id>generate-images</id>
+								<phase>package</phase>
+								<goals>
+									<goal>build</goal>
+								</goals>
+							</execution>
+
+							<execution>
+								<id>push-images</id>
+								<phase>deploy</phase>
+								<goals>
+									<goal>build</goal>
+									<goal>push</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 	<dependencies>
 		<!-- ECD webapp resources -->
