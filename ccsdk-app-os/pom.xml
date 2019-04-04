@@ -30,6 +30,7 @@
 		<build.version>${project.version}</build.version>
 		<!-- Tests usually require some setup that maven cannot do, so skip. -->
 		<skiptests>true</skiptests>
+		<enforcer.skip>true</enforcer.skip>
 		
 		<image.name>onap/${project.groupId}.${project.artifactId}</image.name>
 		<ccsdk.project.version>${project.version}</ccsdk.project.version>
