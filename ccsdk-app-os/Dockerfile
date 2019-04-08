@@ -27,7 +27,7 @@ RUN apt-get -y install postgresql --allow-unauthenticated
 COPY docker-dashboard-installation.sh /tmp/docker-dashboard-installation.sh
 COPY create_table.sql /tmp/create_table.sql
 ARG WAR_FILE
-ADD target/${WAR_FILE} /home/deployments/ccsdk-app.war
+COPY target/${WAR_FILE} /home/deployments/ccsdk-app.war
 
 # Run docker-dashboard-installation.sh
 RUN dos2unix /tmp/create_table.sql
