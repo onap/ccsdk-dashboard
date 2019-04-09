@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Unzip the dashboard war file
-unzip -qq -d /home/deployments/ccsdk-app /home/deployments/ccsdk-app.war
+unzip -qq -d /home/deployments/ccsdk-app /home/deployments/ccsdk-app*.war
 
 # Delete the dashboard war file
-rm -f /home/deployments/ccsdk-app.war
+rm -f /home/deployments/ccsdk-app*.war
 
 # Update dashboard.properties
 cat /home/deployments/ccsdk-app/WEB-INF/conf/dashboard.properties | \

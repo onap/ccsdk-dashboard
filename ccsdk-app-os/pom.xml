@@ -38,6 +38,7 @@
 		<ccsdk.distribution.version>${project.version}</ccsdk.distribution.version>
 		<maven.build.timestamp.format>yyyyMMdd'T'HHmmss'Z'</maven.build.timestamp.format>
 		<docker.verbose>true</docker.verbose>
+		<docker.buildArg.WAR_FILE>${project.build.finalName}.war</docker.buildArg.WAR_FILE>
 	</properties>
 
 
