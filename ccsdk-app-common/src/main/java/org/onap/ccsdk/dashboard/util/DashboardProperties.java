@@ -131,7 +131,7 @@ public class DashboardProperties {
      */
     @Autowired
     public void setEnvironment(final Environment environment) {
-        this.environment = environment;
+        DashboardProperties.environment = environment;
     }
 
     /**

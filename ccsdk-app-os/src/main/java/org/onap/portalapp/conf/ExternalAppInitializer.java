@@ -19,6 +19,7 @@
  */
 package org.onap.portalapp.conf;
 
+import org.onap.ccsdk.dashboard.util.DashboardProperties;
 import org.onap.portalsdk.core.conf.AppInitializer;
 
 public class ExternalAppInitializer extends AppInitializer {
@@ -34,7 +35,7 @@ public class ExternalAppInitializer extends AppInitializer {
         // Show something on stdout to indicate the app is starting.
         System.out.println(
             "ExternalAppInitializer: servlet configuration class is " + appConfigClass.getName());
-        return new Class[] {appConfigClass};
+        return new Class[] {appConfigClass, DashboardProperties.class};
     }
 
     /*
