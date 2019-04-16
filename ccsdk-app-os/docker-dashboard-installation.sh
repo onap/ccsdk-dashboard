@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# run import for ca certs
+if [ -e /usr/local/share/ca-certificates/cacert.pem ]
+then
+    mv /usr/local/share/ca-certificates/cacert.pem /usr/local/share/ca-certificates/cacert.crt
+    update-ca-certificates
+fi
+
 # Unzip the dashboard war file
 unzip -qq -d /home/deployments/ccsdk-app /home/deployments/ccsdk-app*.war
 
