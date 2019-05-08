@@ -96,7 +96,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 @RestController
-@RequestMapping("/ecomp-api")
+@RequestMapping("/api-if")
 public class CommonApiController extends DashboardRestrictedBaseController {
     private static EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(CommonApiController.class);
 
