@@ -150,10 +150,6 @@ public class DashboardHomeController extends DashboardRestrictedBaseController {
                     EcdAppComponent dcaeAppComponent = new EcdAppComponent("DCAE", dcaeCompList);
                     ecdApps.add(dcaeAppComponent);
                 }
-                if (dbResult != null && !dbResult.isEmpty()) {
-                    EcdAppComponent ecdAppComponent = new EcdAppComponent("ECOMP", dbResult);
-                    ecdApps.add(ecdAppComponent);
-                }
             }
             outboundJson = mapper.writeValueAsString(ecdApps);
         } catch (Exception ex) {
