@@ -20,7 +20,7 @@
 		<encoding>UTF-8</encoding>
 		<springframework.version>4.3.22.RELEASE</springframework.version>
 		<hibernate.version>4.3.11.Final</hibernate.version>
-		<epsdk.version>2.5.1-SNAPSHOT</epsdk.version>
+		<epsdk.version>2.5.0</epsdk.version>
 		<ccsdk.version>1.1.0-SNAPSHOT</ccsdk.version>
 		<nexusproxy>https://nexus.onap.org</nexusproxy>
 		<snapshotNexusPath>content/repositories/snapshots/</snapshotNexusPath>
