@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a592335c_21a3af55",
+        "filename": "pom.xml",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 87
+      },
+      "writtenOn": "2019-05-17T18:27:37Z",
+      "side": 1,
+      "message": "Also need to change this back to version 2.0.0, which disables staging plugin",
+      "range": {
+        "startLine": 11,
+        "startChar": 17,
+        "endLine": 11,
+        "endChar": 22
+      },
+      "revId": "ed7b44cc5d19568ce779c33585144cedcb84cfee",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": false
+    }
+  ]
+}
