@@ -207,7 +207,7 @@ appDS2.controller('blueprintTableController', function(
 						$log.error('BlueprintService.deleteBlueprint failed: ' + error);
 						alert('Service failed to delete blueprint:\n' + error);
 					});
-		})
+		});
 	};
 
 	// Populate the table on load.  Note that the b2b selector code
