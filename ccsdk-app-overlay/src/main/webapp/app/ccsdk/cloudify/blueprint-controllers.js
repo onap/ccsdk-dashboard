@@ -226,7 +226,6 @@ appDS2.controller('blueprintUploadCtrl', function(
 	
 	// this object holds all app data and functions
 	$scope.ecdapp = {};
-	
 	$scope.ecdapp.label = 'Upload Blueprint';
 	$scope.ecdapp.uploadRequest = 
 		{
