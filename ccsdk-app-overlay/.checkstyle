@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <fileset-config file-format-version="1.2.0" simple-config="false" sync-formatter="false">
-  <local-check-config name="maven-checkstyle-plugin onap-license" location="jar:file:/Users/dt5972/.m2/repository/org/onap/oparent/checkstyle/1.2.3/checkstyle-1.2.3.jar!/onap-checkstyle/check-license.xml" type="remote" description="maven-checkstyle-plugin configuration onap-license">
+  <local-check-config name="maven-checkstyle-plugin onap-license" location="jar:file:/C:/Users/DasariAnusha/.m2/repository/org/onap/oparent/checkstyle/2.0.0/checkstyle-2.0.0.jar!/onap-checkstyle/check-license.xml" type="remote" description="maven-checkstyle-plugin configuration onap-license">
     <property name="checkstyle.cache.file" value="${project_loc}/target/checkstyle-cachefile"/>
-    <property name="checkstyle.header.file" value="/Users/dt5972/eclipse/onap/.metadata/.plugins/org.eclipse.core.resources/.projects/ccsdk-app-overlay/com.basistech.m2e.code.quality.checkstyleConfigurator/checkstyle-header-onap-license.txt"/>
+    <property name="checkstyle.header.file" value="C:\ONAP Ecllipse\.metadata\.plugins\org.eclipse.core.resources\.projects\ccsdk-app-overlay\com.basistech.m2e.code.quality.checkstyleConfigurator\checkstyle-header-onap-license.txt"/>
   </local-check-config>
-  <local-check-config name="maven-checkstyle-plugin onap-java-style" location="jar:file:/Users/dt5972/.m2/repository/org/onap/oparent/checkstyle/1.2.3/checkstyle-1.2.3.jar!/onap-checkstyle/onap-java-style.xml" type="remote" description="maven-checkstyle-plugin configuration onap-java-style">
+  <local-check-config name="maven-checkstyle-plugin onap-java-style" location="jar:file:/C:/Users/DasariAnusha/.m2/repository/org/onap/oparent/checkstyle/2.0.0/checkstyle-2.0.0.jar!/onap-checkstyle/onap-java-style.xml" type="remote" description="maven-checkstyle-plugin configuration onap-java-style">
     <property name="checkstyle.cache.file" value="${project_loc}/target/checkstyle-cachefile"/>
-    <property name="checkstyle.header.file" value="/Users/dt5972/eclipse/onap/.metadata/.plugins/org.eclipse.core.resources/.projects/ccsdk-app-overlay/com.basistech.m2e.code.quality.checkstyleConfigurator/checkstyle-header-onap-java-style.txt"/>
+    <property name="checkstyle.header.file" value="C:\ONAP Ecllipse\.metadata\.plugins\org.eclipse.core.resources\.projects\ccsdk-app-overlay\com.basistech.m2e.code.quality.checkstyleConfigurator\checkstyle-header-onap-java-style.txt"/>
   </local-check-config>
   <fileset name="java-sources-onap-license" enabled="true" check-config-name="maven-checkstyle-plugin onap-license" local="true">
-    <file-match-pattern match-pattern="^src/test/java.*\/.*\.java" include-pattern="true"/>
-    <file-match-pattern match-pattern="^src/main/java.*\/.*\.java" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/test/java.*\.java" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/main/java.*\.java" include-pattern="true"/>
   </fileset>
   <fileset name="java-sources-onap-java-style" enabled="true" check-config-name="maven-checkstyle-plugin onap-java-style" local="true">
-    <file-match-pattern match-pattern="^src/test/java.*\/.*\.java" include-pattern="true"/>
-    <file-match-pattern match-pattern="^src/main/java.*\/.*\.java" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/test/java.*\.java" include-pattern="true"/>
+    <file-match-pattern match-pattern="^src/main/java.*\.java" include-pattern="true"/>
     <file-match-pattern match-pattern="^src/main/resources.*\.properties" include-pattern="true"/>
     <file-match-pattern match-pattern="^src/test/resources.*\.properties" include-pattern="true"/>
   </fileset>
