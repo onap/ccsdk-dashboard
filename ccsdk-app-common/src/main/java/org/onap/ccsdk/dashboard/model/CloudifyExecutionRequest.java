@@ -3,6 +3,8 @@
  *
  * =================================================================================
  *  Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
+ *  
+ *  Modifications Copyright (C) 2019 IBM
  * ================================================================================
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -37,6 +39,20 @@ public class CloudifyExecutionRequest extends ECTransportModel {
     public String tenant;
     /** Parameters: retrieve using the GET /deployments */
     public Map<String, Object> parameters;
+    
+    @JsonCreator
+    public CloudifyExecutionRequest(@JsonProperty("deployment_id") String deployment_id,
+            @JsonProperty("workflow_id") String workflow_id,
+            @JsonProperty("allow_custom_parameters") Boolean allowCustomParameters,
+            @JsonProperty("force") Boolean force, @JsonProperty("tenant") String tenant,
+            @JsonProperty("parameters") Map<String, Object> parameters) {
+        this.deployment_id = deployment_id;
+        this.workflow_id = workflow_id;
+        this.allow_custom_parameters = allowCustomParameters;
+        this.force = force;
+        this.tenant = tenant;
+        this.parameters = parameters;
+    }
 
     public String getDeployment_id() {
         return deployment_id;
@@ -86,18 +102,5 @@ public class CloudifyExecutionRequest extends ECTransportModel {
         this.parameters = parameters;
     }
 
-    @JsonCreator
-    public CloudifyExecutionRequest(@JsonProperty("deployment_id") String deployment_id,
-            @JsonProperty("workflow_id") String workflow_id,
-            @JsonProperty("allow_custom_parameters") Boolean allowCustomParameters,
-            @JsonProperty("force") Boolean force, @JsonProperty("tenant") String tenant,
-            @JsonProperty("parameters") Map<String, Object> parameters) {
-        this.deployment_id = deployment_id;
-        this.workflow_id = workflow_id;
-        this.allow_custom_parameters = allowCustomParameters;
-        this.force = force;
-        this.tenant = tenant;
-        this.parameters = parameters;
-    }
 
 }
