@@ -26,6 +26,8 @@ package org.onap.ccsdk.dashboard.controller;
  * ECOMP Portal SDK
  * ================================================================================
  * Copyright (C) 2017 AT&T Intellectual Property
+ * 
+ * Modifications Copyright (C) 2019 IBM.
  * ================================================================================
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -271,14 +273,16 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
         return request.getSession().getId();
     }
 
+    @Override
     public String getViewName() {
         return viewName;
     }
-
+    
+    @Override
     public void setViewName(String viewName) {
         this.viewName = viewName;
     }
-
+    
     public String getWelcomeView() {
         return welcomeView;
     }
