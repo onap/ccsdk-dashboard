@@ -58,7 +58,7 @@ public class LoginStrategyImpl extends LoginStrategy {
         return userid;
     }
 
-    private static String getUserIdFromCookie(HttpServletRequest request) throws Exception {
+    private static String getUserIdFromCookie(HttpServletRequest request){
         String userId = "";
         Cookie[] cookies = request.getCookies();
         Cookie userIdcookie = null;
