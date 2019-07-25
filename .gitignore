@@ -5,3 +5,4 @@ ccsdk-app-overlay/ccsdk-app-overlay.iml
 .project
 .settings
 /target/
+ccsdk-app-common/src/test/java/org/onap/ccsdk/dashboard/exceptions/inventory/BlurprintParseExceptionTest.java
