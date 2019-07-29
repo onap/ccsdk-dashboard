@@ -100,7 +100,7 @@ appDS2.controller('blueprintTableController', function(
 				}
 			}
 		});
-		modalInstance.result.then(function(response) {
+		modalInstance.result.then(function() {
 			// No response.
 		});
 	};
