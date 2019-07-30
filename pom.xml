@@ -20,6 +20,7 @@
     
     <properties>
         <enforcer.skip>true</enforcer.skip>
+        <sonar.exclusions>**/external/**</sonar.exclusions>
     </properties>
 
     <modules>
