@@ -241,13 +241,13 @@ appDS2.controller('blueprintUploadCtrl', function(
 	$scope.ecdapp.validateRequest = function(uploadRequest) {
 		if (uploadRequest == null)
 			return "No data found.\nPlease enter some values.";
-		if (uploadRequest.blueprint_id == null || uploadRequest.blueprint_id.trim() == '')
+		if (uploadRequest.blueprint_id == null || uploadRequest.blueprint_id.trim() === '')
 			return "ID is required.\nPlease enter a value.";
-		if (uploadRequest.blueprint_filename == null || uploadRequest.blueprint_filename.trim() == '')
+		if (uploadRequest.blueprint_filename == null || uploadRequest.blueprint_filename.trim() === '')
 			return "File name is required.\nPlease enter a value.";
-		if (uploadRequest.blueprint_filename.toLowerCase().substr(-4) != 'yaml')
+		if (uploadRequest.blueprint_filename.toLowerCase().substr(-4) !== 'yaml')
 			return "File name must end with YAML.\nPlease use that suffix.";
-		if (uploadRequest.zip_url == null || uploadRequest.zip_url.trim() == '')
+		if (uploadRequest.zip_url == null || uploadRequest.zip_url.trim() === '')
 			return "Zip file URL is required.\nPlease enter a value.";
 		return null;
 	}
