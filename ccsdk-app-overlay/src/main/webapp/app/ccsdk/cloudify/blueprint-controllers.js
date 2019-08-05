@@ -19,9 +19,7 @@
  *
  *  ECOMP is a trademark and service mark of AT&T Intellectual Property.
  *******************************************************************************/
-appDS2.controller('blueprintTableController', function(
-		$rootScope, $scope, $log, $modal, modalService, BlueprintService) {
-	
+appDS2.controller('blueprintTableController', function($rootScope, $scope, $log, $modal, modalService, BlueprintService) {	
 	'use strict';
 
 	// Controls logging in this controller
@@ -140,7 +138,7 @@ appDS2.controller('blueprintTableController', function(
 				}
 				else {
 					// success, get the updated list.
-					$scope.ecdapp.loadTable()
+					$scope.ecdapp.loadTable();
 				}
 			}
 		});
