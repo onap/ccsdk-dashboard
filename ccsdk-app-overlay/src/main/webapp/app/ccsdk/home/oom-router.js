@@ -2,7 +2,7 @@
  * =============LICENSE_START=========================================================
  *
  * =================================================================================
- *  Copyright (c) 2017 AT&T Intellectual Property. All rights reserved.
+ *  Copyright (c) 2020 AT&T Intellectual Property. All rights reserved.
  * ================================================================================
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -17,14 +17,16 @@
  *  limitations under the License.
  * ============LICENSE_END=========================================================
  *
- *  ECOMP is a trademark and service mark of AT&T Intellectual Property.
  *******************************************************************************/
 appDS2.config(function($routeProvider) {
 	$routeProvider
-	.when('/orgchart', {
-		/* horizontal layout */
-		templateUrl: 'app/ccsdk/home/tree_view.html',
-		controller : 'treeViewController'
+	.when('/api', { 
+		templateUrl: 'app/ccsdk/home/api_doc.html',
+		controller : ''
+	})
+	.when('/api-spec', { 
+		templateUrl: 'app/ccsdk/home/rest-api-spec.html',
+		controller : 'apiDocsController'
 	})
 	.when('/ibp', { 
 		templateUrl: 'app/ccsdk/inventory/inventory_blueprint_table.html',
@@ -81,34 +83,6 @@ appDS2.config(function($routeProvider) {
 	.when('/usage_list', {
 		templateUrl: 'app/fusion/scripts/DS2-view-models/ds2-admin/usage.html',
 		controller: 'usageListControllerDS2'
-	})
-	.when('/cfy', {
-		templateUrl: 'app/ccsdk/ops/tabs_view.html',
-		controller: 'tabsController',
-		item: 'cfy'
-	})
-	.when('/cnsl', {
-		templateUrl: 'app/ccsdk/ops/tabs_view.html',
-		controller: 'tabsController',
-		item: 'cnsl'
-	})
-	.when('/grf', {
-		templateUrl: 'app/ccsdk/ops/tabs_view.html',
-		controller: 'tabsController',
-		item: 'grf'
-	})
-	.when('/k8s', {
-		templateUrl: 'app/ccsdk/ops/tabs_view.html',
-		controller: 'tabsController',
-		item: 'k8s'
-	})
-	.when('/prom', {
-		templateUrl: 'app/ecdapp/ops/tabs_view.html',
-		controller: 'tabsController',
-		item: 'prom'
-	})
-	.when('/dbcl', {
-		templateUrl: 'app/ecdapp/ops/dbcl_view.html'
 	})
 	.otherwise({
 		templateUrl: 'app/ccsdk/home/executions_view.html',

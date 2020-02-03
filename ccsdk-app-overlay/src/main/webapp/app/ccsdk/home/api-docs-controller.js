@@ -19,12 +19,24 @@
  *
  *******************************************************************************/
 
-/* Angular application for the EC Dashboard web UI */
-var appDS2 = angular.module("abs", 
-		[
-			'ngCookies', 'ngRoute', 'ngMessages','ngSanitize',
-			'ui.bootstrap', 'ui.bootstrap.modal',
-			'b2b.att',
-			'modalServices'
-		]
-	);
+appDS2.controller('apiDocsController',function(
+		$scope, ControllerService){
+	
+	'use strict';
+
+	// this object holds all app data and functions
+	$scope.ecdapp = {};
+	$scope.ecdapp.apiSpec = '';
+	
+	var getApiSpecs = function(){
+		ControllerService.getApiSwaggerSpec().then(function(jsonObj) {
+			$scope.ecdapp.apiSpec = JSON.stringify(jsonObj, undefined, 4);
+		}, function(error) {
+			alert('Failed to get REST API spec file');
+		});
+	}
+
+	// Populate the page on load
+	getApiSpecs();
+
+});
