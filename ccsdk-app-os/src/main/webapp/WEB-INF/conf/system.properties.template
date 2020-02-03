@@ -21,7 +21,7 @@
 ###############################################################################
 # OS system.properties
 
-app_display_name = ONAP Operations UI
+app_display_name = DCAE Dashboard
 
 # Postgres
 db.driver=org.postgresql.Driver
