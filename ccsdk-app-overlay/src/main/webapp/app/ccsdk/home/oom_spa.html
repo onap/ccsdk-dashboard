@@ -1,20 +1,42 @@
+<!--
+  ============LICENSE_START==========================================
+  ===================================================================
+  Copyright (C) 2020 AT&T Intellectual Property. All rights reserved.
+  ===================================================================
+ 
+  Unless otherwise specified, all software contained herein is licensed
+  under the Apache License, Version 2.0 (the "License");
+  you may not use this software except in compliance with the License.
+  You may obtain a copy of the License at
+ 
+              http://www.apache.org/licenses/LICENSE-2.0
+ 
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+ 
+  ============LICENSE_END============================================
+ -->
+ 
 <!DOCTYPE html>
-<!-- ONAP Operations Manager Dashboard single-page application using B2B/DS2. -->	
+<!-- DCAE Dashboard single-page application using B2B/DS2. -->	
 <html>
 	<head>
 	<meta charset="UTF-8">
-	<title>OOM Dashboard</title>
+	<title>DCAE Dashboard</title>
     <link rel="icon" type="image/ico" href="app/ccsdk/images/onap_32x32.ico" />
 
 	<!-- Third-party scripts from EPSDK overlay -->	
-	<script src="app/fusion/external/angular-1.4.8/angular.js"></script>	
-	<script src="app/fusion/external/angular-1.4.8/angular-cookies.js"></script>	
-	<script src="app/fusion/external/angular-1.4.8/angular-messages.js"></script>	
-	<script src="app/fusion/external/angular-1.4.8/angular-route.js"></script>	
-	<script src="app/fusion/external/angular-1.4.8/angular-sanitize.js"></script>	
-	<script src="app/fusion/external/angular-1.4.8/angular-touch.js"></script>	
+	<script src="app/fusion/external/angular-1.4.13/angular.js"></script>	
+	<script src="app/fusion/external/angular-1.4.13/angular-cookies.js"></script>	
+	<script src="app/fusion/external/angular-1.4.13/angular-messages.js"></script>	
+	<script src="app/fusion/external/angular-1.4.13/angular-route.js"></script>	
+	<script src="app/fusion/external/angular-1.4.13/angular-sanitize.js"></script>	
+	<script src="app/fusion/external/angular-1.4.13/angular-touch.js"></script>
 	<script src="app/fusion/external/jquery/dist/jquery.min.js"></script>
-	<script src="app/fusion/external/javascript-detect-element-resize/jquery.resize.js"></script>
+	<!--<script src="app/fusion/external/javascript-detect-element-resize/jquery.resize.js"></script>-->
 	<script src="app/fusion/external/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
 	
 	<!-- Third-party scripts from app -->
@@ -48,12 +70,15 @@
 	<script src="app/fusion/scripts/DS2-directives/b2b-leftnav-ext.js"></script> 
 	 
 	<!-- OOM home -->
+	<script src="app/ccsdk/home/controller-service.js"></script>
+    <script src="app/ccsdk/home/executions-view-controller.js"></script>
+	<script src="app/ccsdk/home/api-docs-controller.js"></script>
+	<!--  
 	<script src="app/ccsdk/home/tree-view-controller.js"></script>
 	<script src="app/ccsdk/home/tree-view-directive.js"></script>
-	<script src="app/ccsdk/home/controller-service.js"></script>
 	<script src="app/ccsdk/home/oom-instances-controller.js"></script>
-	<script src="app/ccsdk/home/executions-view-controller.js"></script>
 	<script src="app/ccsdk/home/http-interceptor.js"></script>
+	-->
 	<link rel="stylesheet" href="app/ccsdk/home/tree-view-style.css"/>
 	<link rel="stylesheet" href="app/ccsdk/home/oom-style.css"/>	
 
