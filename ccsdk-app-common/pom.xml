@@ -22,7 +22,7 @@
 		<springframework.version>4.3.22.RELEASE</springframework.version>
 		<hibernate.version>4.3.11.Final</hibernate.version>
 		<eelf.version>1.0.0</eelf.version>
-		<epsdk.version>2.5.0</epsdk.version>
+		<epsdk.version>2.6.0</epsdk.version>
 		<nexusproxy>https://nexus.onap.org</nexusproxy>
 		<snapshotNexusPath>content/repositories/snapshots/</snapshotNexusPath>
 		<releaseNexusPath>content/repositories/releases/</releaseNexusPath>
@@ -285,13 +285,6 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		<!--  
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-aop</artifactId>
-			<version>${springframework.version}</version>
-		</dependency>
-		-->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-tx</artifactId>
