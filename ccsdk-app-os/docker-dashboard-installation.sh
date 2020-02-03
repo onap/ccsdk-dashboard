@@ -47,5 +47,18 @@ export PGPASSWORD=$postgres_password_dashboard
 psql -h $postgres_ip -U $postgres_user_dashboard $postgres_db_name -f /tmp/create_table.sql
 psql -h $postgres_ip -U $postgres_user_dashboard $postgres_db_name -c "update FN_APP set app_username='${aaf_app_user}' where app_id=1"
 
+# Update tomcat server.xml to enable HTTPS protocol
+if [[ -f /usr/local/share/ca-certificates/cert.jks && $CATALINA_HOME/conf/server.xml ]]
+then
+    echo "<Connector
+    protocol=\"org.apache.coyote.http11.Http11NioProtocol\"
+    port=\"8443\" maxThreads=\"200\"
+    scheme=\"https\" secure=\"true\" SSLEnabled=\"true\"
+    keystoreFile=\"/usr/local/share/ca-certificates/cert.jks\" keystorePass=\"`cat /usr/local/share/ca-certificates/jks.pass`\"
+    clientAuth=\"false\" sslProtocol=\"TLS\"/>" >> enablehttps.txt
+    sed '/Service name=\"Catalina\">/r enablehttps.txt' $CATALINA_HOME/conf/server.xml > $CATALINA_HOME/conf/server-https.xml
+    mv $CATALINA_HOME/conf/server-https.xml $CATALINA_HOME/conf/server.xml
+fi
+
 # Start the tomcat server
 catalina.sh run

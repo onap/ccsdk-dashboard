@@ -6,12 +6,12 @@
 	<parent>
 		<groupId>org.onap.ccsdk.dashboard</groupId>
 		<artifactId>ccsdk-app-parent</artifactId>
-		<version>1.2.0-SNAPSHOT</version>
+		<version>1.3.0-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.onap.ccsdk.dashboard</groupId>
 	<artifactId>ccsdk-app-os</artifactId>
-	<version>1.2.0-SNAPSHOT</version>
+	<version>1.3.0-SNAPSHOT</version>
 	<packaging>war</packaging>
 	<name>ONAP Operations Manager Dashboard app</name>
 	<description>CCSDK Dashboard Web Application for external release</description>
@@ -20,7 +20,7 @@
 		<encoding>UTF-8</encoding>
 		<springframework.version>4.3.22.RELEASE</springframework.version>
 		<hibernate.version>4.3.11.Final</hibernate.version>
-		<epsdk.version>2.5.0</epsdk.version>
+		<epsdk.version>2.6.0</epsdk.version>
 		<ccsdk.version>${project.version}</ccsdk.version>
 		<nexusproxy>https://nexus.onap.org</nexusproxy>
 		<snapshotNexusPath>content/repositories/snapshots/</snapshotNexusPath>
@@ -251,6 +251,48 @@
 					<artifactId>jest</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+				<!--  overrides for spring libs -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>${springframework.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context-support</artifactId>
+			<version>${springframework.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
+			<version>${springframework.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-aop</artifactId>
+			<version>${springframework.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-tx</artifactId>
+			<version>${springframework.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+			<version>${springframework.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+			<version>${springframework.version}</version>
 		</dependency>
 	</dependencies>
 </project>
