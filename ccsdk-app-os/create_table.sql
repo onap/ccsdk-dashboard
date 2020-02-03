@@ -1,3 +1,19 @@
+-- ================================================================================
+-- Copyright (c) 2019-2020 AT&T Intellectual Property. All rights reserved.
+-- ================================================================================
+-- Licensed under the Apache License, Version 2.0 (the "License");
+-- you may not use this file except in compliance with the License.
+-- You may obtain a copy of the License at
+--
+--      http://www.apache.org/licenses/LICENSE-2.0
+--
+-- Unless required by applicable law or agreed to in writing, software
+-- distributed under the License is distributed on an "AS IS" BASIS,
+-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-- See the License for the specific language governing permissions and
+-- limitations under the License.
+-- ============LICENSE_END=========================================================
+
 CREATE SCHEMA IF NOT EXISTS dashboard_pg_db_common AUTHORIZATION dashboard_pg_admin;
 
 CREATE TABLE IF NOT EXISTS dashboard_pg_db_common.service(
@@ -1001,8 +1017,6 @@ Insert into dashboard_pg_db_common.fn_role_function (ROLE_ID,FUNCTION_CD) values
 
 -- fn_user
 -- This row defines a superuser which is accepted by login_extern.htm
--- The superuser entry is disabled in this checked-in version, ACTIVE = N,
--- because it is a security hole that should not exist in IST, ETE and PROD. 
 Insert into dashboard_pg_db_common.fn_user 
 	(USER_ID,ORG_ID,MANAGER_ID,FIRST_NAME,MIDDLE_NAME,LAST_NAME,PHONE,FAX,CELLULAR,EMAIL,ADDRESS_ID,ALERT_METHOD_CD,HRID,ORG_USER_ID,ORG_CODE,LOGIN_ID,LOGIN_PWD,LAST_LOGIN_DATE,ACTIVE_YN,CREATED_ID,CREATED_DATE,MODIFIED_ID,MODIFIED_DATE,IS_INTERNAL_YN,ADDRESS_LINE_1,ADDRESS_LINE_2,CITY,STATE_CD,ZIP_CODE,COUNTRY_CD,LOCATION_CLLI,ORG_MANAGER_USERID,COMPANY,DEPARTMENT_NAME,JOB_TITLE,TIMEZONE,DEPARTMENT,BUSINESS_UNIT,BUSINESS_UNIT_NAME,COST_CENTER,FIN_LOC_CODE,SILO_STATUS) 
 	values 
@@ -1010,28 +1024,15 @@ Insert into dashboard_pg_db_common.fn_user
 	;
 
 -- fn_app
--- Use name "DMAAP-BC-APP" (originally "Default")
 Insert into dashboard_pg_db_common.fn_app (APP_ID,APP_NAME,APP_IMAGE_URL,APP_DESCRIPTION,APP_NOTES,APP_URL,APP_ALTERNATE_URL,APP_REST_ENDPOINT,ML_APP_NAME,ML_APP_ADMIN_ID,MOTS_ID,APP_PASSWORD,OPEN,ENABLED,THUMBNAIL,APP_USERNAME,UEB_KEY,UEB_SECRET,UEB_TOPIC_NAME) VALUES (1,'EC-DASH-APP','assets/images/tmp/portal1.png','Some Default Description','Some Default Note','http://www.att.com','http://www.att.com',null,'ECPP','?','1','JuCerIRKt/faEcx8QdgncLEEv+IOZjpHe7Pi5DEPqKs=','N','Y',null,'Default',null,null,'ECOMP-PORTAL-INBOX');
 
 -- fn_user_role
 Insert into dashboard_pg_db_common.fn_user_role (USER_ID,ROLE_ID,PRIORITY,APP_ID) values (1,1,null,1);
 
--- ---------------------------------------------------------------------------------------------------------------
--- This script populates tables for the ECOMP Controller Dashboard web app.
--- in the 1707 release with data for the internal AT&T version.
--- ---------------------------------------------------------------------------------------------------------------
-
---- SET SEARCH_PATH = ecd_att_1707;
-
--- fn_menu
-INSERT INTO dashboard_pg_db_common.fn_menu (MENU_ID, LABEL, PARENT_ID, SORT_ORDER, ACTION, FUNCTION_CD, ACTIVE_YN, SERVLET, QUERY_STRING, EXTERNAL_URL, TARGET, MENU_SET_CD, SEPARATOR_YN, IMAGE_SRC) 
-	VALUES (92,  'Import from WEBPHONE', 9,  30, 'ecd#/post_search', 	'menu_profile_import', 'Y', NULL, NULL, NULL, NULL, 'APP', 'N', NULL);
-
-
 ALTER ROLE dashboard_pg_admin SET search_path TO dashboard_pg_db_common;
 
 -- ---------------------------------------------------------------------------------------------------------------
--- This script creates and populates component table for the ECOMP Controller Dashboard web app.
+-- This script creates and populates component table 
 -- ---------------------------------------------------------------------------------------------------------------
  
 CREATE SEQUENCE IF NOT EXISTS dashboard_pg_db_common.seq_ecd_component;
@@ -1137,67 +1138,19 @@ update dashboard_pg_db_common.fn_function set type = 'menu' , action = '*'  wher
 update dashboard_pg_db_common.fn_function set type = 'menu' , action = '*'  where function_cd = 'menu_logout';
 update dashboard_pg_db_common.fn_function set type = 'menu' , action = '*'  where function_cd = 'login';
 
--- 1902 feature set changes
+-- REST API docs
+Insert into ecompc_db_common.fn_function (FUNCTION_CD,FUNCTION_NAME,TYPE,ACTION) values ('menu_api','API Menu','menu','*');
 
--- Insert rows into fn_function table
+INSERT INTO fn_menu (MENU_ID, LABEL, PARENT_ID, SORT_ORDER, ACTION, FUNCTION_CD, ACTIVE_YN, SERVLET, QUERY_STRING, EXTERNAL_URL, TARGET, MENU_SET_CD, SEPARATOR_YN, IMAGE_SRC) 
+	VALUES (20,'REST API', 1, 35,'#', 'menu_api', 'Y','N/A','N/A','N/A','N/A','APP','N','icon-arrows-upload');
 
-INSERT INTO dashboard_pg_db_common.fn_function(function_cd, function_name, type, action) VALUES ('menu_ops', 'OPS Tools', '*', '*');
-INSERT INTO dashboard_pg_db_common.fn_function(function_cd, function_name, type, action) VALUES ('menu_cnsl', 'Consul', '*', '*');
-INSERT INTO dashboard_pg_db_common.fn_function(function_cd, function_name, type, action) VALUES ('menu_cfy', 'Cloudify Manager', '*', '*');
-INSERT INTO dashboard_pg_db_common.fn_function(function_cd, function_name, type, action) VALUES ('menu_grf', 'Grafana', '*', '*');
-INSERT INTO dashboard_pg_db_common.fn_function(function_cd, function_name, type, action) VALUES ('menu_prometh', 'Prometheus', '*', '*');
-INSERT INTO dashboard_pg_db_common.fn_function(function_cd, function_name, type, action) VALUES ('menu_k8s', 'Kubernetes Dashboard', '*', '*');
-INSERT INTO dashboard_pg_db_common.fn_function(function_cd, function_name, type, action) VALUES ('menu_dbcl', 'DBCL Dashboard', '*', '*');
-
--- Insert rows into fn_menu table
-
-INSERT INTO dashboard_pg_db_common.fn_menu(
-	menu_id, label, parent_id, sort_order, action, function_cd, active_yn, servlet, query_string, external_url, target, menu_set_cd, separator_yn, image_src)
-	VALUES (6, 'OPS Tools', 1, 60, '#', 'menu_ops', 'Y', 'NULL', 'NULL', 'NULL', 'NULL', 'APP', 'N', 'icon-building-factory');
-INSERT INTO dashboard_pg_db_common.fn_menu(
-	menu_id, label, parent_id, sort_order, action, function_cd, active_yn, servlet, query_string, external_url, target, menu_set_cd, separator_yn, image_src)
-	VALUES (7, 'DMaaP Bus Controller', 1, 70, '#', 'menu_dbcl', 'Y', 'NULL', 'NULL', 'NULL', 'NULL', 'APP', 'N', 'icon-building-factory');
-INSERT INTO dashboard_pg_db_common.fn_menu(
-	menu_id, label, parent_id, sort_order, action, function_cd, active_yn, servlet, query_string, external_url, target, menu_set_cd, separator_yn, image_src)
-	VALUES (61, 'Cloudify Manager', 6, 10, 'ecd#/cfy', 'menu_cfy', 'Y', 'NULL', 'NULL', 'NULL', 'NULL', 'APP', 'N', 'NULL');
-INSERT INTO dashboard_pg_db_common.fn_menu(
-	menu_id, label, parent_id, sort_order, action, function_cd, active_yn, servlet, query_string, external_url, target, menu_set_cd, separator_yn, image_src)
-	VALUES (62, 'Consul', 6, 20, 'ecd#/cnsl', 'menu_cnsl', 'Y', 'NULL', 'NULL', 'NULL', 'NULL', 'APP', 'N', 'NULL');
-INSERT INTO dashboard_pg_db_common.fn_menu(
-	menu_id, label, parent_id, sort_order, action, function_cd, active_yn, servlet, query_string, external_url, target, menu_set_cd, separator_yn, image_src)
-	VALUES (63, 'Kubernetes Dashboard', 6, 30, 'ecd#/k8s', 'menu_k8s', 'Y', 'NULL', 'NULL', 'NULL', 'NULL', 'APP', 'N', 'NULL');
-INSERT INTO dashboard_pg_db_common.fn_menu(
-	menu_id, label, parent_id, sort_order, action, function_cd, active_yn, servlet, query_string, external_url, target, menu_set_cd, separator_yn, image_src)
-	VALUES (64, 'Grafana', 6, 40, 'ecd#/grf', 'menu_grf', 'Y', 'NULL', 'NULL', 'NULL', 'NULL', 'APP', 'N', 'NULL');
-INSERT INTO dashboard_pg_db_common.fn_menu(
-	menu_id, label, parent_id, sort_order, action, function_cd, active_yn, servlet, query_string, external_url, target, menu_set_cd, separator_yn, image_src)
-	VALUES (65, 'Prometheus', 6, 50, 'ecd#/prom', 'menu_prometh', 'Y', 'NULL', 'NULL', 'NULL', 'NULL', 'APP', 'N', 'NULL');
-
-
--- Insert rows into fn_role_function
-
-INSERT INTO dashboard_pg_db_common.fn_role_function(
-	role_id, function_cd)
-	VALUES (1, 'menu_ops');
-INSERT INTO dashboard_pg_db_common.fn_role_function(
-	role_id, function_cd)
-	VALUES (1, 'menu_dbcl');
-INSERT INTO dashboard_pg_db_common.fn_role_function(
-	role_id, function_cd)
-	VALUES (1, 'menu_cfy');
-INSERT INTO dashboard_pg_db_common.fn_role_function(
-	role_id, function_cd)
-	VALUES (1, 'menu_cnsl');
-INSERT INTO dashboard_pg_db_common.fn_role_function(
-	role_id, function_cd)
-	VALUES (1,'menu_k8s');
-INSERT INTO dashboard_pg_db_common.fn_role_function(
-	role_id, function_cd)
-	VALUES (1, 'menu_grf');
-INSERT INTO dashboard_pg_db_common.fn_role_function(
-	role_id, function_cd)
-	VALUES (1, 'menu_prometh');
-
--- Update action for DBCL menu
-
-update fn_menu set action='ecd#/dbcl' where function_cd='menu_dbcl';
+INSERT INTO fn_menu (MENU_ID, LABEL, PARENT_ID, SORT_ORDER, ACTION, FUNCTION_CD, ACTIVE_YN, SERVLET, QUERY_STRING, EXTERNAL_URL, TARGET, MENU_SET_CD, SEPARATOR_YN, IMAGE_SRC) 
+	VALUES (21,'Documentation', 20, 35,'ecd#/api', 'menu_api', 'Y','N/A','N/A','N/A','N/A','APP','N','');
+	
+INSERT INTO fn_menu (MENU_ID, LABEL, PARENT_ID, SORT_ORDER, ACTION, FUNCTION_CD, ACTIVE_YN, SERVLET, QUERY_STRING, EXTERNAL_URL, TARGET, MENU_SET_CD, SEPARATOR_YN, IMAGE_SRC) 
+	VALUES (22,'Swagger Spec', 20, 40,'ecd#/api-spec', 'menu_api', 'Y','N/A','N/A','N/A','N/A','APP','N','');
+	
+Insert into dashboard_pg_db_common.fn_role_function (ROLE_ID,FUNCTION_CD) values (1,'menu_api');
+Insert into dashboard_pg_db_common.fn_role_function (ROLE_ID,FUNCTION_CD) values (2,'menu_api');
+Insert into dashboard_pg_db_common.fn_role_function (ROLE_ID,FUNCTION_CD) values (3,'menu_api');
+Insert into dashboard_pg_db_common.fn_role_function (ROLE_ID,FUNCTION_CD) values (16,'menu_api');

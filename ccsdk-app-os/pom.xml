@@ -20,7 +20,7 @@
 		<encoding>UTF-8</encoding>
 		<springframework.version>4.3.22.RELEASE</springframework.version>
 		<hibernate.version>4.3.11.Final</hibernate.version>
-		<epsdk.version>2.5.0</epsdk.version>
+		<epsdk.version>2.6.0</epsdk.version>
 		<ccsdk.version>${project.version}</ccsdk.version>
 		<nexusproxy>https://nexus.onap.org</nexusproxy>
 		<snapshotNexusPath>content/repositories/snapshots/</snapshotNexusPath>
@@ -251,6 +251,48 @@
 					<artifactId>jest</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+				<!--  overrides for spring libs -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>${springframework.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context-support</artifactId>
+			<version>${springframework.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
+			<version>${springframework.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-aop</artifactId>
+			<version>${springframework.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-tx</artifactId>
+			<version>${springframework.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+			<version>${springframework.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+			<version>${springframework.version}</version>
 		</dependency>
 	</dependencies>
 </project>

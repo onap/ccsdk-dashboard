@@ -3,10 +3,19 @@ FROM tomcat:8
 
 ENV APPDIR /usr/local/tomcat
 
+ENV APPUSER dash
+
+# create application user
+RUN useradd -o --uid 1000 ${APPUSER}
+
 WORKDIR ${APPDIR}
+
+RUN chown -R 1000:1000 ${APPDIR}
 
 # Create deployments directory
 RUN mkdir /home/deployments
+
+RUN chown -R 1000:1000 /home/deployments
 
 # update apt-get
 RUN apt-get update
@@ -34,5 +43,8 @@ RUN dos2unix /tmp/create_table.sql
 RUN dos2unix /tmp/docker-dashboard-installation.sh
 RUN chmod +x /tmp/create_table.sql
 RUN chmod +x /tmp/docker-dashboard-installation.sh
+
+# set container user to non-root
+USER ${APPUSER}
 
 CMD ["/tmp/docker-dashboard-installation.sh"]
