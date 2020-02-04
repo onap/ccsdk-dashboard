@@ -1,0 +1,182 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "183319a8_5eea276d",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 93
+      },
+      "writtenOn": "2020-02-04T00:02:16Z",
+      "side": 1,
+      "message": "List also DCAEGEN2-1915, DCAEGEN2-1856, DCAEGEN2-1556 (you can repeat this line with different jira#)",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 23
+      },
+      "revId": "7e1e83eebcacde368971eb23541125017c32d955",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e603e9f1_8d8c3662",
+        "filename": "ccsdk-app-os/src/main/webapp/WEB-INF/conf/dashboard.properties",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 93
+      },
+      "writtenOn": "2020-02-04T00:02:16Z",
+      "side": 1,
+      "message": "url must be changed for ONP setting.\n\ndev.url \u003d https://dashboard.onap.svc.cluster.local/api/v3.1",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 65
+      },
+      "revId": "7e1e83eebcacde368971eb23541125017c32d955",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d70883e7_b0426051",
+        "filename": "ccsdk-app-os/src/main/webapp/WEB-INF/conf/dashboard.properties",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 93
+      },
+      "writtenOn": "2020-02-04T00:02:16Z",
+      "side": 1,
+      "message": "admin",
+      "range": {
+        "startLine": 23,
+        "startChar": 15,
+        "endLine": 23,
+        "endChar": 30
+      },
+      "revId": "7e1e83eebcacde368971eb23541125017c32d955",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8463ae17_665c0be4",
+        "filename": "ccsdk-app-os/src/main/webapp/WEB-INF/conf/system.properties.template",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 93
+      },
+      "writtenOn": "2020-02-04T00:02:16Z",
+      "side": 1,
+      "message": "This line to be removed for all impacted files",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 71
+      },
+      "revId": "7e1e83eebcacde368971eb23541125017c32d955",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "02941b8f_7bc5ba56",
+        "filename": "ccsdk-app-os/src/main/webapp/WEB-INF/fusion/conf/fusion.properties",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 93
+      },
+      "writtenOn": "2020-02-04T00:02:16Z",
+      "side": 1,
+      "message": "missing license header",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 23
+      },
+      "revId": "7e1e83eebcacde368971eb23541125017c32d955",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4d01eb3c_9b108d71",
+        "filename": "ccsdk-app-os/src/main/webapp/WEB-INF/fusion/conf/fusion.properties",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 93
+      },
+      "writtenOn": "2020-02-04T00:02:16Z",
+      "side": 1,
+      "message": "This will not apply for onap",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 91
+      },
+      "revId": "7e1e83eebcacde368971eb23541125017c32d955",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5d4ddc07_0f5b3ead",
+        "filename": "ccsdk-app-os/src/main/webapp/WEB-INF/fusion/conf/fusion.properties",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 93
+      },
+      "writtenOn": "2020-02-04T00:02:16Z",
+      "side": 1,
+      "message": "Not sure why this was changed? shld match to org/domainname should be onap",
+      "range": {
+        "startLine": 32,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 51
+      },
+      "revId": "7e1e83eebcacde368971eb23541125017c32d955",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3392986b_67d01aff",
+        "filename": "ccsdk-app-os/src/main/webapp/api-specs.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 93
+      },
+      "writtenOn": "2020-02-04T00:02:16Z",
+      "side": 1,
+      "message": "Pls also add the corresponding swagger file (generated based on this file from local deploy)",
+      "revId": "7e1e83eebcacde368971eb23541125017c32d955",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": false
+    }
+  ]
+}
