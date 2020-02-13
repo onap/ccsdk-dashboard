@@ -9,7 +9,7 @@
     }
   },
   "host": "dcae-dashboard:8080",
-  "basePath": "/ccsdk-app-os/nb-api",
+  "basePath": "/ccsdk-app/nb-api",
   "tags": [
     {
       "name": "Blueprints",

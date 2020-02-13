@@ -36,6 +36,10 @@ appDS2.config(function($routeProvider) {
 		templateUrl: 'app/ccsdk/inventory/inventory_deployment_table.html',
 		controller : 'inventoryDeploymentTableController'
 	})
+	.when('/idep/:depId', { 
+		templateUrl: 'app/ccsdk/inventory/inventory_deployment_table.html',
+		controller : 'inventoryDeploymentTableController'
+	})
 	.when('/sh', { 
 		templateUrl: 'app/ccsdk/consul/service_health_table.html',
 		controller : 'serviceHealthTableController'

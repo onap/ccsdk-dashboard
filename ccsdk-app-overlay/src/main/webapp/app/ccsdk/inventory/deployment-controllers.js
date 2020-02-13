@@ -1,5 +1,7 @@
 appDS2.controller('inventoryDeploymentTableController', function(
-		$rootScope, $scope, $interval, $log, $modal, modalService, InventoryDeploymentService, InventoryBlueprintService) {
+		$rootScope, $scope, $routeParams, $route, 
+		$interval, $log, $modal, modalService, 
+		InventoryDeploymentService, InventoryBlueprintService) {
 
 	'use strict';
 
@@ -19,7 +21,7 @@ appDS2.controller('inventoryDeploymentTableController', function(
 	// sorting
 	$scope.ecdapp.sortBy = null;
 	// searching
-	$scope.ecdapp.searchBy = null;
+	$scope.ecdapp.searchBy = $routeParams.depId;
 	$scope.ecdapp.selectedRow = null;  // initialize our variable to null
 	$scope.ecdapp.setClickedRow = function(index){  //function that sets the value of selectedRow to current index
 		$scope.ecdapp.selectedRow = index;
