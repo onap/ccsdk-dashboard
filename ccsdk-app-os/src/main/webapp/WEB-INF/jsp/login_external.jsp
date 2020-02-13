@@ -106,7 +106,9 @@
 		<br />
 		<div id="footer">
 			<div class="terms">
-				Copyright 2017 Open ECOMP and Linux Foundation.
+					 <p class="copyright-text">
+					 	&copy; 2020 ONAP. The Linux Foundation. 				
+					 </p> 
 			</div>
 		</div>
 	</body>

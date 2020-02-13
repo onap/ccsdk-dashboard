@@ -2,14 +2,14 @@
   "swagger": "2.0",
   "info": {
     "description": "API to manage deployment of microservices using blueprints.",
-    "version": "1.0.0",
+    "version": "1.3.0",
     "title": "DCAE Dashboard API",
     "contact": {
       "email": "rp5662@att.com"
     }
   },
   "host": "dcae-dashboard:8080",
-  "basePath": "/ccsdk-app-os/nb-api",
+  "basePath": "/ccsdk-app/nb-api",
   "tags": [
     {
       "name": "Blueprints",

@@ -34,10 +34,6 @@ CREATE TABLE IF NOT EXISTS dashboard_pg_db_common.blueprints (
 	name varchar(80), 
 	blueprint bytea);
 
--- ---------------------------------------------------------------------------------------------------------------
--- This script creates tables for the ECOMP Controller Dashboard web app.
--- in the 1707 release, same tables for both internal and external use.
--- ------------------------------------------------------------------------------------------------------------------
 --- CREATE SCHEMA (schema name);
 
 --- SET SEARCH_PATH = (schema name);
@@ -572,11 +568,6 @@ alter table dashboard_pg_db_common.fn_license
     add constraint fn_license_r02 foreign key (quantum_version_id) references dashboard_pg_db_common.fn_license_version(id);
 
 
--- ---------------------------------------------------------------------------------------------------------------
--- This script populates tables for the ECOMP Controller Dashboard web app.
--- in the 1707 release with data for all versions.
--- ---------------------------------------------------------------------------------------------------------------
-
 --- SET SEARCH_PATH = (schema name);
 
 -- fn_lu_activity
@@ -1020,7 +1011,7 @@ Insert into dashboard_pg_db_common.fn_role_function (ROLE_ID,FUNCTION_CD) values
 Insert into dashboard_pg_db_common.fn_user 
 	(USER_ID,ORG_ID,MANAGER_ID,FIRST_NAME,MIDDLE_NAME,LAST_NAME,PHONE,FAX,CELLULAR,EMAIL,ADDRESS_ID,ALERT_METHOD_CD,HRID,ORG_USER_ID,ORG_CODE,LOGIN_ID,LOGIN_PWD,LAST_LOGIN_DATE,ACTIVE_YN,CREATED_ID,CREATED_DATE,MODIFIED_ID,MODIFIED_DATE,IS_INTERNAL_YN,ADDRESS_LINE_1,ADDRESS_LINE_2,CITY,STATE_CD,ZIP_CODE,COUNTRY_CD,LOCATION_CLLI,ORG_MANAGER_USERID,COMPANY,DEPARTMENT_NAME,JOB_TITLE,TIMEZONE,DEPARTMENT,BUSINESS_UNIT,BUSINESS_UNIT_NAME,COST_CENTER,FIN_LOC_CODE,SILO_STATUS) 
 	values 
-	(1,null,null,'Super',null,'User','908-901-2494',null,null,'email@ecomp.att.com',null,null,null,'su1234',null,'su','fusion',to_date('21-AUG-14','%d-%M-%Y'),'Y',null,to_date('15-DEC-05','%d-%M-%Y'),1,to_date('21-AUG-14','%d-%M-%Y'),'N',null,null,null,'NJ',null,'US',null,null,null,null,null,10,null,null,null,null,null,null)
+	(1,null,null,'Super',null,'User','908-901-2494',null,null,'email@om.ops.com',null,null,null,'su1234',null,'su','fusion',to_date('21-AUG-14','%d-%M-%Y'),'Y',null,to_date('15-DEC-05','%d-%M-%Y'),1,to_date('21-AUG-14','%d-%M-%Y'),'N',null,null,null,'NJ',null,'US',null,null,null,null,null,10,null,null,null,null,null,null)
 	;
 
 -- fn_app
@@ -1139,15 +1130,15 @@ update dashboard_pg_db_common.fn_function set type = 'menu' , action = '*'  wher
 update dashboard_pg_db_common.fn_function set type = 'menu' , action = '*'  where function_cd = 'login';
 
 -- REST API docs
-Insert into ecompc_db_common.fn_function (FUNCTION_CD,FUNCTION_NAME,TYPE,ACTION) values ('menu_api','API Menu','menu','*');
+Insert into dashboard_pg_db_common.fn_function (FUNCTION_CD,FUNCTION_NAME,TYPE,ACTION) values ('menu_api','API Menu','menu','*');
 
-INSERT INTO fn_menu (MENU_ID, LABEL, PARENT_ID, SORT_ORDER, ACTION, FUNCTION_CD, ACTIVE_YN, SERVLET, QUERY_STRING, EXTERNAL_URL, TARGET, MENU_SET_CD, SEPARATOR_YN, IMAGE_SRC) 
+INSERT INTO dashboard_pg_db_common.fn_menu (MENU_ID, LABEL, PARENT_ID, SORT_ORDER, ACTION, FUNCTION_CD, ACTIVE_YN, SERVLET, QUERY_STRING, EXTERNAL_URL, TARGET, MENU_SET_CD, SEPARATOR_YN, IMAGE_SRC) 
 	VALUES (20,'REST API', 1, 35,'#', 'menu_api', 'Y','N/A','N/A','N/A','N/A','APP','N','icon-arrows-upload');
 
-INSERT INTO fn_menu (MENU_ID, LABEL, PARENT_ID, SORT_ORDER, ACTION, FUNCTION_CD, ACTIVE_YN, SERVLET, QUERY_STRING, EXTERNAL_URL, TARGET, MENU_SET_CD, SEPARATOR_YN, IMAGE_SRC) 
+INSERT INTO dashboard_pg_db_common.fn_menu (MENU_ID, LABEL, PARENT_ID, SORT_ORDER, ACTION, FUNCTION_CD, ACTIVE_YN, SERVLET, QUERY_STRING, EXTERNAL_URL, TARGET, MENU_SET_CD, SEPARATOR_YN, IMAGE_SRC) 
 	VALUES (21,'Documentation', 20, 35,'ecd#/api', 'menu_api', 'Y','N/A','N/A','N/A','N/A','APP','N','');
 	
-INSERT INTO fn_menu (MENU_ID, LABEL, PARENT_ID, SORT_ORDER, ACTION, FUNCTION_CD, ACTIVE_YN, SERVLET, QUERY_STRING, EXTERNAL_URL, TARGET, MENU_SET_CD, SEPARATOR_YN, IMAGE_SRC) 
+INSERT INTO dashboard_pg_db_common.fn_menu (MENU_ID, LABEL, PARENT_ID, SORT_ORDER, ACTION, FUNCTION_CD, ACTIVE_YN, SERVLET, QUERY_STRING, EXTERNAL_URL, TARGET, MENU_SET_CD, SEPARATOR_YN, IMAGE_SRC) 
 	VALUES (22,'Swagger Spec', 20, 40,'ecd#/api-spec', 'menu_api', 'Y','N/A','N/A','N/A','N/A','APP','N','');
 	
 Insert into dashboard_pg_db_common.fn_role_function (ROLE_ID,FUNCTION_CD) values (1,'menu_api');

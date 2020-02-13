@@ -3,7 +3,7 @@
     =============LICENSE_START=========================================================
    
     =================================================================================
-     Copyright (c) 2017 AT&T Intellectual Property. All rights reserved.
+     Copyright (c) 2020 AT&T Intellectual Property. All rights reserved.
     ================================================================================
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -18,23 +18,18 @@
      limitations under the License.
     ============LICENSE_END=========================================================
    
-     ECOMP is a trademark and service mark of AT&T Intellectual Property.
  -->
 
 <!DOCTYPE xml>
 <configuration scan="true" scanPeriod="3 seconds" debug="true">
-  <!-- 
-  Logback files for the ECOMP SDK Application "ecomp_app"
-  are created in directory ${catalina.base}/logs/ecomp_app;
-  e.g., apache-tomcat-8.0.35/logs/ecomp_app/application.log  
-  -->
+
   <!--<jmxConfigurator /> -->
 
     <!--  specify the component name -->
   <property name="componentName" value="dashboard"></property>
   
   <!--  specify the base path of the log directory -->
-  <property name="logDirPrefix" value="/opt/logs/ecompc"></property>
+  <property name="logDirPrefix" value="/opt/logs/dcae"></property>
   
   <!-- The directories where logs are written -->
   <property name="logDirectory" value="${logDirPrefix}/${componentName}" />
