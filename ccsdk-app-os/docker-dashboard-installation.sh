@@ -3,8 +3,8 @@
 # run import for ca certs
 if [ -e /usr/local/share/ca-certificates/cacert.pem ]
 then
-    mv /usr/local/share/ca-certificates/cacert.pem /usr/local/share/ca-certificates/cacert.crt
-    update-ca-certificates
+    sudo mv /usr/local/share/ca-certificates/cacert.pem /usr/local/share/ca-certificates/cacert.crt
+    sudo -- bash -c 'export JAVA_HOME=/usr/local/openjdk-8; /usr/sbin/update-ca-certificates'
 fi
 
 # Unzip the dashboard war file

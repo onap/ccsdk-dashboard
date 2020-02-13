@@ -143,7 +143,8 @@
                             		<div> <span class="font-medium">{{$index+1}}</span> </div>    	
                             		<div class="b2b-leading-dots">
                             			<span class="font-medium">Deployment ID</span>
-                            			<span class="pull-right" ng-bind="srvcData.serviceId"/>
+                            			<!--  <span class="pull-right" ng-bind="srvcData.serviceId"><a href="ecd#/idep/{{srvcData.serviceId}}"></a></span>-->
+                            			<span class="pull-right"><a href="ecd#/idep/{{srvcData.serviceId}}">{{srvcData.serviceId}}</a></span>
                             		</div>
                             		<div class="b2b-leading-dots">
                             			<span class="font-medium">Created timestamp</span>
