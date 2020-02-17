@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "834675fb_c5a55a8c",
+        "filename": "ccsdk-app-os/src/main/resources/swagger.json",
+        "patchSetId": 4
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 93
+      },
+      "writtenOn": "2020-02-17T17:33:29Z",
+      "side": 1,
+      "message": "correspond to version in pom.xml",
+      "range": {
+        "startLine": 5,
+        "startChar": 16,
+        "endLine": 5,
+        "endChar": 21
+      },
+      "revId": "2053c275b1e9b24fb8b39e28c92f01964ed48564",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": false
+    }
+  ]
+}
