@@ -6,12 +6,12 @@
 	<parent>
 	    <groupId>org.onap.ccsdk.dashboard</groupId>
 	    <artifactId>ccsdk-app-parent</artifactId>
-	    <version>1.3.0-SNAPSHOT</version>
+	    <version>1.3.1-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.onap.ccsdk.dashboard</groupId>
 	<artifactId>ccsdk-app-overlay</artifactId>
-	<version>1.3.0-SNAPSHOT</version>
+	<version>1.3.1-SNAPSHOT</version>
 	<packaging>war</packaging>
 	<name>ONAP Operations Manager Dashboard overlay</name>
 	<description>CCSDK Dashboard web resources</description>

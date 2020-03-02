@@ -95,10 +95,10 @@ public class ServiceType {
     private final Optional<String> deactivated;
 
     /** Map that stores the inputs for a Blueprint */
-    private final Map<String, BlueprintInput> blueprintInputs;
+    private Map<String, BlueprintInput> blueprintInputs;
 
     /** Description of a blueprint */
-    private final String blueprintDescription;
+    private String blueprintDescription;
 
     /** internal role based setting */
     private Optional<Boolean> canDeploy;
@@ -233,11 +233,12 @@ public class ServiceType {
         this.deactivated = Optional.ofNullable(deactivated);
         this.canDeploy = Optional.of(false);
         try {
-            this.blueprintInputs = Blueprint.parse(blueprintTemplate).getInputs();
-            this.blueprintDescription = Blueprint.parse(blueprintTemplate).getDescription();
+            Blueprint bpObj = Blueprint.parse(blueprintTemplate);
+            this.blueprintInputs = bpObj.getInputs();
+            this.blueprintDescription = bpObj.getDescription();
         } catch (BlueprintParseException e) {
-            throw new RuntimeException(
-                    "Error while parsing blueprint template for " + this.typeName + " " + this.typeVersion, e);
+/*            throw new RuntimeException(
+                    "Error while parsing blueprint template for " + this.typeName + " " + this.typeVersion, e);*/
         }
     }
 
