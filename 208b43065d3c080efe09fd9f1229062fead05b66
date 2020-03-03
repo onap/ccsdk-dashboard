@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9105f1a6_71b38b27",
+        "filename": "releases/1.3.1.yaml",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 481
+      },
+      "writtenOn": "2020-03-03T22:30:51Z",
+      "side": 1,
+      "message": "Please use 237",
+      "range": {
+        "startLine": 4,
+        "startChar": 45,
+        "endLine": 4,
+        "endChar": 48
+      },
+      "revId": "208b43065d3c080efe09fd9f1229062fead05b66",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": false
+    }
+  ]
+}
