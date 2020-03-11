@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "689a0be5_88812e9c",
+        "filename": "ccsdk-app-os/docker-dashboard-installation.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 105
+      },
+      "writtenOn": "2020-03-11T18:30:14Z",
+      "side": 1,
+      "message": "license/copyright notice is missing",
+      "revId": "8e7c2b502453c053dcb107b068e0079b9f7cd7a5",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8a61e24c_64bdfd75",
+        "filename": "ccsdk-app-os/docker-dashboard-installation.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 105
+      },
+      "writtenOn": "2020-03-11T18:30:14Z",
+      "side": 1,
+      "message": "this\n\u003c cat /usr/local/share/ca-certificates/jks.pass\nneeds to be\n\u003c /usr/local/share/ca-certificates/jks.pass",
+      "revId": "8e7c2b502453c053dcb107b068e0079b9f7cd7a5",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": false
+    }
+  ]
+}
