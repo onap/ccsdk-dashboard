@@ -54,7 +54,7 @@ then
     protocol=\"org.apache.coyote.http11.Http11NioProtocol\"
     port=\"8443\" maxThreads=\"200\"
     scheme=\"https\" secure=\"true\" SSLEnabled=\"true\"
-    keystoreFile=\"/usr/local/share/ca-certificates/cert.jks\" keystorePass=\"`cat /usr/local/share/ca-certificates/jks.pass`\"
+    keystoreFile=\"/usr/local/share/ca-certificates/cert.jks\" keystorePass=\"`sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -e 's/"/\&quot;/g' -e "s/'/\&apos;/g" < cat /usr/local/share/ca-certificates/jks.pass`\"
     clientAuth=\"false\" sslProtocol=\"TLS\"/>" >> enablehttps.txt
     sed '/Service name=\"Catalina\">/r enablehttps.txt' $CATALINA_HOME/conf/server.xml > $CATALINA_HOME/conf/server-https.xml
     mv $CATALINA_HOME/conf/server-https.xml $CATALINA_HOME/conf/server.xml
