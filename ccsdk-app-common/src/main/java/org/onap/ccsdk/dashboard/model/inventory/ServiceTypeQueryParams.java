@@ -33,9 +33,10 @@ public class ServiceTypeQueryParams {
     private final String asdcResourceId;
     private final String application;
     private final String component;
+    private final String owner;
 
     // Non-instantiable
-    private ServiceTypeQueryParams() {
+    private ServiceTypeQueryParams(org.onap.ccsdk.dashboard.model.inventory.ServiceTypeSummary.Builder builder) {
         this.typeName = null;
         this.onlyLatest = null;
         this.onlyActive = null;
@@ -46,11 +47,12 @@ public class ServiceTypeQueryParams {
         this.asdcResourceId = null;
         this.application = null;
         this.component = null;
+        this.owner = null;
     }
 
     private ServiceTypeQueryParams(String typeName, Boolean onlyLatest, Boolean onlyActive, String vnfType,
             String serviceId, String serviceLocation, String asdcServiceId, String asdcResourceId, String application,
-            String component) {
+            String component, String owner) {
         this.typeName = typeName;
         this.onlyLatest = onlyLatest;
         this.onlyActive = onlyActive;
@@ -61,6 +63,7 @@ public class ServiceTypeQueryParams {
         this.asdcResourceId = asdcResourceId;
         this.application = application;
         this.component = component;
+        this.owner = owner;
     }
 
     public static class Builder {
@@ -74,7 +77,13 @@ public class ServiceTypeQueryParams {
         private String asdcResourceId;
         private String application;
         private String component;
+        private String owner;
 
+        public Builder owner(String owner) {
+            this.owner = owner;
+            return this;
+        }
+        
         public Builder typeName(String typeName) {
             this.typeName = typeName;
             return this;
@@ -115,9 +124,18 @@ public class ServiceTypeQueryParams {
             return this;
         }
 
+        public Builder application(String application) {
+            this.application = application;
+            return this;
+        }
+        
+        public Builder component(String component) {
+            this.component = component;
+            return this;
+        }
         public ServiceTypeQueryParams build() {
             return new ServiceTypeQueryParams(typeName, onlyLatest, onlyActive, vnfType, serviceId, serviceLocation,
-                    asdcServiceId, asdcResourceId, application, component);
+                    asdcServiceId, asdcResourceId, application, component, owner);
         }
     }
 
@@ -159,5 +177,9 @@ public class ServiceTypeQueryParams {
 
     public String getComponent() {
         return this.component;
+    }
+    
+    public String getOwner() {
+        return this.owner;
     }
 }

@@ -28,11 +28,11 @@ public class ServiceTypeServiceMap {
 
     private final String serviceTypeId;
 
-    private final ServiceRefList serviceRefList;
+    private final Object serviceRefList;
 
     @JsonCreator
     public ServiceTypeServiceMap(@JsonProperty("serviceTypeId") String serviceTypeId,
-            @JsonProperty("created") ServiceRefList serviceRefList) {
+            @JsonProperty("serviceRefList") Object serviceRefList) {
         this.serviceTypeId = serviceTypeId;
         this.serviceRefList = serviceRefList;
     }
@@ -41,7 +41,7 @@ public class ServiceTypeServiceMap {
         return serviceTypeId;
     }
 
-    public ServiceRefList getServiceRefList() {
+    public Object getServiceRefList() {
         return serviceRefList;
     }
 }

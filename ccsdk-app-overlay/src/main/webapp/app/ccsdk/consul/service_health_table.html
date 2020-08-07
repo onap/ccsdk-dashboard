@@ -50,9 +50,10 @@
 							<th b2b-table-header key="status">Status</th>
 							<th b2b-table-header key="node">Node Name</th>
 							<th b2b-table-header key="serviceID">Service ID</th>
+							<th b2b-table-header key="serviceID">Tenant</th>
 							<th b2b-table-header key="notes">Notes</th>
 							<th b2b-table-header key="output">Output</th>
-				  			<th b2b-table-header sortable="false"><i class="icon-settings ecd-icon-display"></i></th>
+				  			<th b2b-table-header sortable="false"><i class="icon-controls-gear ecd-icon-display"></i></th>
 						</tr>
 					</thead>
 
@@ -69,11 +70,12 @@
 							</td>
 							<td b2b-table-body ng-bind="rowData.node" />
 							<td b2b-table-body ng-bind="rowData.serviceID" />
+							<td b2b-table-body ng-bind="rowData.tenant" />
 							<td b2b-table-body ng-bind="rowData.notes" />
 							<td b2b-table-body ng-bind="rowData.output" />
 							<td b2b-table-body> 
 						    	<div ng-click="ecdapp.viewHealthHistoryModalPopup(rowData);">
-						    		<a href="" title="View history" class="icoDocuments-bookmarks ecd-icon-action"></a>
+						    		<a href="" title="View history" class="icon-datanetwork-history ecd-icon-action"></a>
 						    	</div>
 						    	<div ng-click="ecdapp.deregisterServiceModalPopup(rowData);">
 						    		<a href="" title="Deregister service" class="icon-misc-trash ecd-icon-action"></a>

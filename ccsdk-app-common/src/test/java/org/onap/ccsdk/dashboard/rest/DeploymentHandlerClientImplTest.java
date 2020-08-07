@@ -36,17 +36,20 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Matchers;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.onap.ccsdk.dashboard.exceptions.BadRequestException;
 import org.onap.ccsdk.dashboard.exceptions.DeploymentNotFoundException;
 import org.onap.ccsdk.dashboard.exceptions.DownstreamException;
 import org.onap.ccsdk.dashboard.exceptions.ServerErrorException;
 import org.onap.ccsdk.dashboard.exceptions.ServiceAlreadyExistsException;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyDeployment;
 import org.onap.ccsdk.dashboard.model.deploymenthandler.DeploymentLink;
 import org.onap.ccsdk.dashboard.model.deploymenthandler.DeploymentRequest;
 import org.onap.ccsdk.dashboard.model.deploymenthandler.DeploymentResponse;
 import org.onap.ccsdk.dashboard.model.deploymenthandler.DeploymentResponseLinks;
 import org.onap.ccsdk.dashboard.model.deploymenthandler.DeploymentsListResponse;
 import org.onap.ccsdk.dashboard.util.DashboardProperties;
+import org.onap.portalsdk.core.util.CacheManager;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -66,20 +69,40 @@ public class DeploymentHandlerClientImplTest {
     @Mock
     RestTemplate mockRest;
 
+    @Mock
+    CloudifyClient cfyClient;
+    
     @InjectMocks
     DeploymentHandlerClientImpl subject;
 
     @Before
     public void setUp() throws Exception {
+        MockitoAnnotations.initMocks(this);
         PowerMockito.mockStatic(DashboardProperties.class);
-        when(DashboardProperties.getControllerProperty("dev",
-            DashboardProperties.CONTROLLER_SUBKEY_DHANDLER_URL)).thenReturn("https://dplh.com");
+        when(DashboardProperties.getControllerProperty("site.primary",
+            DashboardProperties.SITE_SUBKEY_DHANDLER_URL)).thenReturn("https://dplh.com");
+        CacheManager testCache = new CacheManager();
+        subject.setCacheManager(testCache); 
         this.subject.init();
-
     }
 
     @After
     public void tearDown() throws Exception {
+    }
+
+    @Test
+    public final void testCheckHealth() {
+        String expectStr = "DH mS health check";
+        ResponseEntity<String> response = 
+            new ResponseEntity<String>(expectStr, HttpStatus.OK);
+        
+        when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.GET),
+            Matchers.<HttpEntity<?>>any(),
+            Matchers.<ParameterizedTypeReference<String>>any())).thenReturn(response)
+                .thenReturn(response);
+        
+        String actualStr = subject.checkHealth();
+        assertTrue(actualStr.equals(expectStr));
     }
 
     @Test
@@ -206,93 +229,6 @@ public class DeploymentHandlerClientImplTest {
     }
 
     @Test
-    public final void testUpdateDeployment() throws Exception {
-        DeploymentRequest deplReq = new DeploymentRequest("serviceTypeId", null);
-
-        DeploymentResponseLinks newDeplItemLink =
-            new DeploymentResponseLinks("selfUrl", "statusUrl");
-        DeploymentResponse expectedDeplItem = new DeploymentResponse("req1", newDeplItemLink);
-
-        ResponseEntity<DeploymentResponse> response =
-            new ResponseEntity<DeploymentResponse>(expectedDeplItem, HttpStatus.OK);
-
-        when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.PUT),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<DeploymentResponse>>any())).thenReturn(response);
-
-        DeploymentResponse actualResponse = subject.updateDeployment("dpl12", "tenant12", deplReq);
-        assertTrue(actualResponse.getRequestId().equals("req1"));
-    }
-
-    @Test(expected = DownstreamException.class)
-    public final void testUpdateDeployment_downstreamError() throws Exception {
-
-        DeploymentRequest deplReq = new DeploymentRequest("serviceTypeId", null);
-
-        HttpServerErrorException httpException =
-            new HttpServerErrorException(HttpStatus.BAD_GATEWAY, "statusText");
-
-        when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.PUT),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<DeploymentResponse>>any()))
-                .thenThrow(httpException);
-
-        subject.updateDeployment("dpl12", "tenant12", deplReq);
-
-    }
-
-    @Test(expected = BadRequestException.class)
-    public final void testUpdateDeployment_badReqError() throws Exception {
-
-        DeploymentRequest deplReq = new DeploymentRequest("serviceTypeId", null);
-
-        HttpClientErrorException httpException =
-            new HttpClientErrorException(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "statusText");
-
-        when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.PUT),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<DeploymentResponse>>any()))
-                .thenThrow(httpException);
-
-        subject.updateDeployment("dpl12", "tenant12", deplReq);
-
-    }
-
-    @Test(expected = ServiceAlreadyExistsException.class)
-    public final void testUpdateDeployment_srvcExistError() throws Exception {
-
-        DeploymentRequest deplReq = new DeploymentRequest("serviceTypeId", null);
-
-        HttpClientErrorException httpException =
-            new HttpClientErrorException(HttpStatus.CONFLICT, "statusText");
-
-        when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.PUT),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<DeploymentResponse>>any()))
-                .thenThrow(httpException);
-
-        subject.updateDeployment("dpl12", "tenant12", deplReq);
-
-    }
-
-    @Test(expected = ServerErrorException.class)
-    public final void testUpdateDeployment_srvcError() throws Exception {
-
-        DeploymentRequest deplReq = new DeploymentRequest("serviceTypeId", null);
-
-        HttpServerErrorException httpException =
-            new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "statusText");
-
-        when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.PUT),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<DeploymentResponse>>any()))
-                .thenThrow(httpException);
-
-        subject.updateDeployment("dpl12", "tenant12", deplReq);
-
-    }
-
-    @Test
     public final void testDeleteDeployment() throws Exception {
         DeploymentResponseLinks newDeplItemLink =
             new DeploymentResponseLinks("selfUrl", "statusUrl");
@@ -304,6 +240,12 @@ public class DeploymentHandlerClientImplTest {
         when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.DELETE),
             Matchers.<HttpEntity<?>>any(),
             Matchers.<ParameterizedTypeReference<DeploymentResponse>>any())).thenReturn(response);
+
+        CloudifyDeployment cfyDepl = 
+            new CloudifyDeployment("description", "blueprint_id", "created_at", "updated_at", 
+                "id", null, null, null, null, null, null, null, "tenant_name");
+
+        when(cfyClient.getDeploymentResource(Matchers.anyString(), Matchers.anyString())).thenReturn(cfyDepl);
 
         subject.deleteDeployment("deploymentId", "tenant");
     }

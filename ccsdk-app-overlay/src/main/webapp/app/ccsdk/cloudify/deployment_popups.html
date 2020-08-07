@@ -1,3 +1,43 @@
+<script type="text/ng-template" id="blueprint_content_popup.html">
+  <div class="b2b-modal-header ng-scope">
+    <h2 id="myModalLabel" modal-title="">{{ecdapp.label}}</h2>
+    <div class="corner-button in">
+      <button type="button" class="close" aria-label="Close"
+        ng-click="$dismiss('cancel')"></button>
+    </div>
+  </div>
+  <div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
+    role="region" aria-label="Modal body content">
+    <!-- show progress indicator -->
+    <div ng-show="ecdapp.isDataLoading">
+      <div class="span" style="margin-bottom: 20px;">
+        <i class="icon-spinner small" role="img"
+          aria-label="Please wait while the content loads"></i> Please
+        wait while the content loads.
+      </div>
+    </div>
+    <div ng-show="ecdapp.errMsg">
+      <span class="ecd-error-message">{{ecdapp.errMsg}}</span>
+    </div>
+    <div class="row-nowrap">
+      <div class="span12">
+        <label for="typeName">Blueprint Name</label>
+        <!--not editable-->
+        <input id="typeName" class="span12" type="text"
+          disabled="disabled" data-ng-model="ecdapp.typeName" />
+      </div>
+    </div>
+    <div ng-hide="ecdapp.errMsg">
+      <pre>{{ecdapp.blueprint}}</pre>
+    </div>
+  </div>
+  <div class="b2b-modal-footer ng-scope ng-isolate-scope">
+    <div class="cta-button-group in">
+      <button class="btn btn-alt btn-small" type="button"
+        ng-click="$dismiss('cancel');">Close</button>
+    </div>
+  </div>
+</script>
 <script type="text/ng-template" id="deployment_execute_popup.html">
 
 	<style>
@@ -91,7 +131,7 @@
 		            	<tbody ng-repeat="(pkey, pval) in ecdapp.editRequest.parmFileDict">
 							<tr id="tr-rowData">
 								<td ng-bind="pkey"/>
-								<td ng-bind="pval"/>
+								<td><input id="parameterValue" class="span12" type="text" data-ng-model="ecdapp.editRequest.parmFileDict[pkey]" autofocus/></td>
 							</tr>
 						</tbody>
 					</table>
@@ -116,49 +156,138 @@
 
 </script>
 
-<script type="text/ng-template" id="deployment_delete_popup.html">
-	
-
-	<div class="b2b-modal-header ng-scope">
-		<h2 id="myModalLabel" modal-title="">{{ecdapp.label}}</h2>
-		<div class="corner-button in">
-			<button type="button" class="close" aria-label="Close"
-				ng-click="$dismiss('cancel')"></button>
-		</div>
-	</div>
-
-	<div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
+<script type="text/ng-template" id="app_reconfig_view_popup.html">
+  <div class="b2b-modal-header ng-scope">
+  <h2 id="myModalLabel" modal-title="">
+    <span style="font-weight: bolder; background: aqua;">{{ecdapp.deploymentId}}</span>
+    Execute Reconfiguration
+  </h2>
+  <div class="corner-button in">
+    <button type="button" class="close" aria-label="Close"
+      ng-click="$dismiss('cancel')"></button>
+  </div>
+  </div>
+  <div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
 		role="region" aria-label="Modal body content">
- 
-		<div class="span12">
-			<div class="form-row">					
-				<div class="field-group">
-					<label>
-						Delete deployment with ID '{{ecdapp.deploymentId}}'?
-					</label>
+     <!-- show progress indicator -->
+    <div ng-show="ecdapp.isDataLoading">
+      <div class="span" style="margin-bottom: 20px;">
+        <i class="icon-spinner small" role="img"
+          aria-label="Please wait while the content loads"></i> Please
+        wait while the content loads.
+      </div>
+    </div>
+    <div ng-show="ecdapp.errMsg">
+      <span class="ecd-error-message">{{ecdapp.errMsg}}</span>
+    </div>
+	<div ng-hide="ecdapp.isDataLoading" style="margin-top: 10px;">
+        <div class="row-nowrap">
+			<div class="span9">
+				<div class="form-row">
+					<label for="parameters">Configuration Inputs</label>
+					<div class="tooltip" b2b-tooltip trigger="focus" style="float:right;">
+						<a  href="javascript:void(0)" class="tooltip-element" data-placement="left" role="button" aria-label="Help"  aria-describedby="tooltiptext1" >
+						blueprint
+						<div class="arrow"></div>
+						</a>
+						<div class="tooltip-wrapper" role="tooltip" aria-live="polite" aria-atomic="false" style="z-index:1111">
+							<div class="tooltip-size-control">
+								<div class="helpertext" tabindex="-1" role="tooltip" id="tooltiptext1">  
+									<div class="popover-title">Application Configuration Blueprint</div>  
+									<div class="popover-content">
+										<pre>{{ecdapp.app_config_bp_str}}</pre>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div b2b-file-drop
+						file-model="ecdapp.editRequest.fileModel"
+						on-drop="handleFileSelect()" align="center">
+						<span b2b-file-link
+						file-model="ecdapp.editRequest.fileModel"
+						on-file-select="handleFileSelect()"> Drag
+						&amp; drop a parameters JSON file here, or click to
+						browse. </span>
+					</div>
+				</div>
+				<div class="ecd-parameter-table">
+					<table id="parameters">
+						<tr id="ecd-table-header">
+						<th width="20%">Name</th>
+						<th width="40%">Initial Value</th>
+						<th width="40%">Current Value</th>
+						</tr>
+						<tbody
+						ng-repeat="(pkey, pval) in ecdapp.parmFileDict">
+						<tr id="tr-rowData">
+							<td>
+							<div style="font-weight: bold;">{{pkey}}</div> 
+							<div style="margin-top: 8px; font-weight: lighter;">{{ecdapp.descriptionDict[pkey]}}</div>
+							</td>
+							<td><input class="span12"
+							type="text" disabled="disabled"
+							data-ng-model="ecdapp.parmFileDict[pkey]"
+							autofocus />
+							</td>
+							<td><input class="span12"
+							type="text"
+							data-ng-model="ecdapp.parmCurrFileDict[pkey]"
+							ng-keyup="ecdapp.refreshAppConfig(ecdapp.parmCurrFileDict);"
+							autofocus />
+							</td>
+						</tr>
+						</tbody>
+					</table>
+				</div>
+				<!--
+				<div class="reconfig-params" style="margin-top: 10px;">
+					<label for="parameters">Configuration Override</label>
+					<table id="reconfig">
+						<tr id="ecd-table-header">
+						<th width="50%">Name</th>
+						<th width="50%">Value</th>
+						</tr>
+						<tbody
+						ng-repeat="(pkey, pval) in ecdapp.appConfigOverride">
+						<tr id="tr-rowData">
+							<td>
+							<div style="font-weight: bold;">{{pkey}}</div>
+							</td>
+							<td><input class="span12"
+							type="text"
+							ng-keyup="ecdapp.refreshAppConfigOverride(pkey, pval);"
+							data-ng-model="ecdapp.appConfigOverride[pkey]" autofocus />
+							</td>
+						</tr>
+						</tbody>
+					</table>
+				</div>
+				-->
+			</div>
+			<div class="span3">
+				<div class="form-row">
+				<label style="text-decoration: underline;">Application Configuration</label>
+				<pre style="font-weight: bold;">{{ecdapp.app_config_latest_str}}</pre>
 				</div>
 			</div>
-		</div>
-
-		<div class="span12">
-			<div class="form-row">
-				<label for="ignoreLiveNodesCheck">&nbsp;</label>
-				<div class="field-group">
-                	<label for="ignoreLiveNodes" class="checkbox">
-   	                	<input id="ignoreLiveNodes" type="checkbox" ng-model="ecdapp.ignoreLiveNodes" />
-						<i class="skin"></i><span>Ignore Live Nodes</span>
-           	    	</label>
-				</div>
-			</div>
-		</div> 
-
+        </div>
 	</div>
-
-	<div class="b2b-modal-footer ng-scope ng-isolate-scope">
+    <!-- show progress indicator -->
+    <div style="width: 100%;">
+      <div ng-show="ecdapp.updatingDeployment"
+        style="display: table; margin: 0 auto;" class="span">
+        <i class="icon-spinner small" role="img"
+          aria-label="Update Deployment in Progress..."></i> Update
+        Deployment in Progress...
+      </div>
+    </div>
+	<div ng-hide="ecdapp.isDataLoading" class="b2b-modal-footer ng-scope ng-isolate-scope">
 		<div class="cta-button-group in">
 			<button class="btn btn-alt btn-small" type="button"
-					ng-click="ecdapp.deleteDeploymentById(deployment);">
-				Delete
+					ng-show="!ecdapp.updatingDeployment" 
+					ng-click="ecdapp.reconfigDeploymentById(ecdapp.parmCurrFileDict);">					
+				Submit
 			</button>
 			<button class="btn btn-small" type="button"
 				ng-click="$dismiss('cancel')">

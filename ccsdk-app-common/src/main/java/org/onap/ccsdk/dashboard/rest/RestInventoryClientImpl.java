@@ -28,51 +28,61 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Predicate;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
-import org.onap.ccsdk.dashboard.exceptions.inventory.ServiceAlreadyDeactivatedException;
-import org.onap.ccsdk.dashboard.exceptions.inventory.ServiceNotFoundException;
 import org.onap.ccsdk.dashboard.exceptions.inventory.ServiceTypeAlreadyDeactivatedException;
 import org.onap.ccsdk.dashboard.exceptions.inventory.ServiceTypeNotFoundException;
 import org.onap.ccsdk.dashboard.model.inventory.ApiResponseMessage;
-import org.onap.ccsdk.dashboard.model.inventory.InventoryProperty;
 import org.onap.ccsdk.dashboard.model.inventory.Link;
 import org.onap.ccsdk.dashboard.model.inventory.Service;
-import org.onap.ccsdk.dashboard.model.inventory.ServiceGroupByResults;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceList;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceQueryParams;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceRef;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceRefList;
-import org.onap.ccsdk.dashboard.model.inventory.ServiceRequest;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceType;
-import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeList;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeQueryParams;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeRequest;
+import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeSummary;
+import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeSummaryList;
 import org.onap.ccsdk.dashboard.util.DashboardProperties;
+import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
+import org.onap.portalsdk.core.objectcache.AbstractCacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 
 @org.springframework.stereotype.Service
+@Component
 public class RestInventoryClientImpl extends RestClientBase implements InventoryClient {
-
+    private static EELFLoggerDelegate logger =
+        EELFLoggerDelegate.getLogger(RestInventoryClientImpl.class);
+    
     private String baseUrl;
     public static final String SERVICE_TYPES = "dcae-service-types";
     public static final String SERVICES = "dcae-services";
     public static final String SERVICES_GROUPBY = "dcae-services-groupby";
+    public static final String HEALTH_CHECK = "healthcheck";
 
+    /**
+     * For caching data 
+     */
+    private AbstractCacheManager cacheManager;
+    
     @PostConstruct
     public void init() {
-        String webapiUrl = DashboardProperties.getControllerProperty("dev",
-            DashboardProperties.CONTROLLER_SUBKEY_INVENTORY_URL);
+        String webapiUrl = DashboardProperties.getControllerProperty("site.primary",
+            DashboardProperties.SITE_SUBKEY_INVENTORY_URL);
         if (webapiUrl == null)
             throw new IllegalArgumentException("Null URL not permitted");
         URL url = null;
@@ -90,28 +100,74 @@ public class RestInventoryClientImpl extends RestClientBase implements Inventory
 
     }
 
-    public Stream<ServiceType> getServiceTypes() {
-        String url = buildUrl(new String[] { baseUrl, SERVICE_TYPES }, null);
-        ResponseEntity<ServiceTypeList> response = restTemplate.exchange(url, HttpMethod.GET, null,
-                new ParameterizedTypeReference<ServiceTypeList>() {
+    public String checkHealth() {
+        String url = buildUrl(new String[] { baseUrl, HEALTH_CHECK }, null);
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, null,
+                new ParameterizedTypeReference<String>() {
                 });
-        Collection<ServiceType> collection = response.getBody().items;
-
+        return response.getBody();
+    }
+    
+    @Scheduled(fixedDelay=300000, initialDelay=30000)
+    public void cacheServiceTypes() {
+        logger.debug(EELFLoggerDelegate.debugLogger, "cacheServiceTypes begin");
+        String url = buildUrl(new String[] { baseUrl, SERVICE_TYPES }, new String[] {"onlyLatest", "false"});
+        ResponseEntity<ServiceTypeSummaryList> response = restTemplate.exchange(url, HttpMethod.GET, null,
+                new ParameterizedTypeReference<ServiceTypeSummaryList>() {
+                });
+        Collection<ServiceTypeSummary> collection = response.getBody().items;
         // Continue retrieving items on the next page if they exist
         Link nextLink = response.getBody().paginationLinks.nextLink;
         while (nextLink != null) {
             url = response.getBody().paginationLinks.nextLink.href;
             response = restTemplate.exchange(url, HttpMethod.GET, null,
-                    new ParameterizedTypeReference<ServiceTypeList>() {
+                    new ParameterizedTypeReference<ServiceTypeSummaryList>() {
                     });
             collection.addAll(response.getBody().items);
             nextLink = response.getBody().paginationLinks.nextLink;
         }
-
-        return collection.stream();
+        ReadWriteLock lock = new ReentrantReadWriteLock();
+        // put into cache
+        lock.writeLock().lock();
+        getCacheManager().putObject(SERVICE_TYPES, collection);
+        lock.writeLock().unlock();
+        logger.debug(EELFLoggerDelegate.debugLogger, "cacheServiceTypes end");
     }
 
-    public Stream<ServiceType> getServiceTypes(ServiceTypeQueryParams serviceTypeQueryParams) {
+    public Stream<ServiceTypeSummary> getServiceTypes() {
+        String url = buildUrl(new String[] { baseUrl, SERVICE_TYPES }, new String[] {"onlyLatest", "false"});
+        ResponseEntity<ServiceTypeSummaryList> response = restTemplate.exchange(url, HttpMethod.GET, null,
+                new ParameterizedTypeReference<ServiceTypeSummaryList>() {
+                });
+        Collection<ServiceTypeSummary> collection = response.getBody().items;
+        // Continue retrieving items on the next page if they exist
+        Link nextLink = response.getBody().paginationLinks.nextLink;
+        while (nextLink != null) {
+            url = response.getBody().paginationLinks.nextLink.href;
+            response = restTemplate.exchange(url, HttpMethod.GET, null,
+                    new ParameterizedTypeReference<ServiceTypeSummaryList>() {
+                    });
+            collection.addAll(response.getBody().items);
+            nextLink = response.getBody().paginationLinks.nextLink;
+        }
+        ReadWriteLock lock = new ReentrantReadWriteLock();
+        // put into cache
+        lock.writeLock().lock();
+        getCacheManager().putObject(SERVICE_TYPES, collection);
+        lock.writeLock().unlock();
+        return collection.stream();
+    }
+    
+    @Autowired
+    public void setCacheManager(AbstractCacheManager cacheManager) {
+        this.cacheManager = cacheManager;
+    }
+
+    public AbstractCacheManager getCacheManager() {
+        return cacheManager;
+    }
+    
+    public Stream<ServiceTypeSummary> getServiceTypes(ServiceTypeQueryParams serviceTypeQueryParams) {
 
         // Only utilize the parameters that aren't null
         HashMap<String, String> map = new HashMap<>();
@@ -139,6 +195,12 @@ public class RestInventoryClientImpl extends RestClientBase implements Inventory
         if (serviceTypeQueryParams.getAsdcResourceId() != null) {
             map.put("asdcResourceId", serviceTypeQueryParams.getAsdcResourceId());
         }
+        if (serviceTypeQueryParams.getApplication() != null) {
+            map.put("application", serviceTypeQueryParams.getApplication());
+        }
+        if (serviceTypeQueryParams.getComponent() != null) {
+            map.put("component", serviceTypeQueryParams.getComponent());
+        }
         ArrayList<String> params = new ArrayList<>();
         for (Entry<String, String> ent : map.entrySet()) {
             params.add(ent.getKey());
@@ -146,17 +208,17 @@ public class RestInventoryClientImpl extends RestClientBase implements Inventory
         }
 
         String url = buildUrl(new String[] { baseUrl, SERVICE_TYPES }, params.toArray(new String[params.size()]));
-        ResponseEntity<ServiceTypeList> response = restTemplate.exchange(url, HttpMethod.GET, null,
-                new ParameterizedTypeReference<ServiceTypeList>() {
+        ResponseEntity<ServiceTypeSummaryList> response = restTemplate.exchange(url, HttpMethod.GET, null,
+                new ParameterizedTypeReference<ServiceTypeSummaryList>() {
                 });
-        Collection<ServiceType> collection = response.getBody().items;
+        Collection<ServiceTypeSummary> collection = response.getBody().items;
 
         // Continue retrieving items on the next page if they exist
         Link nextLink = response.getBody().paginationLinks.nextLink;
         while (nextLink != null) {
             url = response.getBody().paginationLinks.nextLink.href;
             response = restTemplate.exchange(url, HttpMethod.GET, null,
-                    new ParameterizedTypeReference<ServiceTypeList>() {
+                    new ParameterizedTypeReference<ServiceTypeSummaryList>() {
                     });
             collection.addAll(response.getBody().items);
             nextLink = response.getBody().paginationLinks.nextLink;
@@ -170,14 +232,31 @@ public class RestInventoryClientImpl extends RestClientBase implements Inventory
 
         // Take the ServiceType object and create a ServiceTypeRequest from it
         ServiceTypeRequest serviceTypeRequest = ServiceTypeRequest.from(serviceType);
-
-        return restTemplate.postForObject(url, serviceTypeRequest, ServiceType.class);
+        ServiceType upldBp = restTemplate.postForObject(url, serviceTypeRequest, ServiceType.class);
+        List<ServiceTypeSummary> itemList = this.getServiceTypes().collect(Collectors.toList());
+        ReadWriteLock lock = new ReentrantReadWriteLock();
+        lock.writeLock().lock();
+        getCacheManager().removeObject(SERVICE_TYPES);
+        // put updated collection back into cache
+        getCacheManager().putObject(SERVICE_TYPES, itemList);
+        lock.writeLock().unlock();
+        return upldBp;
     }
 
+    @SuppressWarnings("unchecked")
     public ServiceType addServiceType(ServiceTypeRequest serviceTypeRequest) {
         String url = buildUrl(new String[] { baseUrl, SERVICE_TYPES }, null);
-
-        return restTemplate.postForObject(url, serviceTypeRequest, ServiceType.class);
+        ServiceType uplBp = restTemplate.postForObject(url, serviceTypeRequest, ServiceType.class);
+        // update application cache with new record to refresh screen immediately
+        // query inventory for the newly uploaded entry, 
+        // using query params (typeName, owner, app, component)
+        List<ServiceTypeSummary> itemList = this.getServiceTypes().collect(Collectors.toList());
+        ReadWriteLock lock = new ReentrantReadWriteLock();
+        lock.writeLock().lock();
+        // put updated collection back into cache
+        getCacheManager().putObject(SERVICE_TYPES, itemList);
+        lock.writeLock().unlock();
+        return uplBp;
     }
 
     public Optional<ServiceType> getServiceType(String typeId) {
@@ -188,12 +267,33 @@ public class RestInventoryClientImpl extends RestClientBase implements Inventory
         return Optional.ofNullable(response.getBody());
     }
 
+    @SuppressWarnings("unchecked")
     public void deleteServiceType(String typeId)
             throws ServiceTypeNotFoundException, ServiceTypeAlreadyDeactivatedException {
         String url = buildUrl(new String[] { baseUrl, SERVICE_TYPES, typeId }, null);
+        ReadWriteLock lock = new ReentrantReadWriteLock();
         try {
-            restTemplate.exchange(url, HttpMethod.DELETE, null, new ParameterizedTypeReference<ApiResponseMessage>() {
+            ResponseEntity<ApiResponseMessage> response = 
+                restTemplate.exchange(url, HttpMethod.DELETE, null, 
+                    new ParameterizedTypeReference<ApiResponseMessage>() {
             });
+            // update the application cache
+            lock.readLock().lock();
+            List<ServiceTypeSummary> itemList = 
+                (List<ServiceTypeSummary>)getCacheManager().getObject(SERVICE_TYPES);
+            lock.readLock().unlock();
+            if (itemList == null) {
+                itemList = getServiceTypes().collect(Collectors.toList());
+            }
+            Predicate<ServiceTypeSummary> typeIdFilter =
+                p -> p.getTypeId().isPresent() && !p.getTypeId().get().equals(typeId);
+            itemList = (List<ServiceTypeSummary>)itemList.stream().filter(typeIdFilter).
+                    collect(Collectors.toList());
+            lock.writeLock().lock();
+            getCacheManager().removeObject(SERVICE_TYPES);
+            // put updated collection back into cache
+            getCacheManager().putObject(SERVICE_TYPES, itemList);
+            lock.writeLock().unlock();
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode().value() == 410) {
                 throw new ServiceTypeAlreadyDeactivatedException(e.getMessage());
@@ -203,7 +303,7 @@ public class RestInventoryClientImpl extends RestClientBase implements Inventory
         }
     }
 
-    public Stream<Service> getServices() {
+/*    public Stream<Service> getServices() {
         String url = buildUrl(new String[] { baseUrl, SERVICES }, null);
         ResponseEntity<ServiceList> response = restTemplate.exchange(url, HttpMethod.GET, null,
                 new ParameterizedTypeReference<ServiceList>() {
@@ -222,7 +322,7 @@ public class RestInventoryClientImpl extends RestClientBase implements Inventory
 
         return collection.stream();
     }
-
+*/
     public ServiceRefList getServicesForType(ServiceQueryParams serviceQueryParams) {
 
         // Only utilize the typeId
@@ -257,7 +357,7 @@ public class RestInventoryClientImpl extends RestClientBase implements Inventory
 
         return new ServiceRefList(srvcRefList, itemCnt);
     }
-
+/*
     public Stream<Service> getServices(ServiceQueryParams serviceQueryParams) {
 
         // Only utilize the parameters that aren't null
@@ -308,43 +408,22 @@ public class RestInventoryClientImpl extends RestClientBase implements Inventory
         return collection.stream();
     }
 
-    /*
-     * public Set<InventoryProperty> getPropertiesOfServices(String propertyName) {
-     * String url = buildUrl(new String[] {baseUrl, SERVICES_GROUPBY, propertyName},
-     * null); ResponseEntity<ServiceGroupByResults> response =
-     * restTemplate.exchange(url, HttpMethod.GET, null, new
-     * ParameterizedTypeReference<ServiceGroupByResults>() { }); return
-     * response.getBody().propertyValues; }
-     */
     public Optional<Service> getService(String serviceId) {
         String url = buildUrl(new String[] { baseUrl, SERVICES, serviceId }, null);
-        ResponseEntity<Service> response = restTemplate.exchange(url, HttpMethod.GET, null,
-                new ParameterizedTypeReference<Service>() {
-                });
+        ResponseEntity<Service> response = null;
+        try {
+        	response = restTemplate.exchange(url, HttpMethod.GET, null,
+                    new ParameterizedTypeReference<Service>() {
+                    });
+        }
+        catch(HttpClientErrorException e) {
+        	return null;
+        }
+        
         return Optional.ofNullable(response.getBody());
     }
-
-    public void putService(String typeId, Service service) {
-        String url = buildUrl(new String[] { baseUrl, SERVICES, service.getServiceId() }, null);
-
-        ServiceRequest serviceRequest = ServiceRequest.from(typeId, service);
-
-        restTemplate.exchange(url, HttpMethod.PUT, new HttpEntity<ServiceRequest>(serviceRequest),
-                new ParameterizedTypeReference<Service>() {
-                });
-    }
-
-    public void deleteService(String serviceId) throws ServiceNotFoundException, ServiceAlreadyDeactivatedException {
-        String url = buildUrl(new String[] { baseUrl, SERVICES, serviceId }, null);
-        try {
-            restTemplate.exchange(url, HttpMethod.DELETE, null, new ParameterizedTypeReference<ApiResponseMessage>() {
-            });
-        } catch (HttpClientErrorException e) {
-            if (e.getStatusCode().value() == 410) {
-                throw new ServiceAlreadyDeactivatedException(e.getMessage());
-            } else if (e.getStatusCode().value() == 404) {
-                throw new ServiceNotFoundException(e.getMessage());
-            }
-        }
+  */
+    public String getBaseUrl() {
+    	return this.baseUrl;
     }
 }

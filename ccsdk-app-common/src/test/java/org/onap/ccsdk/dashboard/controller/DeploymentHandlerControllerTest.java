@@ -27,6 +27,8 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -88,46 +90,13 @@ public class DeploymentHandlerControllerTest extends MockitoTestSuite {
     @Test
     public final void testPutDeployment_create() throws Exception {
         DeploymentRequestObject expectReq =
-            new DeploymentRequestObject("dep1", "dep1", null, "tenant1", "create");
-
+            new DeploymentRequestObject("dep1", "dep1", "create", null, "tenant1");
+        
         DeploymentResponseLinks expectLink = new DeploymentResponseLinks("self", "status");
         DeploymentResponse expectResp = new DeploymentResponse("req1", expectLink);
-
+        
         when(restClient.putDeployment(Matchers.anyString(), Matchers.anyString(),
-            Matchers.<DeploymentRequest>any())).thenReturn(expectResp).thenThrow(badReqError)
-                .thenThrow(srvcExistError).thenThrow(serverError).thenThrow(downStrmError)
-                .thenThrow(Exception.class);
-
-        String actualResp = subject.putDeployment(mockedRequest, expectReq);
-        assertTrue(actualResp.contains("req1"));
-
-        actualResp = subject.putDeployment(mockedRequest, expectReq);
-        assertTrue(actualResp.contains("error"));
-
-        actualResp = subject.putDeployment(mockedRequest, expectReq);
-        assertTrue(actualResp.contains("error"));
-
-        actualResp = subject.putDeployment(mockedRequest, expectReq);
-        assertTrue(actualResp.contains("error"));
-
-        actualResp = subject.putDeployment(mockedRequest, expectReq);
-        assertTrue(actualResp.contains("error"));
-
-        actualResp = subject.putDeployment(mockedRequest, expectReq);
-        assertTrue(actualResp.contains("error"));
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
-    public final void testPutDeployment_update() throws Exception {
-        DeploymentRequestObject expectReq =
-            new DeploymentRequestObject("dep1", "dep1", null, "tenant1", "update");
-
-        DeploymentResponseLinks expectLink = new DeploymentResponseLinks("self", "status");
-        DeploymentResponse expectResp = new DeploymentResponse("req1", expectLink);
-
-        when(restClient.updateDeployment(Matchers.anyString(), Matchers.anyString(),
-            Matchers.<DeploymentRequest>any())).thenReturn(expectResp).thenThrow(badReqError)
+            Matchers.<DeploymentRequest>any(), Matchers.<HttpServletRequest>any()) ).thenReturn(expectResp).thenThrow(badReqError)
                 .thenThrow(srvcExistError).thenThrow(serverError).thenThrow(downStrmError)
                 .thenThrow(Exception.class);
 
@@ -155,7 +124,7 @@ public class DeploymentHandlerControllerTest extends MockitoTestSuite {
 
         doNothing().doThrow(badReqError).doThrow(serverError).doThrow(downStrmError)
             .doThrow(notFoundError).doThrow(Exception.class).when(restClient)
-            .deleteDeployment(Matchers.anyString(), Matchers.anyString());
+            .deleteDeployment(Matchers.anyString(), Matchers.anyString(), Matchers.<HttpServletRequest>any());
 
         StringBuffer expectedStrBuff = new StringBuffer();
         expectedStrBuff.append("http://oom.s2.com");

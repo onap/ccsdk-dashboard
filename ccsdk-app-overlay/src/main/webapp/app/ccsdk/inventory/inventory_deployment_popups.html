@@ -1,657 +1,737 @@
 <script type="text/ng-template" id="inventory_deployment_execute_popup.html">
+<style>
+.ecd-parameter-table {
+	border: 0px;
+	overflow: auto;
+}
 
-	<style>
-	.ecd-parameter-table
-	{
-	    border:   0px;
-    	overflow: auto;
-	}
-	.ecd-parameter-table th 
-	{
-		font-size: 1.4rem;
-	}
-	</style>
-
-	<div class="b2b-modal-header ng-scope">
-		<h2 id="myModalLabel" modal-title="">{{ecdapp.label}}</h2>
-		<div class="corner-button in">
-			<button type="button" class="close" aria-label="Close"
-				ng-click="$dismiss('cancel')"></button>
-		</div>
-	</div>
-
-	<div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
-		role="region" aria-label="Modal body content">
-
-		<div class="row-nowrap">
-			<div class="span12">
-				<div class="form-row">
-					<label for="blueprintId">Deployment ID</label>
-					<div class="field-group">
-						<!--autofocus is HTML5 attribute; doesn't work in Firefox-->
-						<input id="blueprintId" class="span12" type="text" data-ng-model="ecdapp.editRequest.deployment_id" autofocus/>
-					</div>
-				</div>
-			</div> 
-			<div class="span12">
-				<div class="form-row">
-					<label for="allowCustom">&nbsp;</label>
-					<div class="field-group">
-	                	<label for="allowCustomParameters" class="checkbox">
-    	                	<input id="allowCustomParameters" type="checkbox" ng-model="ecdapp.editRequest.allow_custom_parameter" />
-							<i class="skin"></i><span>Allow Custom Parameters</span>
-            	    	</label>
-					</div>
-				</div>
-			</div> 
-		</div>			
-			
-		<div class="row-nowrap">
-			<div class="span12">
-				<div class="form-row">
-					<label for="workflowName">Workflow Name</label>
-					<div class="field-group">
-						<select b2b-dropdown id="workflowName" name="workflowName" ng-model="ecdapp.editRequest.workflow_name.value" ng-change="selectWorkflowName()">
-							<option b2b-dropdown-list option-repeat="w in ecdapp.editRequest.workflow_list" value="{{w}}">
-								{{w}}
-							</option>
-						</select>
-					</div>
-				</div>			
-			</div>
-			<div class="span12">
-				<div class="form-row">
-					<label for="force">&nbsp;</label>
-					<div class="field-group">
-	                	<label for="force" class="checkbox">
-    	                	<input id="force" type="checkbox" ng-model="ecdapp.editRequest.force" />
-							<i class="skin"></i><span>Force</span>
-            	    	</label>
-					</div>
-				</div>
-			</div> 
-		</div>
-
-		<div class="row-nowrap">
-			<div class="span12">
-				<div class="form-row">
-					<label for="parameters">*Parameters</label>
-    				<div b2b-file-drop file-model="ecdapp.editRequest.fileModel" on-drop="handleFileSelect()" align="center">
-	    					<span b2b-file-link file-model="ecdapp.editRequest.fileModel" on-file-select="handleFileSelect()" >
-    						Drag &amp; drop a parameters YAML file here, or click to browse.
-    						</span>
-			        </div>
-		        </div>
-				<div class="ecd-parameter-table">
-					<table id="parameters">
-						<tr id="ecd-table-header">
-							<th width="40%">Name</th>
-							<th width="60%">Value</th>
-						</tr>
-		            	<tbody ng-repeat="(pkey, pval) in ecdapp.editRequest.parmFileDict">
-							<tr id="tr-rowData">
-								<td ng-bind="pkey"/>
-								<td><input id="parameterValue" class="span12" type="text" data-ng-model="ecdapp.editRequest.parmFileDict[pkey]" autofocus/></td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-			</div>
-		</div>
-
-	</div>
-
-	<div class="b2b-modal-footer ng-scope ng-isolate-scope">
-		<div class="cta-button-group in">
-			<button class="btn btn-alt btn-small" type="button"
-					ng-click="ecdapp.executeDeployment(ecdapp.editRequest);">
-				Save
-			</button>
-			<button class="btn btn-small" type="button"
-				ng-click="$dismiss('cancel')">
-				Cancel
-			</button>
-		</div>
-	</div>
-
+.ecd-parameter-table th {
+	font-size: 1.4rem;
+}
+</style>
+<div class="b2b-modal-header ng-scope">
+  <h2 id="myModalLabel" modal-title="">{{ecdapp.label}}</h2>
+  <div class="corner-button in">
+    <button type="button" class="close" aria-label="Close"
+      ng-click="$dismiss('cancel')"></button>
+  </div>
+</div>
+<div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
+  role="region" aria-label="Modal body content">
+  <div class="row-nowrap">
+    <div class="span12">
+      <div class="form-row">
+        <label for="blueprintId">Deployment ID</label>
+        <div class="field-group">
+          <!--autofocus is HTML5 attribute; doesn't work in Firefox-->
+          <input id="blueprintId" class="span12" type="text"
+            data-ng-model="ecdapp.editRequest.deployment_id" autofocus />
+        </div>
+      </div>
+    </div>
+    <div class="span12">
+      <div class="form-row">
+        <label for="allowCustom">&nbsp;</label>
+        <div class="field-group">
+          <label for="allowCustomParameters" class="checkbox"> <input
+            id="allowCustomParameters" type="checkbox"
+            ng-model="ecdapp.editRequest.allow_custom_parameter" /> <i
+            class="skin"></i><span>Allow Custom Parameters</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row-nowrap">
+    <div class="span12">
+      <div class="form-row">
+        <label for="workflowName">Workflow Name</label>
+        <div class="field-group">
+          <select b2b-dropdown id="workflowName" name="workflowName"
+            ng-model="ecdapp.editRequest.workflow_name.value"
+            ng-change="selectWorkflowName()">
+            <option b2b-dropdown-list
+              option-repeat="w in ecdapp.editRequest.workflow_list"
+              value="{{w}}">{{w}}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="span12">
+      <div class="form-row">
+        <label for="force">&nbsp;</label>
+        <div class="field-group">
+          <label for="force" class="checkbox"> <input id="force"
+            type="checkbox" ng-model="ecdapp.editRequest.force" /> <i
+            class="skin"></i><span>Force</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row-nowrap">
+    <div class="span12">
+      <div class="form-row">
+        <label for="parameters">*Parameters</label>
+        <div b2b-file-drop file-model="ecdapp.editRequest.fileModel"
+          on-drop="handleFileSelect()" align="center">
+          <span b2b-file-link file-model="ecdapp.editRequest.fileModel"
+            on-file-select="handleFileSelect()"> Drag &amp; drop
+            a parameters YAML file here, or click to browse. </span>
+        </div>
+      </div>
+      <div class="ecd-parameter-table">
+        <table id="parameters">
+          <tr id="ecd-table-header">
+            <th width="40%">Name</th>
+            <th width="60%">Value</th>
+          </tr>
+          <tbody
+            ng-repeat="(pkey, pval) in ecdapp.editRequest.parmFileDict">
+            <tr id="tr-rowData">
+              <td ng-bind="pkey" />
+              <td><input id="parameterValue" class="span12"
+                type="text"
+                data-ng-model="ecdapp.editRequest.parmFileDict[pkey]"
+                autofocus /></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="b2b-modal-footer ng-scope ng-isolate-scope">
+  <div class="cta-button-group in">
+    <button class="btn btn-alt btn-small" type="button"
+      ng-click="ecdapp.executeDeployment(ecdapp.editRequest);">
+      Save</button>
+    <button class="btn btn-small" type="button"
+      ng-click="$dismiss('cancel')">Cancel</button>
+  </div>
+</div>
 </script>
-
-<script type="text/ng-template" id="inventory_deployment_delete_popup.html">
-	
-
-	<div class="b2b-modal-header ng-scope">
-		<h2 id="myModalLabel" modal-title="">{{ecdapp.label}}</h2>
-		<div class="corner-button in">
-			<button type="button" class="close" aria-label="Close"
-				ng-click="$dismiss('cancel')"></button>
-		</div>
-	</div>
-
-		<div ng-hide="ecdapp.errMsg">
-			<div class="row-nowrap" style="margin-bottom:10px; margin-left:10px;"">
-				<div class="span6">
-					<label for="tenant">Tenant</label>
-					<!--not editable-->
-					<input id="tenant" class="span12" type="text" disabled="disabled" data-ng-model="ecdapp.ui_tenant"/>
-				</div>
-			</div>
-		</div>
-
-	<div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
-		role="region" aria-label="Modal body content">
- 
-		<div class="span12">
-			<div class="form-row">					
-				<div class="field-group">
-					<label>
-						Undeploy the deployment with ID '{{ecdapp.deploymentRef}}'?
-					</label>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<div class="b2b-modal-footer ng-scope ng-isolate-scope">
-		<div class="cta-button-group in">
-			<button class="btn btn-alt btn-small" type="button"
-					ng-click="ecdapp.deleteDeploymentById(deployment);">
-				Undeploy
-			</button>
-			<button class="btn btn-small" type="button"
-				ng-click="$dismiss('cancel')">
-				Cancel
-			</button>
-		</div>
-	</div>
-
+<script type="text/ng-template"
+  id="inventory_deployment_delete_popup.html">
+<div class="b2b-modal-header ng-scope">
+  <h3 id="myModalLabel" modal-title="">
+    {{ecdapp.label}}
+    </h2>
+    <div class="corner-button in">
+      <button type="button" class="close" aria-label="Close"
+        ng-click="$dismiss('cancel')"></button>
+    </div>
+</div>
+<div ng-hide="ecdapp.errMsg">
+  <div class="row-nowrap"
+    style="margin-bottom: 10px; margin-left: 10px;"">
+    <div class="span6">
+      <label for="tenant">Tenant</label>
+      <!--not editable-->
+      <input id="tenant" class="span12" type="text" disabled="disabled"
+        data-ng-model="ecdapp.ui_tenant" />
+    </div>
+  </div>
+</div>
+<div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
+  role="region" aria-label="Modal body content">
+  <div class="span12">
+    <div class="form-row">
+      <div class="field-group">
+        <label> Undeploy the deployment with ID
+          '{{ecdapp.deploymentRef}}'? </label>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="b2b-modal-footer ng-scope ng-isolate-scope">
+  <div class="cta-button-group in">
+    <button class="btn btn-alt btn-small" type="button"
+	  ng-disabled="ecdapp.isDisabled" 
+      ng-click="ecdapp.deleteDeploymentById(deployment);">
+      Undeploy</button>
+    <button class="btn btn-small" type="button"
+      ng-click="$dismiss('cancel')">Cancel</button>
+  </div>
+</div>
 </script>
+<script type="text/ng-template"
+  id="inventory_deployment_inputs_view_popup.html">
+<style>
+.ecd-parameter-table {
+	border: 1px;
+	overflow: auto;
+}
 
-<script type="text/ng-template" id="inventory_deployment_inputs_view_popup.html">
-
-	<style>
-	.ecd-parameter-table
-	{
-	    border:   1px;
-    	overflow: auto;
-	}
-	.ecd-parameter-table th 
-	{
-		font-size: 1.4rem;
-	}
-	</style>
-
-	<div class="b2b-modal-header ng-scope">
-		<h2 id="myModalLabel" modal-title="">{{ecdapp.label}}</h2>
-		<div class="corner-button in">
-			<button type="button" class="close" aria-label="Close"
-				ng-click="$dismiss('cancel')"></button>
-		</div>
-	</div>
-
-	<div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
-		role="region" aria-label="Modal body content">
-
-	 	<!-- show progress indicator -->
-		<div ng-show="ecdapp.isDataLoading">
-			<div class="span" style="margin-bottom:20px;">
-    			<i class="icon-spinner small" role="img" aria-label="Please wait while the content loads"></i>
-	    		Please wait while the content loads.
-	    	</div>
-		</div>
-
-		<div ng-show="ecdapp.errMsg">
-			<span class="ecd-error-message">{{ecdapp.errMsg}}</span>
-		</div>
-			
-		<div ng-hide="ecdapp.errMsg">
-			<div class="row-nowrap" style="margin-bottom:10px;">
-				<div class="span6">
-					<label for="tenant">Tenant</label>
-					<!--not editable-->
-					<input id="tenant" class="span12" type="text" disabled="disabled" data-ng-model="ecdapp.ui_tenant"/>
-				</div>
-			</div>
-		</div>
-	
-		<div ng-hide="ecdapp.errMsg">
-			<div class="row-nowrap">
-				<div class="span12">
-					<label for="deploymentRef">Deployment Ref</label>
-					<!--not editable-->
-					<input id="deploymentRef" class="span12" type="text" disabled="disabled" data-ng-model="ecdapp.deploymentRef"/>
-				</div>
-				<div class="span12">
-					<label for="serviceId">Service ID</label>
-					<!--not editable-->
-					<input id="serviceId" class="span12" type="text" disabled="disabled" data-ng-model="ecdapp.serviceId"/>
-				</div> 
-			</div>			
-			
-			<div class="row-nowrap">
-				<div class="span12">
-					<table id="parameters">
-						<tr id="ecd-table-header">
-							<th width="40%">Name</th>
-							<th width="60%">Value</th>
-						</tr>
-	            		<tbody ng-repeat="(pkey, pval) in ecdapp.deployment.inputs">
-							<tr id="tr-rowData">
-								<td ng-bind="pkey"/>
-								<td ng-bind="pval"/>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-			</div>
-		</div>
-	</div>
+.ecd-parameter-table th {
+	font-size: 1.4rem;
+}
+</style>
+<div class="b2b-modal-header ng-scope">
+  <h2 id="myModalLabel" modal-title="">{{ecdapp.label}}</h2>
+  <div class="corner-button in">
+    <button type="button" class="close" aria-label="Close"
+      ng-click="$dismiss('cancel')"></button>
+  </div>
+</div>
+<div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
+  role="region" aria-label="Modal body content">
+  <!-- show progress indicator -->
+  <div ng-show="ecdapp.isDataLoading">
+    <div class="span" style="margin-bottom: 20px;">
+      <i class="icon-spinner small" role="img"
+        aria-label="Please wait while the content loads"></i> Please
+      wait while the content loads.
+    </div>
+  </div>
+  <div ng-show="ecdapp.errMsg">
+    <span class="ecd-error-message">{{ecdapp.errMsg}}</span>
+  </div>
+  <div ng-hide="ecdapp.errMsg">
+    <div class="row-nowrap" style="margin-bottom: 10px;">
+      <div class="span6">
+        <label for="tenant">Tenant</label>
+        <!--not editable-->
+        <input id="tenant" class="span12" type="text"
+          disabled="disabled" data-ng-model="ecdapp.ui_tenant" />
+      </div>
+    </div>
+  </div>
+  <div ng-hide="ecdapp.errMsg">
+    <div class="row-nowrap">
+      <div class="span12">
+        <label for="deploymentRef">Deployment Ref</label>
+        <!--not editable-->
+        <input id="deploymentRef" class="span12" type="text"
+          disabled="disabled" data-ng-model="ecdapp.deploymentRef" />
+      </div>
+      <div class="span12">
+        <label for="serviceId">Service ID</label>
+        <!--not editable-->
+        <input id="serviceId" class="span12" type="text"
+          disabled="disabled" data-ng-model="ecdapp.serviceId" />
+      </div>
+    </div>
+    <div class="row-nowrap">
+      <div class="span12">
+        <table id="parameters">
+          <tr id="ecd-table-header">
+            <th width="30%">Name</th>
+            <th width="70%">Value</th>
+          </tr>
+          <tbody ng-repeat="(pkey, pval) in ecdapp.deployment.parmFileDict">
+            <tr id="tr-rowData">
+			  <td> 
+				<div style="font-weight: bold;">{{pkey}}</div>
+				<div style="margin-top: 10px; font-weight: lighter;">
+				{{ecdapp.deployment.descriptionDict[pkey]}}</div>
+			  </td>
+              <td> <pre>{{pval}}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
 </script>
-<script type="text/ng-template" id="inventory_deployment_update_popup.html">
-
-	<div class="b2b-modal-header ng-scope">
-		<h2 id="myModalLabel" modal-title="">{{ecdapp.label}}</h2>
-		<div class="corner-button in">
-			<button type="button" class="close" aria-label="Close"
-				ng-click="$dismiss('cancel')"></button>
-		</div>
-	</div>
-
-	<div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
-		role="region" aria-label="Modal body content">
-
-		<div ng-show="ecdapp.errMsg">
-			<span class="ecd-error-message">{{ecdapp.errMsg}}</span>
-		</div>
-
-		<div class="row-nowrap">
-			<div class="span12">
-				<label for="deploymentRef">Deployment Ref</label>
-				<input id="deploymentRef" class="span12" type="text" disabled="disabled" data-ng-model="ecdapp.deploymentRef"/>
-			</div>
-			<div class="span12">
-				<label for="tenantName">Tenant Name</label>
-					<!--not editable-->
-				<input id="tenantName" class="span12" type="text" disabled="disabled" data-ng-model="ecdapp.ui_tenant"/>
-			</div>
-		</div>
-
-		<div ng-hide="ecdapp.isDataLoading" style="margin-top:20px;">
-	    	<div 
-	    		b2b-table 
-	    		id="service-type-table"
-	    		class="b2b-table-div" 
-	    		table-data="ecdapp.bp" >
-		        <table>    
-		            <thead b2b-table-row type="header">	
-						<tr id="th-header-row">
-							<th b2b-table-header>Blueprint Name</th>
-							<th b2b-table-header>Blueprint Version</th>
-							<th b2b-table-header>Type ID</th>
-							<th b2b-table-header>Description</th>
-				  			<th b2b-table-header sortable="false"><i class="icon-controls-gear ecd-icon-display"></i></th>
-						</tr>
-					</thead>					
-		            <tbody b2b-table-row type="body" row-repeat="rowData in ecdapp.bp">
-						<tr id="tr-rowData">
-							<td b2b-table-body
-								ng-bind="rowData.typeName"/>
-							<td b2b-table-body
-								ng-bind="rowData.typeVersion"/>
-							<td b2b-table-body
-								ng-bind="rowData.typeId"/>
-							<td b2b-table-body
-								ng-bind="rowData.blueprintDescription"/>
-							<td b2b-table-body>
-							<div class="form-row">
-	               				<label for="bpCb{{index}}" class="checkbox">
-   	                			<input id="bpCb{{index}}" type="checkbox" ng-model="rowData.checked" ng-click="ecdapp.updateSelection(rowData.typeId)" />
-								<i class="skin"></i>
-                				</label>
-							</div>
-					     	</td>
-						</tr>
-					</tbody>
-				</table>
-			</div> 
-		</div>
-		<div ng-hide="ecdapp.isDataLoading" class="row-nowrap" style="margin-top:20px;">
-			<div class="span12">
-				<label for="typeID">Blueprint[Service Type] ID</label>
-				<input id="typeID" class="span12" type="text" data-ng-model="ecdapp.typeId" title="ID of the blueprint to use for the update"/>
-			</div>
-			<div class="cta-button-group in">
-				<button class="btn btn-alt btn-small" type="button"
-					ng-click="ecdapp.getBlueprint()">
-					Get Blueprint data
-				</button>
-			</div>
-		</div>
-
-	 	<!-- show progress indicator -->
-		<div ng-show="ecdapp.isDataLoading">
-			<div class="span" style="margin-bottom:20px;">
-    		<i class="icon-spinner small" role="img" aria-label="Please wait while the content loads"></i>
-	    	Please wait while the content loads.
-	    	</div>
-		</div>
-
-		<div ng-hide="ecdapp.isDataLoading" class="row-nowrap">
-			<div class="span12">
-				<div class="form-row">
-					<label for="parameters">*Parameters</label>
-   					<div b2b-file-drop file-model="ecdapp.editRequest.fileModel" on-drop="handleFileSelect()" align="center">
-    						<span b2b-file-link file-model="ecdapp.editRequest.fileModel" on-file-select="handleFileSelect()" >
-    						Drag &amp; drop a parameters JSON file here, or click to browse.
-   							</span>
-			        </div>
-		        </div>
-				<div class="ecd-parameter-table">
-					<table id="parameters">
-						<tr id="ecd-table-header">
-							<th width="40%">Name</th>
-							<th width="60%">Value</th>
-						</tr>
-	            		<tbody ng-repeat="(pkey, pval) in ecdapp.editRequest.parmFileDict">
-							<tr id="tr-rowData">
-								<td ng-bind="pkey"/>
-								<td><input id="parameterValue" class="span12" type="text" data-ng-model="ecdapp.editRequest.parmFileDict[pkey]" autofocus/></td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	 	<!-- show progress indicator -->
-		<div ng-show="ecdapp.deploymentInProgress">
-			<div class="span" style="margin-bottom:20px;">
-    		<i class="icon-spinner small" role="img" aria-label="Please wait while the content loads"></i>
-	    	Please wait while the task completes.
-	    	</div>
-		</div>
-
-		<div class="b2b-modal-footer ng-scope ng-isolate-scope">
-			<div class="cta-button-group in" ng-hide="ecdapp.deploymentInProgress">
-			<button class="btn btn-alt btn-small" type="button"
-					ng-click="ecdapp.updateDeployment(ecdapp.editRequest)" ng-show="!ecdapp.isDataLoading && !ecdapp.errMsg">
-					Update
-			</button>
-			<button class="btn btn-alt btn-small" type="button"
-					ng-click="$dismiss('cancel');">
-				Close
-			</button>
-			</div>
-		</div>
-
+<script type="text/ng-template"
+  id="inventory_deployment_update_popup.html">
+<div class="b2b-modal-header ng-scope">
+  <h3 id="myModalLabel" modal-title="">{{ecdapp.label}}</h3>
+  <div class="corner-button in">
+    <button type="button" class="close" aria-label="Close"
+      ng-click="$dismiss('cancel')"></button>
+  </div>
+</div>
+<div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
+  role="region" aria-label="Modal body content">
+  <div ng-show="ecdapp.errMsg">
+    <span class="ecd-error-message">{{ecdapp.errMsg}}</span>
+  </div>
+  <div ng-hide="ecdapp.isDataLoading" style="margin-top: -5px;">
+    <div class="field-group">
+      <label for="bp">Blueprint</label> <select
+        style="font-size: 1.2rem;" id="bp" name="appl" b2b-dropdown
+        class="span6" ng-model="ecdapp.typeId"
+        ng-change="ecdapp.getBlueprint()" required>
+        <option b2b-dropdown-list option-repeat="d in ecdapp.bp"
+          value="{{d.typeId}}">{{d.typeName}}
+          version#{{d.typeVersion}}</option>
+      </select>
+    </div>
+  </div>
+  <!-- show progress indicator -->
+  <div ng-show="ecdapp.isDataLoading">
+    <div class="span" style="margin-bottom: 20px;">
+      <i class="icon-spinner small" role="img"
+        aria-label="Please wait while the content loads"></i> Please
+      wait while the content loads.
+    </div>
+  </div>
+  <div ng-hide="ecdapp.isDataLoading" class="row-nowrap">
+    <div class="span12">
+      <div class="form-row">
+        <label for="parameters">*Inputs</label>
+        <div b2b-file-drop file-model="ecdapp.editRequest.fileModel"
+          on-drop="handleFileSelect()" align="center">
+          <span b2b-file-link file-model="ecdapp.editRequest.fileModel"
+            on-file-select="handleFileSelect()"> Drag &amp; drop
+            a parameters JSON file here, or click to browse. </span>
+        </div>
+      </div>
+      <div class="ecd-parameter-table">
+        <table id="parameters">
+          <tbody
+            ng-repeat="(pkey, pval) in ecdapp.editRequest.parmFileDict">
+            <tr id="tr-rowData">
+              <td
+                style="padding: 5px 0 2px 0; font-size: 1.2rem; width: 100%; border: none;"
+                ng-bind="pkey">
+				<div style="font-weight: bold;">{{pkey}}</div>  
+				<div style="margin-top: 8px; font-weight: lighter;">{{ecdapp.editRequest.descriptionDict[pkey]}}</div>
+              </td>
+			</tr>
+            <tr id="tr-rowData">
+              <td
+                style="padding: 0 5px 5px; font-size: 1.2rem; width: 100%; border: none;">
+                <input id="parameterValue" class="span12" type="text"
+                data-ng-model="ecdapp.editRequest.parmFileDict[pkey]"
+                autofocus />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div style="border-bottom: 1px solid black;">Actions</div>
+  <div style="margin-top: 10px;">
+    <label for="install_flow" class="btn-switch-label"
+      ng-class="{'b2b-disabled-label':allDisabled}"> <input
+      type="button" aria-pressed="{{ecdapp.install_flow.value}}"
+      id="refresh_switch" b2b-switches
+      ng-model="ecdapp.install_flow.value" ng-disabled="allDisabled"
+      aria-disabled="{{allDisabled}}"
+      aria-label="Auto-refresh is {{ecdapp.install_flow.value?'On':'Off'}}. {{allDisabled?'Disabled. Explanation why it is disabled':''}}">
+      <label style="margin-left: 10px;" aria-hidden="true">Run
+        install workflow</label> <span class="tooltip" b2b-tooltip> <a
+        href="#" class="icon-tooltip tooltip-element" tabindex="0"
+        role="button" data-placement="top" aria-label="Help"
+        aria-describedby="tooltiptextRadio"> <span class="arrow"></span>
+      </a> <span class="tooltip-wrapper"> <span
+          class="tooltip-size-control"> <span
+            id="tooltiptextRadio" role="tooltip" aria-live="polite"
+            aria-hidden="true" class="helpertext" tabindex="-1">
+              <span class="popover-title">Run install lifecycle
+                operations</span> <span class="popover-content"> </span>
+          </span>
+        </span>
+      </span>
+    </span>
+    </label>
+  </div>
+  <div style="margin-top: 10px;">
+    <label for="uninstall_flow" class="btn-switch-label"
+      ng-class="{'b2b-disabled-label':allDisabled}"> <input
+      type="button" aria-pressed="{{ecdapp.uninstall_flow.value}}"
+      id="refresh_switch" b2b-switches
+      ng-model="ecdapp.uninstall_flow.value" ng-disabled="allDisabled"
+      aria-disabled="{{allDisabled}}"
+      aria-label="Auto-refresh is {{ecdapp.uninstall_flow.value?'On':'Off'}}. {{allDisabled?'Disabled. Explanation why it is disabled':''}}">
+      <label style="margin-left: 10px;" aria-hidden="true">Run
+        uninstall workflow</label> <span class="tooltip" b2b-tooltip> <a
+        href="#" class="icon-tooltip tooltip-element" tabindex="0"
+        role="button" data-placement="top" aria-label="Help"
+        aria-describedby="tooltiptextRadio"> <span class="arrow"></span>
+      </a> <span class="tooltip-wrapper"> <span
+          class="tooltip-size-control"> <span
+            id="tooltiptextRadio" role="tooltip" aria-live="polite"
+            aria-hidden="true" class="helpertext" tabindex="-1">
+              <span class="popover-title">Run uninstall lifecycle
+                operations</span> <span class="popover-content"> </span>
+          </span>
+        </span>
+      </span>
+    </span>
+    </label>
+  </div>
+  <div style="margin-top: 10px;">
+    <label for="install_first_flow" class="btn-switch-label"
+      ng-class="{'b2b-disabled-label':allDisabled}"> <input
+      type="button"
+      aria-pressed="{{ecdapp.install_first_flow_flag.value}}"
+      id="refresh_switch" b2b-switches
+      ng-model="ecdapp.install_first_flow_flag.value"
+      ng-disabled="allDisabled" aria-disabled="{{allDisabled}}"
+      aria-label="Auto-refresh is {{ecdapp.install_first_flow_flag.value?'On':'Off'}}. {{allDisabled?'Disabled. Explanation why it is disabled':''}}">
+      <label style="margin-left: 10px;" aria-hidden="true">Run
+        install workflow first</label> <span class="tooltip" b2b-tooltip>
+        <a href="#" class="icon-tooltip tooltip-element" tabindex="0"
+        role="button" data-placement="top" aria-label="Help"
+        aria-describedby="tooltiptextRadio"> <span class="arrow"></span>
+      </a> <span class="tooltip-wrapper"> <span
+          class="tooltip-size-control"> <span
+            id="tooltiptextRadio" role="tooltip" aria-live="polite"
+            aria-hidden="true" class="helpertext" tabindex="-1">
+              <span class="popover-title">Run install workflow
+                first, then uninstall workflow. Default: first uninstall
+                then install workflow.</span> <span class="popover-content">
+            </span>
+          </span>
+        </span>
+      </span>
+    </span>
+    </label>
+  </div>
+  <div style="margin-top: 10px;">
+    <label for="reinstall_flow" class="btn-switch-label"
+      ng-class="{'b2b-disabled-label':allDisabled}"> <input
+      type="button" aria-pressed="{{ecdapp.reinstall_flow.value}}"
+      id="refresh_switch" b2b-switches
+      ng-model="ecdapp.reinstall_flow.value" ng-disabled="allDisabled"
+      aria-disabled="{{allDisabled}}"
+      aria-label="Auto-refresh is {{ecdapp.reinstall_flow.value?'On':'Off'}}. {{allDisabled?'Disabled. Explanation why it is disabled':''}}">
+      <label style="margin-left: 10px;" aria-hidden="true">Run
+        automatic reinstall</label> <span class="tooltip" b2b-tooltip> <a
+        href="#" class="icon-tooltip tooltip-element" tabindex="0"
+        role="button" data-placement="top" aria-label="Help"
+        aria-describedby="tooltiptextRadio"> <span class="arrow"></span>
+      </a> <span class="tooltip-wrapper"> <span
+          class="tooltip-size-control"> <span
+            id="tooltiptextRadio" role="tooltip" aria-live="polite"
+            aria-hidden="true" class="helpertext" tabindex="-1">
+              <span class="popover-title">Automatically reinstall
+                node instances whose properties have been modified as
+                part of deployment update. If not set then, node
+                instances that were explicitly given to "Reinstall node
+                instances list" will be reinstalled.</span> <span
+              class="popover-content"> </span>
+          </span>
+        </span>
+      </span>
+    </span>
+    </label>
+  </div>
+  <div style="margin-top: 10px;">
+    <div class="field-group">
+      <div class="group">
+        <label class="col-sm-3 control-label">Reinstall node
+          instances list </label> <span class="tooltip" b2b-tooltip> <a
+          href="#" class="icon-tooltip tooltip-element" tabindex="0"
+          role="button" data-placement="top" aria-label="Help"
+          aria-describedby="tooltiptextRadio"> <span class="arrow"></span>
+        </a> <span class="tooltip-wrapper"> <span
+            class="tooltip-size-control"> <span
+              id="tooltiptextRadio" role="tooltip" aria-live="polite"
+              aria-hidden="true" class="helpertext" tabindex="-1">
+                <span class="popover-title">Node instances to be
+                  installed as part of the deployment update. They will
+                  be reinstalled even if "Run automatic reinstall" is
+                  not set</span> <span class="popover-content"> </span>
+            </span>
+          </span>
+        </span>
+        </span>
+        <ui-select multiple ng-model="ecdapp.selectedNodeInst"
+          theme="bootstrap" close-on-select="false"
+          title="node instance"> <ui-select-match
+          class="ui-select-match">{{$item}}</ui-select-match> <ui-select-choices
+          class="ui-select-choices"
+          repeat="nodeInst in ecdapp.nodeInst | filter:$select.search"
+          position='down'> {{nodeInst}} </ui-select-choices> </ui-select>
+      </div>
+    </div>
+    <div style="margin-top: 10px;">
+      <label for="force" class="btn-switch-label"
+        ng-class="{'b2b-disabled-label':allDisabled}"> <input
+        type="button" aria-pressed="{{ecdapp.force_flag.value}}"
+        id="refresh_switch" b2b-switches
+        ng-model="ecdapp.force_flag.value" ng-disabled="allDisabled"
+        aria-disabled="{{allDisabled}}"
+        aria-label="Auto-refresh is {{ecdapp.force_flag.value?'On':'Off'}}. {{allDisabled?'Disabled. Explanation why it is disabled':''}}">
+        <label style="margin-left: 10px;" aria-hidden="true">Force
+          update</label> <span class="tooltip" b2b-tooltip> <a href="#"
+          class="icon-tooltip tooltip-element" tabindex="0"
+          role="button" data-placement="top" aria-label="Help"
+          aria-describedby="tooltiptextRadio"> <span class="arrow"></span>
+        </a> <span class="tooltip-wrapper"> <span
+            class="tooltip-size-control"> <span
+              id="tooltiptextRadio" role="tooltip" aria-live="polite"
+              aria-hidden="true" class="helpertext" tabindex="-1">
+                <span class="popover-title">Force running update
+                  in case a previous update on this deployment has
+                  failed to finish successfully</span> <span
+                class="popover-content"> </span>
+            </span>
+          </span>
+        </span>
+      </span>
+      </label>
+    </div>
+  </div>
+  <!-- show progress indicator -->
+  <div ng-show="ecdapp.deploymentInProgress">
+    <div class="span" style="margin-bottom: 20px;">
+      <i class="icon-spinner small" role="img"
+        aria-label="Please wait while the content loads"></i> Please
+      wait while the task completes.
+    </div>
+  </div>
+  <div class="b2b-modal-footer ng-scope ng-isolate-scope">
+    <div class="cta-button-group in"
+      ng-hide="ecdapp.deploymentInProgress">
+      <button class="btn btn-alt btn-small" type="button"
+        ng-click="ecdapp.updateDeployment(ecdapp.editRequest)"
+        ng-show="!ecdapp.isDataLoading && !ecdapp.errMsg">
+        Update</button>
+      <button class="btn btn-alt btn-small" type="button"
+        ng-click="$dismiss('cancel');">Close</button>
+    </div>
+  </div>
 </script>
 <script type="text/ng-template" id="blueprint_data_view_popup.html">
-
-	<div class="b2b-modal-header ng-scope">
-		<h2 id="myModalLabel" modal-title="">{{ecdapp.label}}</h2>
-		<div class="corner-button in">
-			<button type="button" class="close" aria-label="Close"
-				ng-click="$dismiss('cancel')"></button>
-		</div>
-	</div>
-
-	<div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
-		role="region" aria-label="Modal body content">
-
-	 	<!-- show progress indicator -->
-		<div ng-show="ecdapp.isDataLoading">
-			<div class="span" style="margin-bottom:20px;">
-    			<i class="icon-spinner small" role="img" aria-label="Please wait while the content loads"></i>
-	    		Please wait while the content loads.
-	    	</div>
-		</div>
-
-		<div ng-show="ecdapp.errMsg">
-			<span class="ecd-error-message">{{ecdapp.errMsg}}</span>
-		</div>
-
-			<div class="row-nowrap">
-			<div class="span12">
-				<label for="typeName">Blueprint Name</label>
-				<!--not editable-->
-				<input id="typeName" class="span12" type="text" disabled="disabled" data-ng-model="ecdapp.typeName"/>
-			</div>
-			</div>
-		<div ng-hide="ecdapp.errMsg">
-			<pre>{{ecdapp.blueprint}}</pre>
-		</div>
-
-	</div>
-
-	<div class="b2b-modal-footer ng-scope ng-isolate-scope">
-		<div class="cta-button-group in">
-			<button class="btn btn-alt btn-small" type="button"
-					ng-click="$dismiss('cancel');">
-				Close
-			</button>
-		</div>
-	</div>
-
+  <div class="b2b-modal-header ng-scope">
+    <h2 id="myModalLabel" modal-title="">{{ecdapp.label}}</h2>
+    <div class="corner-button in">
+      <button type="button" class="close" aria-label="Close"
+        ng-click="$dismiss('cancel')"></button>
+    </div>
+  </div>
+  <div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
+    role="region" aria-label="Modal body content">
+    <!-- show progress indicator -->
+    <div ng-show="ecdapp.isDataLoading">
+      <div class="span" style="margin-bottom: 20px;">
+        <i class="icon-spinner small" role="img"
+          aria-label="Please wait while the content loads"></i> Please
+        wait while the content loads.
+      </div>
+    </div>
+    <div ng-show="ecdapp.errMsg">
+      <span class="ecd-error-message">{{ecdapp.errMsg}}</span>
+    </div>
+    <div class="row-nowrap">
+      <div class="span12">
+        <label for="typeName">Blueprint Name</label>
+        <!--not editable-->
+        <input id="typeName" class="span12" type="text"
+          disabled="disabled" data-ng-model="ecdapp.typeName" />
+      </div>
+    </div>
+    <div ng-hide="ecdapp.errMsg">
+      <pre>{{ecdapp.blueprint}}</pre>
+    </div>
+  </div>
+  <div class="b2b-modal-footer ng-scope ng-isolate-scope">
+    <div class="cta-button-group in">
+      <button class="btn btn-alt btn-small" type="button"
+        ng-click="$dismiss('cancel');">Close</button>
+    </div>
+  </div>
 </script>
-
-<script type="text/ng-template" id="inventory_deployment_rollback_popup.html">
-
-	<div class="b2b-modal-header ng-scope">
-		<h2 id="myModalLabel" modal-title="">{{ecdapp.label}}</h2>
-		<div class="corner-button in">
-			<button type="button" class="close" aria-label="Close"
-				ng-click="$dismiss('cancel')"></button>
-		</div>
-	</div>
-
-	<div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
-		role="region" aria-label="Modal body content">
-
-	 	<!-- show progress indicator -->
-		<div ng-show="ecdapp.isDataLoading">
-			<div class="span" style="margin-bottom:20px;">
-    			<i class="icon-spinner small" role="img" aria-label="Please wait while the content loads"></i>
-	    		Please wait while the content loads.
-	    	</div>
-		</div>
-
-		<div ng-show="ecdapp.errMsg">
-			<span class="ecd-error-message">{{ecdapp.errMsg}}</span>
-		</div>
-
-		<div ng-hide="ecdapp.errMsg">
-			<div class="row-nowrap">
-				<div class="span12">
-					<label for="deploymentRef">Deployment Ref</label>
-					<!--not editable-->
-					<input id="deploymentRef" class="span12" type="text" disabled="disabled" data-ng-model="ecdapp.deploymentRef"/>
-				</div>
-				<div class="span12">
-					<label for="serviceId">Service ID</label>
-					<!--not editable-->
-					<input id="serviceId" class="span12" type="text" disabled="disabled" data-ng-model="ecdapp.serviceId"/>
-				</div> 
-				<div class="span12">
-					<label for="tenantName">Tenant Name</label>
-					<!--not editable-->
-					<input id="tenantName" class="span12" type="text" disabled="disabled" data-ng-model="ecdapp.ui_tenant"/>
-				</div> 
-			</div>			
-
-		<div ng-hide="ecdapp.isDataLoading">
-	    	<div 
-	    		b2b-table 
-	    		id="revisions-table"
-	    		class="b2b-table-div" 
-	    		table-data="ecdapp.local_revisions" >
-		        <table>    
-		            <thead b2b-table-row type="header">	
-						<tr id="th-header-row">
-							<th b2b-table-header>Revision</th>
-							<th b2b-table-header>Updated</th>
-							<th b2b-table-header>Status</th>
-							<th b2b-table-header>Chart</th>
-							<th b2b-table-header>Description</th>
-				  			<th b2b-table-header sortable="false"><i class="icon-controls-gear ecd-icon-display"></i></th>
-						</tr>
-					</thead>
-					
-		            <tbody b2b-table-row type="body" row-repeat="rowData in ecdapp.local_revisions">
-						<tr id="tr-rowData">
-							<td b2b-table-body
-								ng-bind="rowData.revision"/>
-							<td b2b-table-body
-								ng-bind="rowData.updated"/>
-							<td b2b-table-body
-								ng-bind="rowData.status"/>
-							<td b2b-table-body
-								ng-bind="rowData.chart"/>
-							<td b2b-table-body
-								ng-bind="rowData.description"/>
-							<td ng-if="!$last" b2b-table-body>
-				<div class="form-row">
-	               		<label class="checkbox">
-   	                	<input type="checkbox" ng-model="rowData.checked" ng-click="ecdapp.updateSelection(rowData.revision)" />
-							<i class="skin"></i>
-                		</label>
-				</div>
-					     	</td>
-						</tr>
-					</tbody>
-				</table>
-			</div> 
-		</div>
-	</div>
-
-	<div class="b2b-modal-footer ng-scope ng-isolate-scope">
-		<div class="cta-button-group in">
-			<button class="btn btn-alt btn-small" type="button"
-					ng-click="ecdapp.rollbackWorkflow(ecdapp.revision);" ng-show="!ecdapp.isDataLoading && !ecdapp.errMsg">
-					Start Rollback
-			</button>
-			<button class="btn btn-alt btn-small" type="button"
-					ng-click="$dismiss('cancel');">
-				Close
-			</button>
-		</div>
-	</div>
-
+<script type="text/ng-template"
+  id="inventory_deployment_rollback_popup.html">
+  <div class="b2b-modal-header ng-scope">
+    <h2 id="myModalLabel" modal-title="">{{ecdapp.label}}</h2>
+    <div class="corner-button in">
+      <button type="button" class="close" aria-label="Close"
+        ng-click="$dismiss('cancel')"></button>
+    </div>
+  </div>
+  <div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
+    role="region" aria-label="Modal body content">
+    <!-- show progress indicator -->
+    <div ng-show="ecdapp.isDataLoading">
+      <div class="span" style="margin-bottom: 20px;">
+        <i class="icon-spinner small" role="img"
+          aria-label="Please wait while the content loads"></i> Please
+        wait while the content loads.
+      </div>
+    </div>
+    <div ng-show="ecdapp.errMsg">
+      <span class="ecd-error-message">{{ecdapp.errMsg}}</span>
+    </div>
+    <div ng-hide="ecdapp.errMsg">
+      <div class="row-nowrap">
+        <div class="span12">
+          <label for="deploymentRef">Deployment Ref</label>
+          <!--not editable-->
+          <input id="deploymentRef" class="span12" type="text"
+            disabled="disabled" data-ng-model="ecdapp.deploymentRef" />
+        </div>
+        <div class="span12">
+          <label for="serviceId">Service ID</label>
+          <!--not editable-->
+          <input id="serviceId" class="span12" type="text"
+            disabled="disabled" data-ng-model="ecdapp.serviceId" />
+        </div>
+        <div class="span12">
+          <label for="tenantName">Tenant Name</label>
+          <!--not editable-->
+          <input id="tenantName" class="span12" type="text"
+            disabled="disabled" data-ng-model="ecdapp.ui_tenant" />
+        </div>
+      </div>
+      <div ng-hide="ecdapp.isDataLoading">
+        <div b2b-table id="revisions-table" class="b2b-table-div"
+          table-data="ecdapp.local_revisions">
+          <table>
+            <thead b2b-table-row type="header">
+              <tr id="th-header-row">
+                <th b2b-table-header>Revision</th>
+                <th b2b-table-header>Updated</th>
+                <th b2b-table-header>Status</th>
+                <th b2b-table-header>Chart</th>
+                <th b2b-table-header>Description</th>
+                <th b2b-table-header sortable="false"><i
+                  class="icon-controls-gear ecd-icon-display"></i></th>
+              </tr>
+            </thead>
+            <tbody b2b-table-row type="body"
+              row-repeat="rowData in ecdapp.local_revisions">
+              <tr id="tr-rowData">
+                <td b2b-table-body ng-bind="rowData.revision" />
+                <td b2b-table-body ng-bind="rowData.updated" />
+                <td b2b-table-body ng-bind="rowData.status" />
+                <td b2b-table-body ng-bind="rowData.chart" />
+                <td b2b-table-body ng-bind="rowData.description" />
+                <td ng-if="!$last" b2b-table-body>
+                  <div class="form-row">
+                    <label class="checkbox"> <input
+                      type="checkbox" ng-model="rowData.checked"
+                      ng-click="ecdapp.updateSelection(rowData.revision)" />
+                      <i class="skin"></i>
+                    </label>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="b2b-modal-footer ng-scope ng-isolate-scope">
+      <div class="cta-button-group in">
+        <button class="btn btn-alt btn-small" type="button"
+          ng-click="ecdapp.rollbackWorkflow(ecdapp.revision);"
+          ng-show="!ecdapp.isDataLoading && !ecdapp.errMsg">
+          Start Rollback</button>
+        <button class="btn btn-alt btn-small" type="button"
+          ng-click="$dismiss('cancel');">Close</button>
+      </div>
+    </div>
 </script>
+<script type="text/ng-template"
+  id="inventory_deployment_upgrade_popup.html">
+    <style>
+.ecd-parameter-table {
+	border: 1px;
+	overflow: auto;
+}
 
-<script type="text/ng-template" id="inventory_deployment_upgrade_popup.html">
-
-	<style>
-	.ecd-parameter-table
-	{
-	    border:   1px;
-    	overflow: auto;
-	}
-	.ecd-parameter-table th 
-	{
-		font-size: 1.4rem;
-	}
-	</style>
-
-	<div class="b2b-modal-header ng-scope">
-		<h2 id="myModalLabel" modal-title="">{{ecdapp.label}}</h2>
-		<div class="corner-button in">
-			<button type="button" class="close" aria-label="Close"
-				ng-click="$dismiss('cancel')"></button>
-		</div>
-	</div>
-
-	<div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
-		role="region" aria-label="Modal body content">
-
-	 	<!-- show progress indicator -->
-		<div ng-show="ecdapp.isDataLoading">
-			<div class="span" style="margin-bottom:20px;">
-    			<i class="icon-spinner small" role="img" aria-label="Please wait while the content loads"></i>
-	    		Please wait while the content loads.
-	    	</div>
-		</div>
-
-		<div ng-show="ecdapp.errMsg">
-			<span class="ecd-error-message">{{ecdapp.errMsg}}</span>
-		</div>
-	
-		<div ng-hide="ecdapp.errMsg">
-			<div class="row-nowrap">
-				<div class="span12">
-					<label for="deploymentRef">Deployment Ref</label>
-					<!--not editable-->
-					<input id="deploymentRef" class="span12" type="text" disabled="disabled" data-ng-model="ecdapp.deploymentRef"/>
-				</div>
-				<div class="span12">
-					<label for="serviceId">Service ID</label>
-					<!--not editable-->
-					<input id="serviceId" class="span12" type="text" disabled="disabled" data-ng-model="ecdapp.serviceId"/>
-				</div> 
-				<div class="span12">
-					<label for="tenantName">Tenant Name</label>
-					<!--not editable-->
-					<input id="tenantName" class="span12" type="text" disabled="disabled" data-ng-model="ecdapp.ui_tenant"/>
-				</div> 
-			</div>			
-			
-			<div class="row-nowrap">
-				<div class="span12">
-					<div class="form-row">
-						<label for="parameters">*Parameters</label>
-	   					<div b2b-file-drop file-model="ecdapp.editRequest.fileModel" on-drop="handleFileSelect()" align="center">
-	    						<span b2b-file-link file-model="ecdapp.editRequest.fileModel" on-file-select="handleFileSelect()" >
-	    						Drag &amp; drop a parameters JSON file here, or click to browse.
-	   							</span>
-				        </div>
-		        	</div>
-		        	<div class="ecd-parameter-table">
-						<table id="parameters">
-							<tr id="ecd-table-header">
-								<th width="40%">Name</th>
-								<th width="60%">Value</th>
-							</tr>
-							<tbody ng-repeat="(pkey, pval) in ecdapp.editRequest.resourceDefinitionChanges">
-								<tr id="tr-rowData">
-									<td ng-bind="pkey"/>
-									<td>
-									<input id="parameterValue" class="span12" type="text" 
-										data-ng-model="ecdapp.editRequest.resourceDefinitionChanges[pkey]" autofocus/>
-									</td>
-								</tr>
-							</tbody>
-							<tbody ng-repeat="(pkey, pval) in ecdapp.editRequest.resourceConstants">
-								<tr id="tr-rowData">
-									<td ng-bind="pkey"/>
-									<td ng-bind="pval"/>
-								</tr>
-							</tbody>			
-						</table>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<!-- show progress indicator -->
-	<div style="width: 100%;">
-		<div ng-show="ecdapp.updatingDeployment" style="display: table; margin: 0 auto;" class="span">
-    		<i class="icon-spinner small" role="img" aria-label="Update Deployment in Progress..."></i>
-	   		Update Deployment in Progress...
-	   	</div>
-	</div>
-
-	<div class="b2b-modal-footer ng-scope ng-isolate-scope" ng-show="!ecdapp.updatingDeployment">
-		<div class="cta-button-group in">
-			<!--<div ng-show="!ecdapp.isDataLoading">-->
-				<button class="btn btn-alt btn-small" type="button"
-						ng-click="ecdapp.upgradeWorkflow(ecdapp.editRequest.resourceDefinitionChanges);" ng-show="!ecdapp.isDataLoading && !ecdapp.errMsg">
-					Start Upgrade
-				</button>
-			<!--</div>-->
-			<button class="btn btn-small" type="button"
-				ng-click="$dismiss('cancel')">
-				Cancel
-			</button>
-		</div>
-	</div>
+.ecd-parameter-table th {
+	font-size: 1.4rem;
+}
+</style>
+    <div class="b2b-modal-header ng-scope">
+      <h2 id="myModalLabel" modal-title="">{{ecdapp.label}}</h2>
+      <div class="corner-button in">
+        <button type="button" class="close" aria-label="Close"
+          ng-click="$dismiss('cancel')"></button>
+      </div>
+    </div>
+    <div class="b2b-modal-body ng-scope ng-isolate-scope" tabindex="0"
+      role="region" aria-label="Modal body content">
+      <!-- show progress indicator -->
+      <div ng-show="ecdapp.isDataLoading">
+        <div class="span" style="margin-bottom: 20px;">
+          <i class="icon-spinner small" role="img"
+            aria-label="Please wait while the content loads"></i> Please
+          wait while the content loads.
+        </div>
+      </div>
+      <div ng-show="ecdapp.errMsg">
+        <span class="ecd-error-message">{{ecdapp.errMsg}}</span>
+      </div>
+      <div ng-hide="ecdapp.errMsg">
+        <div class="row-nowrap">
+          <div class="span12">
+            <label for="deploymentRef">Deployment Ref</label>
+            <!--not editable-->
+            <input id="deploymentRef" class="span12" type="text"
+              disabled="disabled" data-ng-model="ecdapp.deploymentRef" />
+          </div>
+          <div class="span12">
+            <label for="tenantName">Tenant Name</label>
+            <!--not editable-->
+            <input id="tenantName" class="span12" type="text"
+              disabled="disabled" data-ng-model="ecdapp.ui_tenant" />
+          </div>
+        </div>
+        <div class="row-nowrap">
+          <div class="span12">
+            <div class="form-row">
+              <label for="parameters">*Parameters</label>
+              <div b2b-file-drop
+                file-model="ecdapp.editRequest.fileModel"
+                on-drop="handleFileSelect()" align="center">
+                <span b2b-file-link
+                  file-model="ecdapp.editRequest.fileModel"
+                  on-file-select="handleFileSelect()"> Drag
+                  &amp; drop a parameters JSON file here, or click to
+                  browse. </span>
+              </div>
+            </div>
+            <div class="ecd-parameter-table">
+              <table id="parameters">
+                <tr id="ecd-table-header">
+                  <th width="40%">Name</th>
+                  <th width="60%">Value</th>
+                </tr>
+                <tbody
+                  ng-repeat="(pkey, pval) in ecdapp.editRequest.resourceDefinitionChanges">
+                  <tr id="tr-rowData">
+                    <td ng-bind="pkey" />
+                    <td><input id="parameterValue" class="span12"
+                      type="text"
+                      data-ng-model="ecdapp.editRequest.resourceDefinitionChanges[pkey]"
+                      autofocus /></td>
+                  </tr>
+                </tbody>
+                <tbody
+                  ng-repeat="(pkey, pval) in ecdapp.editRequest.resourceConstants">
+                  <tr id="tr-rowData">
+                    <td ng-bind="pkey" />
+                    <td ng-bind="pval" />
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- show progress indicator -->
+    <div style="width: 100%;">
+      <div ng-show="ecdapp.updatingDeployment"
+        style="display: table; margin: 0 auto;" class="span">
+        <i class="icon-spinner small" role="img"
+          aria-label="Update Deployment in Progress..."></i> Update
+        Deployment in Progress...
+      </div>
+    </div>
+    <div class="b2b-modal-footer ng-scope ng-isolate-scope"
+      ng-show="!ecdapp.updatingDeployment">
+      <div class="cta-button-group in">
+        <!--<div ng-show="!ecdapp.isDataLoading">-->
+        <button class="btn btn-alt btn-small" type="button"
+          ng-click="ecdapp.upgradeWorkflow(ecdapp.editRequest.resourceDefinitionChanges);"
+          ng-show="!ecdapp.isDataLoading && !ecdapp.errMsg">
+          Start Upgrade</button>
+        <!--</div>-->
+        <button class="btn btn-small" type="button"
+          ng-click="$dismiss('cancel')">Cancel</button>
+      </div>
+    </div>
 </script>

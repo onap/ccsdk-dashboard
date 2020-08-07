@@ -21,18 +21,16 @@ package org.onap.portalapp.conf;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import org.onap.portalapp.lm.FusionLicenseManagerImpl;
 import org.onap.portalapp.login.LoginStrategyImpl;
 import org.onap.portalapp.controller.core.SingleSignOnController;
 import org.onap.portalapp.controller.sample.ElasticSearchController;
 import org.onap.portalapp.controller.sample.PostDroolsController;
+import org.onap.portalapp.interceptor.AuthenticationInterceptor;
+import org.onap.portalapp.interceptor.AuthorizationInterceptor;
 import org.onap.portalapp.scheduler.LogRegistry;
 import org.onap.portalsdk.core.auth.LoginStrategy;
 import org.onap.portalsdk.core.conf.AppConfig;
 import org.onap.portalsdk.core.conf.Configurable;
-// import org.onap.portalsdk.core.lm.FusionLicenseManager;
-// import org.onap.portalsdk.core.lm.FusionLicenseManagerUtils;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 import org.onap.portalsdk.core.objectcache.AbstractCacheManager;
 import org.onap.portalsdk.core.scheduler.CoreRegister;
@@ -53,6 +51,7 @@ import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+
 
 /**
  * ECOMP Portal SDK sample application. ECOMP Portal SDK core AppConfig class to
@@ -75,6 +74,8 @@ public class ExternalAppConfig extends AppConfig implements Configurable {
 
     private EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(ExternalAppConfig.class);
 
+    private static final String HEALTH = "/health*";
+    
     @Configuration
     @Import(SystemProperties.class)
     static class InnerConfiguration {
@@ -133,6 +134,16 @@ public class ExternalAppConfig extends AppConfig implements Configurable {
         return definitions;
     }
 
+    @Bean
+    public AuthenticationInterceptor authenticationInterceptor() {
+         return new AuthenticationInterceptor();
+     }
+    
+    @Bean
+    public AuthorizationInterceptor authorizationInterceptor() {
+         return new AuthorizationInterceptor();
+     }
+    
     /**
      * Adds request interceptors to the specified registry by calling
      * {@link AppConfig#addInterceptors(InterceptorRegistry)}, but excludes
@@ -140,6 +151,10 @@ public class ExternalAppConfig extends AppConfig implements Configurable {
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(authenticationInterceptor())
+        .excludePathPatterns(HEALTH);
+        registry.addInterceptor(authorizationInterceptor())
+        .excludePathPatterns(HEALTH);
         super.setExcludeUrlPathsForSessionTimeout("/login_external", "*/login_external.htm",
             "login", "/login.htm", "/api*", "/single_signon.htm", "/single_signon", "/health*",
             "/nb-api/**");
@@ -171,4 +186,5 @@ public class ExternalAppConfig extends AppConfig implements Configurable {
     public LoginStrategy loginStrategy() {
         return new LoginStrategyImpl();
     }
+
 }
