@@ -31,6 +31,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -54,6 +56,7 @@ import org.onap.ccsdk.dashboard.core.MockitoTestSuite;
 import org.onap.ccsdk.dashboard.exceptions.inventory.BlueprintParseException;
 import org.onap.ccsdk.dashboard.exceptions.inventory.ServiceNotFoundException;
 import org.onap.ccsdk.dashboard.exceptions.inventory.ServiceTypeNotFoundException;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyDeployedTenant;
 import org.onap.ccsdk.dashboard.model.inventory.Service;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceList;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceQueryParams;
@@ -63,10 +66,14 @@ import org.onap.ccsdk.dashboard.model.inventory.ServiceType;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeList;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeQueryParams;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeRequest;
+import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeSummary;
+import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeSummaryList;
 import org.onap.ccsdk.dashboard.rest.CloudifyClient;
 import org.onap.ccsdk.dashboard.rest.InventoryClient;
 import org.onap.ccsdk.dashboard.util.DashboardProperties;
 import org.onap.portalsdk.core.domain.User;
+import org.onap.portalsdk.core.util.CacheManager;
+import org.onap.portalsdk.core.util.SystemProperties;
 import org.onap.portalsdk.core.web.support.AppUtils;
 import org.onap.portalsdk.core.web.support.UserUtils;
 import org.powermock.api.mockito.PowerMockito;
@@ -82,11 +89,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({DashboardProperties.class})
 public class InventoryControllerTest extends MockitoTestSuite {
 
     @Mock
-    private CloudifyClient restClient;
+    private CloudifyClient cfyClient;
 
     @Mock
     private InventoryClient inventoryClient;
@@ -118,59 +124,63 @@ public class InventoryControllerTest extends MockitoTestSuite {
     HttpServletResponse mockedResponse;
 
     MockUser mockUser = new MockUser();
-    ServiceList deplList = null;
-    Service deplItem = null;
 
-    ServiceType bpItem = null;
-    ServiceTypeList bpList = null;
+    ServiceTypeSummary bpItem, bpItem2 = null;
+    ServiceTypeSummaryList bpList, bpList2 = null;
 
+    ServiceType bpItemFull = null;
+    ServiceTypeList bpItemFullList = null;
+    
     ServiceTypeRequest bpUploadItem = null;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         objectMapper.registerModule(new Jdk8Module());
-        getExpectedDeployments();
-        getExpectedBueprints();
+        getExpectedBlueprints();
         createBpUploadItem();
         mockedRequest = getMockedRequest();
         mockedResponse = getMockedResponse();
+        CacheManager testCache = new CacheManager();
+        Map<String, List<ServiceTypeSummary>> bpPerOwner = new HashMap<String, List<ServiceTypeSummary>>();
+        bpPerOwner.put("xyz1731", (List<ServiceTypeSummary>)bpList2.items);
+        testCache.putObject("owner_bp_map", bpPerOwner);
+        subject.setCacheManager(testCache); 
+        /*
+        PowerMockito.mockStatic(SystemProperties.class);
+        Mockito
+            .when(SystemProperties.getProperty("cache_switch"))
+            .thenReturn("1");
+        */
     }
 
-    public void getExpectedDeployments()
+    public void getExpectedBlueprints()
         throws JsonParseException, JsonMappingException, IOException {
-
-        deplItem = new Service("dcae_dtiapi_1902", null, "1552335532348", "1552335532348", null,
-            "dummyVnfId", null, "dummyVnfType", "dummyLocation", "dcae_dtiapi_1902", null);
-        Collection<Service> items = new ArrayList<Service>();
-        items.add(deplItem);
-
-        String pageLinks =
-            "{\"previousLink\":null,\"nextLink\":{\"rel\":\"next\",\"href\":\"https://invt.com:30123/dcae-services/?offset=25\"}}";
-        ServiceList.PaginationLinks paginationLinks =
-            objectMapper.readValue(pageLinks, ServiceList.PaginationLinks.class);
-        int totalCount = 1;
-        deplList = new ServiceList(items, totalCount, paginationLinks);
-
-    }
-
-    public void getExpectedBueprints()
-        throws JsonParseException, JsonMappingException, IOException {
-        bpItem = new ServiceType.Builder("xyz1731", "xyz1731-helm-1906", 1906,
+        bpItem = new ServiceTypeSummary.Builder().application("app1").component("comp1").
+        typeName("xyz1731-helm-1906").owner("xyz1731").typeVersion(1906).build();
+        
+        bpItem2 = new ServiceTypeSummary("xyz1731", "xyz1731-helm-1906", 1906, "app1", "comp1", "123-456-789",
+            "342343", true);
+        bpItemFull = new ServiceType.Builder("xyz1731", "xyz1731-helm-1906", 1906,
             "tosca_definitions_version: cloudify_dsl_1_3", "", "app1", "comp1").build();
-        Collection<ServiceType> items = new ArrayList<ServiceType>();
+
+        Collection<ServiceTypeSummary> items = new ArrayList<ServiceTypeSummary>();
         items.add(bpItem);
 
+        Collection<ServiceTypeSummary> items2 = new ArrayList<ServiceTypeSummary>();
+        items2.add(bpItem2);
+        
         String pageLinks2 =
             "{\"previousLink\":null,\"nextLink\":{\"rel\":\"next\",\"href\":\"https://invt.com:30123/dcae-services/?offset=25\"}}";
-        ServiceTypeList.PaginationLinks paginationLinks =
-            objectMapper.readValue(pageLinks2, ServiceTypeList.PaginationLinks.class);
+        ServiceTypeSummaryList.PaginationLinks paginationLinks =
+            objectMapper.readValue(pageLinks2, ServiceTypeSummaryList.PaginationLinks.class);
         int totalCount = 1;
-        bpList = new ServiceTypeList(items, totalCount, paginationLinks);
+        bpList = new ServiceTypeSummaryList(items, totalCount, paginationLinks);
+        bpList2 = new ServiceTypeSummaryList(items2, totalCount, paginationLinks);
     }
 
     public void createBpUploadItem() {
-        bpUploadItem = ServiceTypeRequest.from(bpItem);
+        bpUploadItem = ServiceTypeRequest.from(bpItemFull);
     }
 
     @After
@@ -178,465 +188,229 @@ public class InventoryControllerTest extends MockitoTestSuite {
     }
 
     @Test
+    public final void testGetOwnersByPage() {
+        User user = mockUser.mockUser();
+        user.setLoginId("tester");
+        MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
+        Mockito.when(UserUtils.getUserSession(mockedRequest)).thenReturn(user);
+        Collection<ServiceTypeSummary> items = bpList.items;
+        Stream<ServiceTypeSummary> sampleStream1 = items.stream();
+        Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream1);
+        String result = subject.getServiceTypesByPage(mockedRequest);
+        assertTrue(result.contains("xyz"));
+    }
+    
+    @Test
+    public final void testGetAllServiceTypeNames() {
+        User user = mockUser.mockUser();
+        user.setLoginId("tester");
+        MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
+        Mockito.when(UserUtils.getUserSession(mockedRequest)).thenReturn(user);
+        Collection<ServiceTypeSummary> items = bpList.items;
+        Stream<ServiceTypeSummary> sampleStream1 = items.stream();
+        Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream1);
+        String result = subject.getAllServiceTypeNames(mockedRequest);
+        assertTrue(result.contains("xyz"));        
+    }
+    
+    @Test
+    public final void testGetAllServiceTypeIds() {
+        User user = mockUser.mockUser();
+        user.setLoginId("tester");
+        MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
+        Mockito.when(UserUtils.getUserSession(mockedRequest)).thenReturn(user);
+        Collection<ServiceTypeSummary> items = bpList.items;
+        Stream<ServiceTypeSummary> sampleStream1 = items.stream();
+        Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream1);
+        String result = subject.getAllServiceTypeIds(mockedRequest);
+        assertTrue(result.contains("xyz"));        
+    }
+    
+    @Test
     public final void testGetServiceTypesByPage() {
         User user = mockUser.mockUser();
         user.setLoginId("tester");
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
-        mockedRequest.addParameter("searchBy", "xyz");
+        //mockedRequest.addParameter("searchBy", "xyz");
         mockedRequest.addParameter("sortBy", "owner");
 
+        // # 1st case
         Mockito.when(UserUtils.getUserSession(mockedRequest)).thenReturn(user);
-        PowerMockito.mockStatic(DashboardProperties.class);
-        Mockito
-            .when(DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth"))
-            .thenReturn("os");
-
-        Collection<ServiceType> items = bpList.items;
-
-        Stream<ServiceType> sampleStream1 = items.stream();
+        Collection<ServiceTypeSummary> items = bpList.items;
+        Stream<ServiceTypeSummary> sampleStream1 = items.stream();
         Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream1);
         String result = subject.getServiceTypesByPage(mockedRequest);
         assertTrue(result.contains("xyz"));
-
-        Mockito
-            .when(DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth"))
-            .thenReturn("auth");
-
+        
+        // # 2nd case
         HttpSession session = mockedRequest.getSession();
         HashMap<String, Boolean> comp_deploy_tab = new HashMap<String, Boolean>();
         comp_deploy_tab.put("comp1", true);
-
         Set<String> userApps = new TreeSet<String>();
         userApps.add("comp1");
-
         when(session.getAttribute("comp_access")).thenReturn(comp_deploy_tab);
         when(session.getAttribute("role_level")).thenReturn("app");
         when(session.getAttribute("authComponents")).thenReturn(userApps);
 
-        Stream<ServiceType> sampleStream2 = items.stream();
-        Mockito.when(inventoryClient.getServiceTypes(Matchers.<ServiceTypeQueryParams>any()))
+        Stream<ServiceTypeSummary> sampleStream2 = items.stream();
+        Mockito.when(inventoryClient.getServiceTypes())
             .thenReturn(sampleStream2);
+        /*
+        Mockito.when(inventoryClient.getServiceTypes(Matchers.<ServiceTypeQueryParams>any()))
+        .thenReturn(sampleStream2);
+        */
         String result2 = subject.getServiceTypesByPage(mockedRequest);
         assertTrue(result2.contains("xyz"));
+
     }
-
+    
     @Test
-    public final void testGetServiceTypesByPage_appl() {
+    public final void testGetServiceTypesByPage_appDevUser() {
+        User user = mockUser.mockUser();
+        user.setLoginId("tester");
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
-        mockedRequest.addParameter("sortBy", "application");
+        Mockito.when(UserUtils.getUserSession(mockedRequest)).thenReturn(user);
+        HttpSession session = mockedRequest.getSession();
+        HashMap<String, Boolean> comp_deploy_tab = new HashMap<String, Boolean>();
+        comp_deploy_tab.put("comp1", true);
+        Set<String> userApps = new TreeSet<String>();
+        userApps.add("comp1");
+        when(session.getAttribute("comp_access")).thenReturn(comp_deploy_tab);
+        when(session.getAttribute("role_level")).thenReturn("app_dev");
+        when(session.getAttribute("authComponents")).thenReturn(userApps);
 
-        Collection<ServiceType> items = bpList.items;
-        Stream<ServiceType> sampleStream1 = items.stream();
+        Collection<ServiceTypeSummary> items = bpList.items;
+        Stream<ServiceTypeSummary> sampleStream = items.stream();
+        Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream);
 
-        PowerMockito.mockStatic(DashboardProperties.class);
-        Mockito
-            .when(DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth"))
-            .thenReturn("os");
-
-        Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream1);
         String result = subject.getServiceTypesByPage(mockedRequest);
         assertTrue(result.contains("xyz"));
-
-        Mockito
-            .when(DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth"))
-            .thenReturn("auth");
-
-        Stream<ServiceType> sampleStream2 = items.stream();
-        Mockito.when(inventoryClient.getServiceTypes(Matchers.<ServiceTypeQueryParams>any()))
-            .thenReturn(sampleStream2);
-        String result2 = subject.getServiceTypesByPage(mockedRequest);
-        assertTrue(result2.contains("xyz"));
     }
+    
+    @Test
+    public final void testGetServiceTypesByPage_containsFilter() {
+        User user = mockUser.mockUser();
+        user.setLoginId("tester");
+        MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
+        mockedRequest.addParameter("searchBy", "contains:xyz1731-helm-1906");
+        Mockito.when(UserUtils.getUserSession(mockedRequest)).thenReturn(user);
 
+        Collection<ServiceTypeSummary> items = bpList.items;
+        Stream<ServiceTypeSummary> sampleStream = items.stream();
+        Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream);
+
+        String result = subject.getServiceTypesByPage(mockedRequest);
+        assertTrue(result.contains("error"));
+    }
+    
+    @Test
+    public final void testGetServiceTypesByPage_AllFilters() {
+        User user = mockUser.mockUser();
+        user.setLoginId("tester");
+        MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
+        mockedRequest.addParameter("searchBy", "serviceRef:xyz1731-helm-1906;app:app1;comp:comp1;owner:xyz1731;");
+        Mockito.when(UserUtils.getUserSession(mockedRequest)).thenReturn(user);
+
+        Collection<ServiceTypeSummary> items = bpList.items;
+        Stream<ServiceTypeSummary> sampleStream = items.stream();
+        Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream);
+
+        String result = subject.getServiceTypesByPage(mockedRequest);
+        assertTrue(result.contains("xyz"));
+        
+    }
+    
     @Test
     public final void testGetServiceTypesByPage_comp() {
+        User user = mockUser.mockUser();
+        user.setLoginId("tester");      
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
+        Mockito.when(UserUtils.getUserSession(mockedRequest)).thenReturn(user);
         mockedRequest.addParameter("sortBy", "component");
 
-        Collection<ServiceType> items = bpList.items;
-        Stream<ServiceType> sampleStream1 = items.stream();
-
-        PowerMockito.mockStatic(DashboardProperties.class);
-        Mockito
-            .when(DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth"))
-            .thenReturn("os");
+        Collection<ServiceTypeSummary> items = bpList2.items;
+        Stream<ServiceTypeSummary> sampleStream1 = items.stream();
 
         Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream1);
         String result = subject.getServiceTypesByPage(mockedRequest);
         assertTrue(result.contains("xyz"));
 
-        Mockito
-            .when(DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth"))
-            .thenReturn("auth");
-
-        Stream<ServiceType> sampleStream2 = items.stream();
-        Mockito.when(inventoryClient.getServiceTypes(Matchers.<ServiceTypeQueryParams>any()))
-            .thenReturn(sampleStream2);
-        String result2 = subject.getServiceTypesByPage(mockedRequest);
-        assertTrue(result2.contains("xyz"));
     }
 
     @Test
     public final void testGetServiceTypesByPage_typeId() {
+        User user = mockUser.mockUser();
+        user.setLoginId("tester");      
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
+        Mockito.when(UserUtils.getUserSession(mockedRequest)).thenReturn(user);
         mockedRequest.addParameter("sortBy", "typeId");
-        Collection<ServiceType> items = bpList.items;
-        Stream<ServiceType> sampleStream1 = items.stream();
-
-        PowerMockito.mockStatic(DashboardProperties.class);
-        Mockito
-            .when(DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth"))
-            .thenReturn("os");
+        Collection<ServiceTypeSummary> items = bpList2.items;
+        Stream<ServiceTypeSummary> sampleStream1 = items.stream();
 
         Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream1);
         String result = subject.getServiceTypesByPage(mockedRequest);
         assertTrue(result.contains("xyz"));
-
-        Mockito
-            .when(DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth"))
-            .thenReturn("auth");
-
-        Stream<ServiceType> sampleStream2 = items.stream();
-        Mockito.when(inventoryClient.getServiceTypes(Matchers.<ServiceTypeQueryParams>any()))
-            .thenReturn(sampleStream2);
-        String result2 = subject.getServiceTypesByPage(mockedRequest);
-        assertTrue(result2.contains("xyz"));
     }
 
     @Test
     public final void testGetServiceTypesByPage_typeName() {
-
+        User user = mockUser.mockUser();
+        user.setLoginId("tester");      
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
+        Mockito.when(UserUtils.getUserSession(mockedRequest)).thenReturn(user);
         mockedRequest.addParameter("sortBy", "typeName");
-        Collection<ServiceType> items = bpList.items;
-        Stream<ServiceType> sampleStream1 = items.stream();
-
-        PowerMockito.mockStatic(DashboardProperties.class);
-        Mockito
-            .when(DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth"))
-            .thenReturn("os");
-
+        Collection<ServiceTypeSummary> items = bpList2.items;
+        Stream<ServiceTypeSummary> sampleStream1 = items.stream();
         Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream1);
         String result = subject.getServiceTypesByPage(mockedRequest);
         assertTrue(result.contains("xyz"));
-
-        Mockito
-            .when(DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth"))
-            .thenReturn("auth");
-
-        Stream<ServiceType> sampleStream2 = items.stream();
-        Mockito.when(inventoryClient.getServiceTypes(Matchers.<ServiceTypeQueryParams>any()))
-            .thenReturn(sampleStream2);
-        String result2 = subject.getServiceTypesByPage(mockedRequest);
-        assertTrue(result2.contains("xyz"));
-
     }
 
     @Test
     public final void testGetServiceTypesByPage_typeVer() {
-
+        User user = mockUser.mockUser();
+        user.setLoginId("tester");      
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
+        Mockito.when(UserUtils.getUserSession(mockedRequest)).thenReturn(user);
         mockedRequest.addParameter("sortBy", "typeVersion");
-        Collection<ServiceType> items = bpList.items;
-        Stream<ServiceType> sampleStream1 = items.stream();
-
-        PowerMockito.mockStatic(DashboardProperties.class);
-        Mockito
-            .when(DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth"))
-            .thenReturn("os");
+        Collection<ServiceTypeSummary> items = bpList2.items;
+        Stream<ServiceTypeSummary> sampleStream1 = items.stream();
 
         Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream1);
         String result = subject.getServiceTypesByPage(mockedRequest);
         assertTrue(result.contains("xyz"));
-
-        Mockito
-            .when(DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth"))
-            .thenReturn("auth");
-
-        Stream<ServiceType> sampleStream2 = items.stream();
-        Mockito.when(inventoryClient.getServiceTypes(Matchers.<ServiceTypeQueryParams>any()))
-            .thenReturn(sampleStream2);
-        String result2 = subject.getServiceTypesByPage(mockedRequest);
-        assertTrue(result2.contains("xyz"));
-
     }
 
     @Test
     public final void testGetServiceTypesByPage_created() {
-
+        User user = mockUser.mockUser();
+        user.setLoginId("tester");      
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
+        Mockito.when(UserUtils.getUserSession(mockedRequest)).thenReturn(user);
         mockedRequest.addParameter("sortBy", "created");
-        Collection<ServiceType> items = bpList.items;
-        Stream<ServiceType> sampleStream1 = items.stream();
-
-        PowerMockito.mockStatic(DashboardProperties.class);
-        Mockito
-            .when(DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth"))
-            .thenReturn("os");
+        Collection<ServiceTypeSummary> items = bpList2.items;
+        Stream<ServiceTypeSummary> sampleStream1 = items.stream();
 
         Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream1);
         String result = subject.getServiceTypesByPage(mockedRequest);
         assertTrue(result.contains("xyz"));
-
-        Mockito
-            .when(DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth"))
-            .thenReturn("auth");
-
-        Stream<ServiceType> sampleStream2 = items.stream();
-        Mockito.when(inventoryClient.getServiceTypes(Matchers.<ServiceTypeQueryParams>any()))
-            .thenReturn(sampleStream2);
-        String result2 = subject.getServiceTypesByPage(mockedRequest);
-        assertTrue(result2.contains("xyz"));
     }
 
-    @Test
-    public final void testGetServiceTypesByPage_Auth() {
-
-        User user = mockUser.mockUser();
-        user.setLoginId("tester");
-        MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
-        mockedRequest.addParameter("searchBy", "xyz");
-
-        Mockito.when(UserUtils.getUserSession(mockedRequest)).thenReturn(user);
-        PowerMockito.mockStatic(DashboardProperties.class);
-        Mockito
-            .when(DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth"))
-            .thenReturn("auth");
-
-        Collection<ServiceType> items = bpList.items;
-        Stream<ServiceType> sampleStream = items.stream();
-
-        HttpSession session = mockedRequest.getSession();
-        HashMap<String, Boolean> comp_deploy_tab = new HashMap<String, Boolean>();
-        comp_deploy_tab.put("comp1", true);
-
-        Set<String> userApps = new TreeSet<String>();
-        userApps.add("comp1");
-
-        when(session.getAttribute("comp_access")).thenReturn(comp_deploy_tab);
-        when(session.getAttribute("role_level")).thenReturn("ops");
-        when(session.getAttribute("authComponents")).thenReturn(userApps);
-
-        Mockito.when(inventoryClient.getServiceTypes(Matchers.<ServiceTypeQueryParams>any()))
-            .thenReturn(sampleStream);
-        String result = subject.getServiceTypesByPage(mockedRequest);
-        assertTrue(result.contains("xyz"));
-    }
 
     @SuppressWarnings("unchecked")
     @Test
     public final void testGetServiceTypesByPage_Exception() {
-        PowerMockito.mockStatic(DashboardProperties.class);
-        Collection<ServiceType> items = bpList.items;
-        Stream<ServiceType> sampleStream = items.stream();
-        when(DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth"))
-            .thenReturn("os");
         when(inventoryClient.getServiceTypes()).thenThrow(RestClientException.class)
-            .thenThrow(httpException).thenReturn(sampleStream);
+            .thenThrow(httpException);
 
         String errResp = subject.getServiceTypesByPage(mockedRequest);
         assertTrue(errResp.contains("error"));
 
         errResp = subject.getServiceTypesByPage(mockedRequest);
         assertTrue(errResp.contains("error"));
-
-        String result = subject.getServiceTypesByPage(mockedRequest);
-        assertTrue(result.contains("xyz"));
     }
 
-    @Test
-    public final void testGetServiceTypesByPage_Filter() {
-        User user = mockUser.mockUser();
-        user.setLoginId("tester");
-        MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
-        mockedRequest.addParameter("searchBy", "xyz");
-        PowerMockito.mockStatic(DashboardProperties.class);
-        Mockito.when(UserUtils.getUserSession(mockedRequest)).thenReturn(user);
 
-        Collection<ServiceType> items = bpList.items;
-        Stream<ServiceType> sampleStream = items.stream();
-        Mockito
-            .when(DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth"))
-            .thenReturn("os");
-        Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream);
-
-        String result = subject.getServiceTypesByPage(mockedRequest);
-        assertTrue(result.contains("xyz"));
-    }
-
-    @Test
-    public final void testGetServicesByPage_auth() throws IOException {
-        PowerMockito.mockStatic(DashboardProperties.class);
-        Mockito
-            .when(DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth"))
-            .thenReturn("auth");
-        MockHttpServletRequestWrapper mockedRequest1 = getMockedRequest();
-        mockedRequest1.addParameter("searchBy", "dti");
-
-        Collection<Service> items = deplList.items;
-
-        HttpSession session = mockedRequest1.getSession();
-        HashMap<String, Boolean> comp_deploy_tab = new HashMap<String, Boolean>();
-        comp_deploy_tab.put("dcae", true);
-
-        Set<String> userApps = new TreeSet<String>();
-        userApps.add("dcae");
-
-        when(session.getAttribute("comp_access")).thenReturn(comp_deploy_tab);
-        when(session.getAttribute("role_level")).thenReturn("app");
-        when(session.getAttribute("authComponents")).thenReturn(userApps);
-
-        Stream<Service> sampleStream1 = items.stream();
-        Mockito.when(inventoryClient.getServices()).thenReturn(sampleStream1);
-
-        String result1 = subject.getServicesByPage(mockedRequest1);
-        assertTrue(result1.contains("dti"));
-
-    }
-
-    @Test
-    public final void testGetServicesByPage_auth_ops() throws IOException {
-        PowerMockito.mockStatic(DashboardProperties.class);
-        Mockito
-            .when(DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth"))
-            .thenReturn("auth");
-        MockHttpServletRequestWrapper mockedRequest1 = getMockedRequest();
-        mockedRequest1.addParameter("searchBy", "dti");
-
-        Collection<Service> items = deplList.items;
-
-        HttpSession session = mockedRequest1.getSession();
-        HashMap<String, Boolean> comp_deploy_tab = new HashMap<String, Boolean>();
-        comp_deploy_tab.put("dcae", true);
-
-        Set<String> userApps = new TreeSet<String>();
-        userApps.add("dcae");
-
-        when(session.getAttribute("comp_access")).thenReturn(comp_deploy_tab);
-        when(session.getAttribute("role_level")).thenReturn("ops");
-        when(session.getAttribute("authComponents")).thenReturn(userApps);
-
-        Stream<Service> sampleStream1 = items.stream();
-        Mockito.when(inventoryClient.getServices()).thenReturn(sampleStream1);
-
-        String result1 = subject.getServicesByPage(mockedRequest1);
-        assertTrue(result1.contains("dti"));
-
-    }
-
-    @Test
-    public final void testGetServicesByPage() throws IOException {
-        /*
-         * User user = mockUser.mockUser(); user.setLoginId("tester");
-         */
-        MockHttpServletRequestWrapper mockedRequest1 = getMockedRequest();
-        mockedRequest1.addParameter("searchBy", "dti");
-        mockedRequest1.addParameter("sortBy", "deploymentRef");
-
-        PowerMockito.mockStatic(DashboardProperties.class);
-        Mockito
-            .when(DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth"))
-            .thenReturn("os");
-
-        Collection<Service> items = deplList.items;
-
-        Stream<Service> sampleStream1 = items.stream();
-        Mockito.when(inventoryClient.getServices()).thenReturn(sampleStream1);
-
-        String result1 = subject.getServicesByPage(mockedRequest1);
-        assertTrue(result1.contains("dti"));
-    }
-
-    @Test
-    public final void testGetServicesByPage_sort_serviceId() throws IOException {
-
-        MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
-        mockedRequest.addParameter("sortBy", "serviceId");
-
-        PowerMockito.mockStatic(DashboardProperties.class);
-        Mockito
-            .when(DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth"))
-            .thenReturn("os");
-
-        Collection<Service> items = deplList.items;
-
-        Stream<Service> sampleStream1 = items.stream();
-        Mockito.when(inventoryClient.getServices()).thenReturn(sampleStream1);
-
-        String result = subject.getServicesByPage(mockedRequest);
-        assertTrue(result.contains("dti"));
-
-        PowerMockito.mockStatic(DashboardProperties.class);
-        Mockito
-            .when(DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth"))
-            .thenReturn("auth");
-
-        Stream<Service> sampleStream2 = items.stream();
-        Mockito.when(inventoryClient.getServices()).thenReturn(sampleStream2);
-
-        String result2 = subject.getServicesByPage(mockedRequest);
-        assertTrue(result2.contains("dti"));
-    }
-
-    @Test
-    public final void testGetServicesByPage_sort_created() throws IOException {
-        MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
-        mockedRequest.addParameter("sortBy", "created");
-
-        PowerMockito.mockStatic(DashboardProperties.class);
-        Mockito
-            .when(DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth"))
-            .thenReturn("os");
-
-        Collection<Service> items = deplList.items;
-
-        Stream<Service> sampleStream = items.stream();
-        Mockito.when(inventoryClient.getServices()).thenReturn(sampleStream);
-
-        String result = subject.getServicesByPage(mockedRequest);
-        assertTrue(result.contains("dti"));
-
-        Mockito
-            .when(DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth"))
-            .thenReturn("auth");
-
-        Stream<Service> sampleStream2 = items.stream();
-        Mockito.when(inventoryClient.getServices()).thenReturn(sampleStream2);
-
-        String result2 = subject.getServicesByPage(mockedRequest);
-        assertTrue(result2.contains("dti"));
-
-    }
-
-    @Test
-    public final void testGetServicesByPage_sort_modified() throws IOException {
-
-        MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
-        mockedRequest.addParameter("sortBy", "modified");
-
-        PowerMockito.mockStatic(DashboardProperties.class);
-        Mockito
-            .when(DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth"))
-            .thenReturn("os");
-
-        Collection<Service> items = deplList.items;
-
-        Stream<Service> sampleStream = items.stream();
-        Mockito.when(inventoryClient.getServices()).thenReturn(sampleStream);
-
-        String result = subject.getServicesByPage(mockedRequest);
-        assertTrue(result.contains("dti"));
-
-        Mockito
-            .when(DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth"))
-            .thenReturn("auth");
-
-        Stream<Service> sampleStream2 = items.stream();
-        Mockito.when(inventoryClient.getServices()).thenReturn(sampleStream2);
-
-        String result2 = subject.getServicesByPage(mockedRequest);
-        assertTrue(result2.contains("dti"));
-    }
 
     @SuppressWarnings("unchecked")
     @Test
@@ -670,38 +444,36 @@ public class InventoryControllerTest extends MockitoTestSuite {
             .thenThrow(BlueprintParseException.class).thenThrow(httpException)
             .thenThrow(Exception.class).thenReturn(null);
 
-        String actual1 = subject.updateServiceTypeBlueprint(mockedRequest, bpItem);
+        String actual1 = subject.updateServiceTypeBlueprint(mockedRequest, bpItemFull);
         assertTrue(actual1.contains("error"));
 
-        String actual2 = subject.updateServiceTypeBlueprint(mockedRequest, bpItem);
+        String actual2 = subject.updateServiceTypeBlueprint(mockedRequest, bpItemFull);
         assertTrue(actual2.contains("error"));
 
-        String actual3 = subject.updateServiceTypeBlueprint(mockedRequest, bpItem);
+        String actual3 = subject.updateServiceTypeBlueprint(mockedRequest, bpItemFull);
         assertTrue(actual3.contains("error"));
 
-        String actual = subject.updateServiceTypeBlueprint(mockedRequest, bpItem);
+        String actual = subject.updateServiceTypeBlueprint(mockedRequest, bpItemFull);
         assertEquals(expected, actual);
-    }
-
-    @Test
-    public final void testDeleteService() throws Exception {
-        String expected = "{\"202\": \"OK\"}";
-        doNothing().doThrow(serviceException).doThrow(Exception.class).when(inventoryClient)
-            .deleteService(Matchers.anyString());
-
-        String actual = subject.deleteService("srvcId", mockedRequest, mockedResponse);
-        assertEquals(expected, actual);
-
-        actual = subject.deleteService("srvcId", mockedRequest, mockedResponse);
-        assertTrue(actual.contains("error"));
-
-        actual = subject.deleteService("srvcId", mockedRequest, mockedResponse);
-        assertTrue(actual.contains("error"));
     }
 
     @Test
     public final void testDeleteServiceType() throws Exception {
-        String expected = "{\"202\": \"OK\"}";
+        //String expected = "{\"202\": \"OK\"}";
+        String expected = "{\"204\": \"Blueprint deleted\"}";
+        List<CloudifyDeployedTenant> deplForBp = new ArrayList<>();
+        deplForBp.clear();
+        Mockito.when(cfyClient.getDeploymentForBlueprint(Matchers.<String>any()))
+        .thenReturn(deplForBp);
+        
+        List<ServiceRef> srvcRefList = new ArrayList<>();
+        srvcRefList.clear();
+        int itemCnt = 0;
+        ServiceRefList mockSvcRefList = new ServiceRefList(srvcRefList, itemCnt);
+
+        Mockito.when(inventoryClient.getServicesForType(Matchers.<ServiceQueryParams>any()))
+            .thenReturn(mockSvcRefList);
+        
         doNothing().doThrow(serviceTypeException).doThrow(Exception.class).when(inventoryClient)
             .deleteServiceType(Matchers.anyString());
 
@@ -715,10 +487,24 @@ public class InventoryControllerTest extends MockitoTestSuite {
         assertTrue(actual.contains("error"));
     }
 
+    @Test
+    public final void testDeleteServiceType_withDepl() throws Exception {
+        CloudifyDeployedTenant mockCfyDeplTen = 
+            new CloudifyDeployedTenant("id1", "tenant", "45435435", "54543534");
+        
+        List<CloudifyDeployedTenant> deplForBp = new ArrayList<>();
+        deplForBp.add(mockCfyDeplTen);
+        Mockito.when(cfyClient.getDeploymentForBlueprint(Matchers.<String>any()))
+        .thenReturn(deplForBp);
+        
+        String actual = subject.deleteServiceType("srvcId", mockedRequest, mockedResponse);
+        assertTrue(actual.contains("error"));
+    }
+    
     @SuppressWarnings("unchecked")
     @Test
     public final void testViewServiceTypeBlueprintContentById() throws Exception {
-        Optional<ServiceType> expected = Optional.of(bpItem);
+        Optional<ServiceType> expected = Optional.of(bpItemFull);
         when(inventoryClient.getServiceType(Matchers.anyString())).thenReturn(expected)
             .thenThrow(httpException).thenThrow(Exception.class);
 

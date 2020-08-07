@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <!-- Add oparent parent -->
-
+ 
     <parent>
         <groupId>org.onap.oparent</groupId>
         <artifactId>oparent</artifactId>
@@ -14,7 +14,7 @@
     <!-- Maven parent project for convenience of building and cleaning -->
     <groupId>org.onap.ccsdk.dashboard</groupId>
     <artifactId>ccsdk-app-parent</artifactId>
-    <version>1.3.2-SNAPSHOT</version>
+    <version>1.4.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>ccsdk-dashboard</name>
     
@@ -38,5 +38,17 @@
             <url>${onap.nexus.url}/content/repositories/snapshots</url>
         </snapshotRepository>
     </distributionManagement>
+    <build>
+	    <plugins>
+		    <plugin>
+		    <groupId>org.codehaus.mojo</groupId>
+		    <artifactId>versions-maven-plugin</artifactId>
+		    <version>2.5</version>
+		    <configuration>
+		        <generateBackupPoms>false</generateBackupPoms>
+		    </configuration>
+			</plugin>
+		</plugins>
+    </build>
 
 </project>

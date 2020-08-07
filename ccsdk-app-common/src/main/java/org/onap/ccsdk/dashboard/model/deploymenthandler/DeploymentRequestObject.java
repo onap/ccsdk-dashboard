@@ -21,7 +21,11 @@
  *******************************************************************************/
 package org.onap.ccsdk.dashboard.model.deploymenthandler;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Optional;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -69,15 +73,60 @@ public class DeploymentRequestObject {
      */
     private final Map<String, Object> inputs;
 
+    private final Collection<String> reinstall_list;
+    
+    private final boolean skip_install;
+    
+    private final boolean skip_uninstall;
+    
+    private final boolean skip_reinstall;
+
+    private final boolean force;
+    
+    private final boolean ignore_failure;
+    
+    private final boolean install_first;
+    
     @JsonCreator
     public DeploymentRequestObject(@JsonProperty("deploymentId") String deploymentId,
             @JsonProperty("serviceTypeId") String serviceTypeId, @JsonProperty("inputs") Map<String, Object> inputs,
-            @JsonProperty("tenant") String tenant, @JsonProperty("method") String method) {
+            @JsonProperty("tenant") String tenant, @JsonProperty("method") String method,
+            @JsonProperty("reinstall_list") Collection<String> reinstallList, 
+            @JsonProperty("skip_install") boolean skipInstall, 
+            @JsonProperty("skip_uninstall") boolean skipUninstall, 
+            @JsonProperty("skip_reinstall") boolean skipReinstall, 
+            @JsonProperty("force") boolean force, 
+            @JsonProperty("ignore_failure") boolean ignoreFailure, 
+            @JsonProperty("install_first") boolean installFirst) {
         this.deploymentId = deploymentId;
         this.serviceTypeId = serviceTypeId;
         this.inputs = inputs;
         this.tenant = tenant;
         this.method = method;
+        this.reinstall_list = (reinstallList == null) ? new LinkedList<String>() : reinstallList;
+        this.skip_install = skipInstall;
+        this.skip_uninstall = skipUninstall;
+        this.skip_reinstall = skipReinstall;
+        this.force = force;
+        this.ignore_failure = ignoreFailure;
+        this.install_first = installFirst;
+    }
+
+    public DeploymentRequestObject(String deploymentId, String serviceTypeId, String method, 
+        Map<String, Object> inputs, String tenant) {
+        super();
+        this.deploymentId = deploymentId;
+        this.method = method;
+        this.serviceTypeId = serviceTypeId;
+        this.tenant = tenant;
+        this.inputs = inputs;
+        this.reinstall_list = null;
+        this.skip_install = true;
+        this.skip_uninstall = true;
+        this.skip_reinstall = true;
+        this.force = false;
+        this.ignore_failure = true;
+        this.install_first = false;
     }
 
     public String getDeploymentId() {
@@ -98,5 +147,33 @@ public class DeploymentRequestObject {
 
     public String getMethod() {
         return method;
+    }
+
+    public Collection<String> getReinstall_list() {
+        return reinstall_list;
+    }
+
+    public boolean isSkip_install() {
+        return skip_install;
+    }
+
+    public boolean isSkip_uninstall() {
+        return skip_uninstall;
+    }
+
+    public boolean isSkip_reinstall() {
+        return skip_reinstall;
+    }
+
+    public boolean isForce() {
+        return force;
+    }
+
+    public boolean isIgnore_failure() {
+        return ignore_failure;
+    }
+
+    public boolean isInstall_first() {
+        return install_first;
     }
 }

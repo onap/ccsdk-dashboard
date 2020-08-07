@@ -37,6 +37,7 @@ import org.onap.ccsdk.dashboard.model.inventory.ServiceRefList;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceType;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeQueryParams;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeRequest;
+import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeSummary;
 
 /**
  * Defines the interface of the Inventory Client.
@@ -44,12 +45,25 @@ import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeRequest;
 public interface InventoryClient {
 
     /**
+     * Run inventory service health check
+     * 
+     */
+    public String checkHealth();
+
+    /**
+     * Get and store in cache, list of all DCAE Service Type objects.
+     * 
+     * @return void
+     */
+    public void cacheServiceTypes();
+    
+    /**
      * Gets a list of all DCAE Service Type objects.
      * 
      * @return Collection<ServiceType>
      */
-    public Stream<ServiceType> getServiceTypes();
-
+    public Stream<ServiceTypeSummary> getServiceTypes();
+    
     /**
      * Gets a list of all DCAE Service Type objects that fall under a specified
      * filter.
@@ -59,7 +73,7 @@ public interface InventoryClient {
      * 
      * @return Collection<ServiceType>
      */
-    public Stream<ServiceType> getServiceTypes(ServiceTypeQueryParams serviceTypeQueryParams);
+    public Stream<ServiceTypeSummary> getServiceTypes(ServiceTypeQueryParams serviceTypeQueryParams);
 
     /**
      * Inserts a new DCAE Service Type, or updates an existing instance associated
@@ -117,7 +131,7 @@ public interface InventoryClient {
      * 
      * @return Collection<Service>
      */
-    public Stream<Service> getServices();
+    //public Stream<Service> getServices();
 
     /**
      * Gets a list of all DCAE Service objects that fall under a specified filter.
@@ -127,7 +141,7 @@ public interface InventoryClient {
      * 
      * @return Collection<Service>
      */
-    public Stream<Service> getServices(ServiceQueryParams serviceQueryParams);
+    //public Stream<Service> getServices(ServiceQueryParams serviceQueryParams);
 
     /**
      * Gets a list of all DCAE Service References that match a service type filter.
@@ -159,32 +173,8 @@ public interface InventoryClient {
      * @return Service
      */
 
-    public Optional<Service> getService(String serviceId);
+    //public Optional<Service> getService(String serviceId);
 
-    /**
-     * Puts a new DCAE Service with the specified serviceId, or updates an existing
-     * DCAE Service corresponding to the specified serviceId.
-     * 
-     * @param typeId  Type ID of the associated DCAE Service Type
-     * 
-     * @param service DCAE Service to be uploaded.
-     */
-    public void putService(String typeId, Service service);
-
-    /**
-     * Deletes an existing DCAE Service object corresponding to the specified
-     * serviceId.
-     * 
-     * @param serviceId Service ID of the DCAE Service to be deleted.
-     * 
-     * @exception ServiceNotFoundException           Thrown if the DCAE Service is
-     *                                               not found.
-     * 
-     * @exception ServiceAlreadyDeactivatedException Thrown if the DCAE Service is
-     *                                               already deactivated.
-     * 
-     */
-
-    public void deleteService(String serviceId) throws ServiceNotFoundException, ServiceAlreadyDeactivatedException;
+    public String getBaseUrl();
 
 }

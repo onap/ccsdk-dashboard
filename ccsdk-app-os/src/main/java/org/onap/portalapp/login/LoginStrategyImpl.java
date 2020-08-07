@@ -20,22 +20,129 @@
 
 package org.onap.portalapp.login;
 
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.onap.portalsdk.core.auth.LoginStrategy;
+import org.onap.portalsdk.core.command.LoginBean;
+import org.onap.portalsdk.core.domain.Role;
+import org.onap.portalsdk.core.domain.RoleFunction;
+import org.onap.portalsdk.core.domain.User;
+import org.onap.portalsdk.core.domain.FusionObject.Parameters;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
+import org.onap.portalsdk.core.menu.MenuProperties;
 import org.onap.portalsdk.core.onboarding.exception.PortalAPIException;
 import org.onap.portalsdk.core.onboarding.util.CipherUtil;
 import org.onap.portalsdk.core.onboarding.util.PortalApiConstants;
 import org.onap.portalsdk.core.onboarding.util.PortalApiProperties;
+import org.onap.portalsdk.core.service.DataAccessService;
+import org.onap.portalsdk.core.service.LoginService;
+import org.onap.portalsdk.core.service.RoleService;
+import org.onap.portalsdk.core.util.SystemProperties;
+import org.onap.portalsdk.core.web.support.AppUtils;
+import org.onap.portalsdk.core.web.support.UserUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.ModelAndView;
 
 public class LoginStrategyImpl extends LoginStrategy {
 
     EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(LoginStrategyImpl.class);
 
+    @Autowired
+    private LoginService loginService;
+
+    @Autowired
+    private RoleService roleService;
+       
+    @Override
+    public ModelAndView doExternalLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
+
+        invalidateExistingSession(request);
+
+        LoginBean commandBean = new LoginBean();
+        String loginId = request.getParameter("loginId");
+        String password = request.getParameter("password");
+        commandBean.setLoginId(loginId);
+        commandBean.setLoginPwd(password);
+        //commandBean.setUserid(loginId);
+        commandBean = loginService.findUser(commandBean,
+                (String) request.getAttribute(MenuProperties.MENU_PROPERTIES_FILENAME_KEY), new HashMap());
+        List<RoleFunction> roleFunctionList = roleService.getRoleFunctions(loginId);
+
+        if (commandBean.getUser() == null) {
+            String loginErrorMessage = (commandBean.getLoginErrorMessage() != null) ? commandBean.getLoginErrorMessage()
+                    : "login.error.external.invalid - User name and/or password incorrect";
+            Map<String, String> model = new HashMap<>();
+            model.put("error", loginErrorMessage);
+            return new ModelAndView("login_external", "model", model);
+        } else {
+            // store the currently logged in user's information in the session
+            UserUtils.setUserSession(request, commandBean.getUser(), commandBean.getMenu(),
+                    commandBean.getBusinessDirectMenu(),
+                    SystemProperties.getProperty(SystemProperties.LOGIN_METHOD_BACKDOOR), roleFunctionList);
+            // set the user's max role level in session
+            final String adminRole = "System Administrator";
+            final String standardRole = "Standard User";
+            final String readRole = "Read Access";
+            final String writeRole = "Write Access";
+            
+            String maxRole = "";
+            String authType = "READ";
+            String accessLevel = "app";
+            
+            Predicate<Role> adminRoleFilter = 
+                p -> p.getName() != null && p.getName().equalsIgnoreCase(adminRole);
+            
+            Predicate<Role> writeRoleFilter = 
+                p -> p.getName() != null && (p.getName().equalsIgnoreCase(writeRole) || p.getName().equalsIgnoreCase(standardRole));
+            
+            Predicate<Role> readRoleFilter = 
+                p -> p.getName() != null && (p.getName().equalsIgnoreCase(readRole) );               
+
+            if (UserUtils.getUserSession(request) != null) {
+                @SuppressWarnings("unchecked")
+                Collection<org.onap.portalsdk.core.domain.Role> userRoles = 
+                    UserUtils.getRoles(request).values();
+                if (userRoles.stream().anyMatch(adminRoleFilter) ) {
+                    maxRole = "admin";
+                } else if (userRoles.stream().anyMatch(writeRoleFilter) ) {
+                    maxRole = "write";
+                } else if (userRoles.stream().anyMatch(readRoleFilter) ) {
+                    maxRole = "read";
+                }
+                switch(maxRole) {
+                    case "admin":
+                        authType = "ADMIN";
+                        accessLevel = "ops";
+                        break;
+                    case "write":
+                        authType = "WRITE";
+                        accessLevel = "dev";                
+                        break;
+                    case "read":
+                        authType = "READ";
+                        accessLevel = "dev";                
+                        break;              
+                    default:
+                        accessLevel = "app";                
+                }
+            }
+            AppUtils.getSession(request).setAttribute("role_level", accessLevel);
+            AppUtils.getSession(request).setAttribute("auth_role", authType);
+            initateSessionMgtHandler(request);
+            // user has been authenticated, now take them to the welcome page
+            return new ModelAndView("redirect:welcome");
+        }
+    }
+    
     @Override
     public ModelAndView doLogin(HttpServletRequest request, HttpServletResponse response)
         throws Exception {

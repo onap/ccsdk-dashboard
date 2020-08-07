@@ -29,15 +29,15 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.onap.ccsdk.dashboard.model.ConsulHealthServiceRegistration;
-import org.onap.ccsdk.dashboard.model.ConsulHealthServiceRegistration.EndpointCheck;
-import org.onap.ccsdk.dashboard.model.ConsulNodeInfo;
-import org.onap.ccsdk.dashboard.model.ConsulServiceHealth;
-import org.onap.ccsdk.dashboard.model.ConsulServiceInfo;
 import org.onap.ccsdk.dashboard.model.ECTransportModel;
 import org.onap.ccsdk.dashboard.model.RestResponseError;
 import org.onap.ccsdk.dashboard.model.RestResponsePage;
 import org.onap.ccsdk.dashboard.model.RestResponseSuccess;
+import org.onap.ccsdk.dashboard.model.consul.ConsulHealthServiceRegistration;
+import org.onap.ccsdk.dashboard.model.consul.ConsulHealthServiceRegistration.EndpointCheck;
+import org.onap.ccsdk.dashboard.model.consul.ConsulNodeInfo;
+import org.onap.ccsdk.dashboard.model.consul.ConsulServiceHealth;
+import org.onap.ccsdk.dashboard.model.consul.ConsulServiceInfo;
 import org.onap.ccsdk.dashboard.rest.ConsulClient;
 import org.onap.portalsdk.core.domain.User;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
@@ -331,105 +331,6 @@ public class ConsulController extends DashboardRestrictedBaseController {
         String json = getItemListForPageWrapper(request, null, ConsulDataItem.DATACENTERS);
         postLogAudit(request);
         return json;
-    }
-
-    /**
-     * Processes request to register a service for health checks.
-     * 
-     * @param request      HttpServletRequest
-     * @param registration Consul service registration
-     * @return URI of the newly registered resource
-     * @throws Exception on serialization error
-     */
-    @RequestMapping(value = { "/register" }, method = RequestMethod.POST, produces = "application/json")
-    @ResponseBody
-    public String registerService(HttpServletRequest request, @RequestBody ConsulHealthServiceRegistration registration)
-            throws Exception {
-        preLogAudit(request);
-        ECTransportModel result = null;
-        try {
-            if (registration.services == null) {
-                throw new Exception("services[] tag is mandatory");
-            }
-
-            List<EndpointCheck> checks = registration.services.get(0).checks;
-            String service_name = registration.services.get(0).name;
-            String service_port = registration.services.get(0).port;
-            String service_address = registration.services.get(0).address;
-
-            if (checks == null || service_port.isEmpty() || service_address.isEmpty() || service_name.isEmpty()) {
-                throw new Exception("fields : [checks[], port, address, name] are mandatory");
-            }
-            for (EndpointCheck check : checks) {
-                if (check.endpoint.isEmpty() || check.interval.isEmpty()) {
-                    throw new Exception("Required fields : [endpoint, interval] in checks");
-                }
-            }
-            result = new RestResponseSuccess(consulClient.registerService(registration));
-        } catch (HttpStatusCodeException e) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "Consul");
-            MDC.put("TargetServiceName", "Consul");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Registering service failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "registerService caught exception");
-            result = new RestResponseError(e.getResponseBodyAsString());
-        } catch (Exception t) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "Consul");
-            MDC.put("TargetServiceName", "Consul");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Registering service failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "registerService caught exception");
-            result = new RestResponseError("registerService failed", t);
-        } finally {
-            postLogAudit(request);
-        }
-        return objectMapper.writeValueAsString(result);
-    }
-
-    /**
-     * Processes request to deregister a service for health checks.
-     * 
-     * @param request     HttpServletRequest
-     * @param serviceName Consul service name to deregister
-     * @return Success or error indicator
-     * @throws Exception on serialization error
-     */
-    @RequestMapping(value = {
-            "/deregister" + "/{serviceName}" }, method = RequestMethod.POST, produces = "application/json")
-    @ResponseBody
-    public String deregisterService(HttpServletRequest request, @PathVariable String serviceName) throws Exception {
-        preLogAudit(request);
-        ECTransportModel result = null;
-        try {
-            int code = consulClient.deregisterService(serviceName);
-            result =
-                new RestResponseSuccess("Deregistration yielded code " + Integer.toString(code));
-        } catch (HttpStatusCodeException e) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "Consul");
-            MDC.put("TargetServiceName", "Consul");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "De-registering service " + serviceName + " failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "deregisterService caught exception");
-            result = new RestResponseError(e.getResponseBodyAsString());
-        } catch (Throwable t) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "Consul");
-            MDC.put("TargetServiceName", "Consul");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "De-registering service " + serviceName + " failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "deregisterService caught exception");
-            result = new RestResponseError("deregisterService failed", t);
-        } finally {
-            postLogAudit(request);
-        }
-        return objectMapper.writeValueAsString(result);
     }
 
     public void preLogAudit(HttpServletRequest request) {

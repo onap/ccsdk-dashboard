@@ -6,12 +6,12 @@
 	<parent>
 		<groupId>org.onap.ccsdk.dashboard</groupId>
 		<artifactId>ccsdk-app-parent</artifactId>
-		<version>1.3.2-SNAPSHOT</version>
+		<version>1.4.0-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.onap.ccsdk.dashboard</groupId>
 	<artifactId>ccsdk-app-os</artifactId>
-	<version>1.3.2-SNAPSHOT</version>
+	<version>1.4.0-SNAPSHOT</version>
 	<packaging>war</packaging>
 	<name>ONAP Operations Manager Dashboard app</name>
 	<description>CCSDK Dashboard Web Application for external release</description>
@@ -68,7 +68,7 @@
 		<finalName>${project.artifactId}-${build.version}</finalName>
 
 		<plugins>
-			<!-- Compile to Java 1.8 class output format -->
+			<!-- Compile to Java 1.8 class output format --> 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -111,6 +111,14 @@
 						<overlay>
 							<groupId>org.onap.ccsdk.dashboard</groupId>
 							<artifactId>ccsdk-app-overlay</artifactId>
+							<excludes>
+								<exclude>app/ccsdk/home/api_view.html</exclude>
+								<exclude>app/ccsdk/home/ecd_router.js</exclude>
+								<exclude>app/ccsdk/home/executions_view.html</exclude>
+								<exclude>app/ccsdk/home/executions-view-controller.js</exclude>
+								<exclude>app/ccsdk/home/ecd_spa.html</exclude>
+								<exclude>app/ccsdk/home/ecd-style.css</exclude>
+							</excludes>
 						</overlay>
 						<overlay>
 							<groupId>org.onap.portal.sdk</groupId>

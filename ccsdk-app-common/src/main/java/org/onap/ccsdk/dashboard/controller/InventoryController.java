@@ -22,44 +22,55 @@
 
 package org.onap.ccsdk.dashboard.controller;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.function.Predicate;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.http.HttpStatus;
 import org.onap.ccsdk.dashboard.exceptions.inventory.BlueprintParseException;
-import org.onap.ccsdk.dashboard.exceptions.inventory.ServiceAlreadyDeactivatedException;
-import org.onap.ccsdk.dashboard.exceptions.inventory.ServiceNotFoundException;
 import org.onap.ccsdk.dashboard.exceptions.inventory.ServiceTypeAlreadyDeactivatedException;
 import org.onap.ccsdk.dashboard.exceptions.inventory.ServiceTypeNotFoundException;
 import org.onap.ccsdk.dashboard.model.RestResponseError;
 import org.onap.ccsdk.dashboard.model.RestResponsePage;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyDeployedTenant;
+import org.onap.ccsdk.dashboard.model.cloudify.ServiceRefCfyList;
 import org.onap.ccsdk.dashboard.model.inventory.Blueprint;
-import org.onap.ccsdk.dashboard.model.inventory.Service;
+import org.onap.ccsdk.dashboard.model.inventory.BlueprintResponse;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceQueryParams;
+import org.onap.ccsdk.dashboard.model.inventory.ServiceRef;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceRefList;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceType;
-import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeQueryParams;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeRequest;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeServiceMap;
+import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeSummary;
+import org.onap.ccsdk.dashboard.rest.CloudifyClient;
+import org.onap.ccsdk.dashboard.rest.ConsulClient;
 import org.onap.ccsdk.dashboard.rest.InventoryClient;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
+import org.onap.portalsdk.core.objectcache.AbstractCacheManager;
 import org.onap.portalsdk.core.util.SystemProperties;
 import org.onap.portalsdk.core.web.support.AppUtils;
-import org.onap.ccsdk.dashboard.util.DashboardProperties;
-
+import org.onap.portalsdk.core.web.support.UserUtils;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -84,105 +95,40 @@ public class InventoryController extends DashboardRestrictedBaseController {
 
     @Autowired
     InventoryClient inventoryClient;
+    @Autowired
+    CloudifyClient cloudifyClient;
+    @Autowired
+    ConsulClient consulClient;
+    
+    /**
+     * For caching data 
+     */
+    private AbstractCacheManager cacheManager;
+    
 
+    @Autowired
+    public void setCacheManager(AbstractCacheManager cacheManager) {
+        this.cacheManager = cacheManager;
+    }
+
+    public AbstractCacheManager getCacheManager() {
+        return cacheManager;
+    }
+    
     /**
      * Enum for selecting an item type.
      */
     public enum InventoryDataItem {
-        SERVICES, SERVICE_TYPES, SERVICES_GROUPBY;
+        SERVICE_TYPES, SERVICE_TYPE_NAME, OWNER, SERVICE_TYPE_ID;
     }
 
     private static Date begin, end;
-    private static final String SERVICES_PATH = "dcae-services";
+    private static final String OWNERS = "owners";
     private static final String SERVICE_TYPES_PATH = "dcae-service-types";
+    private static final String SERVICE_TYPE_NAME = "service-type-list";
     private static final String VIEW_SERVICE_TYPE_BLUEPRINT_PATH = "dcae-service-type-blueprint";
     private static final String DEP_IDS_FOR_TYPE = "dcae-services/typeIds";
-
-    /**
-     * Gets one page of objects and supporting information via the REST client. On
-     * success, returns a PaginatedRestResponse object as String.
-     * 
-     * @param option Specifies which item list type to get
-     * @param pageNum Page number of results
-     * @param pageSize Number of items per browser page
-     * @return JSON block as String, see above.
-     * @throws Exception On any error; e.g., Network failure.
-     */
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private String getItemListForPage(HttpServletRequest request, InventoryDataItem option,
-        int pageNum, int pageSize, String sortBy, String searchBy) throws Exception {
-        List itemList = null;
-        switch (option) {
-            case SERVICES:
-                itemList = inventoryClient.getServices().collect(Collectors.toList());
-                if (searchBy != null) {
-                    itemList = (List) itemList.stream()
-                        .filter(s -> ((Service) s).contains(searchBy)).collect(Collectors.toList());
-                }
-                for (Service bp : (List<Service>) itemList) {
-                    bp.setCanDeploy(Optional.of(true));
-                }
-                if (sortBy != null) {
-                    if (sortBy.equals("deploymentRef")) {
-                        Collections.sort(itemList, serviceDeploymentRefComparator);
-                    } else if (sortBy.equals("serviceId")) {
-                        Collections.sort(itemList, serviceIdComparator);
-                    } else if (sortBy.equals("created")) {
-                        Collections.sort(itemList, serviceCreatedComparator);
-                    } else if (sortBy.equals("modified")) {
-                        Collections.sort(itemList, serviceModifiedComparator);
-                    }
-                }
-                break;
-            case SERVICE_TYPES:
-                itemList = inventoryClient.getServiceTypes().collect(Collectors.toList());
-                if (searchBy != null) {
-                    itemList =
-                        (List) itemList.stream().filter(s -> ((ServiceType) s).contains(searchBy))
-                            .collect(Collectors.toList());
-                }
-                for (ServiceType bp : (List<ServiceType>) itemList) {
-                    bp.setCanDeploy(Optional.of(true));
-                }
-                if (sortBy != null) {
-                    if (sortBy.equals("owner")) {
-                        Collections.sort(itemList, serviceTypeOwnerComparator);
-                    } else if (sortBy.equals("typeId")) {
-                        Collections.sort(itemList, serviceTypeIdComparator);
-                    } else if (sortBy.equals("typeName")) {
-                        Collections.sort(itemList, serviceTypeNameComparator);
-                    } else if (sortBy.equals("typeVersion")) {
-                        Collections.sort(itemList, serviceTypeVersionComparator);
-                    } else if (sortBy.equals("created")) {
-                        Collections.sort(itemList, serviceTypeCreatedComparator);
-                    } else if (sortBy.equals("application")) {
-                        Collections.sort(itemList, serviceTypeApplComparator);
-                    } else if (sortBy.equals("component")) {
-                        Collections.sort(itemList, serviceTypeCompComparator);
-                    }
-                }
-                break;
-            default:
-                MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-                MDC.put("TargetEntity", "DCAE Inventory");
-                MDC.put("TargetServiceName", "DCAE Inventory");
-                MDC.put("ErrorCode", "300");
-                MDC.put("ErrorCategory", "ERROR");
-                MDC.put("ErrorDescription", "Getting page of items failed!");
-                throw new Exception(
-                    "getItemListForPage failed: unimplemented case: " + option.name());
-        }
-
-        // Shrink if needed
-        final int totalItems = itemList.size();
-        final int pageCount = (int) Math.ceil((double) totalItems / pageSize);
-        if (totalItems > pageSize)
-            itemList = getPageOfList(pageNum, pageSize, itemList);
-
-        RestResponsePage<List> model = new RestResponsePage<>(totalItems, pageCount, itemList);
-        String outboundJson = objectMapper.writeValueAsString(model);
-        return outboundJson;
-    }
+    private static final String SERVICE_TYPE_ID = "service-type-id-list";
 
     /**
      * version with user role auth Gets one page of objects and supporting
@@ -202,171 +148,211 @@ public class InventoryController extends DashboardRestrictedBaseController {
         HashMap<String, Boolean> comp_deploy_tab =
             (HashMap<String, Boolean>) session.getAttribute("comp_access");
         String roleLevel = (String) session.getAttribute("role_level");
-
+        String roleAuth = (String) session.getAttribute("auth_role");
+        String user = UserUtils.getUserSession(request).getLoginId();
+        
         if (roleLevel == null) {
             roleLevel = "dev";
         }
         if (comp_deploy_tab == null) {
             comp_deploy_tab = new HashMap<String, Boolean>();
         }
-
+        if (roleAuth == null) {
+            roleAuth = "READ";
+        }
         Set<String> userApps = (Set<String>) session.getAttribute("authComponents");
         if (userApps == null) {
             userApps = new TreeSet<String>();
         }
-
+        ReadWriteLock lock = new ReentrantReadWriteLock();
         List itemList = null;
-        List<ServiceType> filterList = new ArrayList<ServiceType>();
-        List<Service> authDepList = new ArrayList<Service>();
+        List bpItemList = null;
+        int totalItems = 0;
+
+        lock.readLock().lock();
+        List<ServiceTypeSummary> bpList = 
+            (List<ServiceTypeSummary>)getCacheManager().getObject(SERVICE_TYPES_PATH);
+        lock.readLock().unlock();
+        if (bpList == null) {
+            bpList = inventoryClient.getServiceTypes().collect(Collectors.toList());
+        }
+
+        String svcRefFilterStr = "";
+        String appFilterStr = "";
+        String compFilterStr = "";
+        String ownerFilterStr = "";
+        String containsFilterStr = "";
+        // apply user search filters
+        if (searchBy != null && !searchBy.isEmpty()) {
+            // parse the search filters string 
+            // look for service name patterns           
+            List<String> searchFilters = 
+                new ArrayList<String>(Arrays.asList(searchBy.split(";")));
+            if (searchFilters.stream().anyMatch(s->s.startsWith("contains"))) {
+                List<String> containsList = searchFilters.stream().filter(s->s.startsWith("contains")).
+                    collect(Collectors.toList());
+                containsFilterStr = containsList.get(0).split(":")[1];
+            }
+            if (searchFilters.stream().anyMatch(s->s.startsWith("serviceRef"))) {
+                List<String> svcRefsList = searchFilters.stream().filter(s->s.startsWith("serviceRef")).
+                    collect(Collectors.toList());
+                svcRefFilterStr = svcRefsList.get(0).split(":")[1];
+            }
+            if (searchFilters.stream().anyMatch(s->s.startsWith("app"))) {
+                List<String> appsList = searchFilters.stream().filter(s->s.startsWith("app")).
+                    collect(Collectors.toList());
+                appFilterStr = appsList.get(0).split(":")[1];
+            }
+            if (searchFilters.stream().anyMatch(s->s.startsWith("comp"))) {
+                List<String> compList = searchFilters.stream().filter(s->s.startsWith("comp")).
+                    collect(Collectors.toList());
+                compFilterStr = compList.get(0).split(":")[1];
+            }
+            if (searchFilters.stream().anyMatch(s->s.startsWith("owner"))) {
+                List<String> ownerList = searchFilters.stream().filter(s->s.startsWith("owner")).
+                    collect(Collectors.toList());
+                ownerFilterStr = ownerList.get(0).split(":")[1];
+            }
+            if (!ownerFilterStr.isEmpty()) {
+                List<ServiceTypeSummary> ownerBpList = new ArrayList<ServiceTypeSummary>();
+                lock.readLock().lock();                     
+                Map<String, List<ServiceTypeSummary>> bpPerOwner =
+                    (Map<String, List<ServiceTypeSummary>>) getCacheManager().getObject("owner_bp_map");
+                lock.readLock().unlock();
+
+                List<String> ownerFilterList = 
+                    new ArrayList<String>(Arrays.asList(ownerFilterStr.split(","))); 
+                
+                if (ownerFilterList.size() == 1 && ownerFilterList.get(0).equals("undefined")) {
+                    ownerFilterList.clear();
+                    ownerFilterList.add(user);
+                }
+                
+                if (bpPerOwner != null) {
+                    Stream<Map.Entry<String, List<ServiceTypeSummary>>> bpOwnerEntriesStream = 
+                        bpPerOwner.entrySet().stream(); 
+
+                    Set<Map.Entry<String, List<ServiceTypeSummary>>> bpOwnerSet = 
+                        bpOwnerEntriesStream.filter(m -> ownerFilterList.stream().
+                        anyMatch(ownFilter -> m.getKey().equalsIgnoreCase(ownFilter))).collect(Collectors.toSet());
+                    bpOwnerSet.stream().forEach(e -> ownerBpList.addAll(e.getValue()));
+                    bpItemList = ownerBpList;
+                }
+                if (bpItemList == null) {
+                    bpItemList = new ArrayList<ServiceTypeSummary>();
+                    bpItemList.addAll(bpList);
+                }
+            }
+        }
+        if (bpItemList == null) {
+            bpItemList = new ArrayList<ServiceTypeSummary>();
+            bpItemList.addAll(bpList);
+        }
+        // apply role based filtering
+        if (roleLevel.equals("app")) {
+            @SuppressWarnings("unchecked")
+            List<String> myApps = new ArrayList(userApps);
+            bpItemList = (List<ServiceTypeSummary>)bpItemList.stream().filter(s -> myApps.stream()
+                .anyMatch(appFilter -> (((ServiceTypeSummary)s).getComponent() != null && 
+                    ((ServiceTypeSummary)s).getComponent().equalsIgnoreCase(appFilter))))
+                .collect(Collectors.<ServiceTypeSummary>toList());                           
+        } else if (roleLevel.equals("app_dev")) {
+            Predicate<ServiceTypeSummary> appFilter =
+                p -> p.getComponent() != null && !p.getComponent().equalsIgnoreCase("dcae") 
+                    && !p.getComponent().equalsIgnoreCase("d2a");
+                bpItemList = (List<ServiceTypeSummary>)bpItemList.stream().filter(appFilter).
+                    collect(Collectors.toList());
+        } 
+        
         switch (option) {
-            case SERVICES:
-                itemList = inventoryClient.getServices().collect(Collectors.toList());
-                if (roleLevel.equals("app")) {
-                    for (String userRole : userApps) {
-                        logger.debug(">>>> check component type from deployment: " + userRole);
-                        for (Service cont : (List<Service>) itemList) {
-                            String deplRef = cont.getDeploymentRef().toLowerCase();
-                            logger.debug(">>>> container deployment name: " + deplRef);
-                            if (deplRef.contains(userRole)) {
-                                logger.debug(">>>> adding deployment item to filtered subset");
-                                authDepList.add(cont);
-                            }
-                        }
-                    }
-                }
-
-                if (searchBy != null) {
-                    if (!roleLevel.equals("app")) {
-                        itemList =
-                            (List) itemList.stream().filter(s -> ((Service) s).contains(searchBy))
-                                .collect(Collectors.toList());
-                    } else {
-                        if (!authDepList.isEmpty()) {
-                            authDepList = (List) authDepList.stream()
-                                .filter(s -> ((Service) s).contains(searchBy))
-                                .collect(Collectors.toList());
-                        }
-                    }
-                }
-                if (roleLevel.equals("app")) {
-                    logger.debug(">>>> update response with authorized content");
-                    itemList.clear();
-                    itemList.addAll(authDepList);
-                }
-
-                // check for authorization to perform delete deployed blueprints
-
-                if (!roleLevel.equals("ops")) {
-                    for (Service bp : (List<Service>) itemList) {
-                        String deplRef = bp.getDeploymentRef().split("_")[0].toLowerCase();
-                        logger.debug(">>>> deployment reference: " + deplRef);
-                        if (comp_deploy_tab.containsKey(deplRef)) {
-                            boolean enableDeploy = comp_deploy_tab.get(deplRef);
-                            logger.debug(">>>> enable deploy button: " + enableDeploy);
-                            bp.setCanDeploy(Optional.of(enableDeploy));
-                        } else {
-                            bp.setCanDeploy(Optional.of(false));
-                        }
-                    }
-                } else {
-                    for (Service bp : (List<Service>) itemList) {
-                        bp.setCanDeploy(Optional.of(true));
-                    }
-                }
-
-                if (sortBy != null) {
-                    if (sortBy.equals("deploymentRef")) {
-                        Collections.sort(itemList, serviceDeploymentRefComparator);
-                    } else if (sortBy.equals("serviceId")) {
-                        Collections.sort(itemList, serviceIdComparator);
-                    } else if (sortBy.equals("created")) {
-                        Collections.sort(itemList, serviceCreatedComparator);
-                    } else if (sortBy.equals("modified")) {
-                        Collections.sort(itemList, serviceModifiedComparator);
-                    }
-                }
+            case OWNER:
+                Set<String> ownersList = 
+                    (Set) bpItemList.stream().map(x -> ((ServiceTypeSummary)x).getOwner()).collect(Collectors.toSet());              
+                return objectMapper.writeValueAsString(ownersList);
+            case SERVICE_TYPE_ID:
+                itemList = bpItemList;
+                totalItems = itemList.size();
+                RestResponsePage<List> model = new RestResponsePage<>(totalItems, 1, itemList);
+                String outboundJson = objectMapper.writeValueAsString(model);
+                return outboundJson;                            
+            case SERVICE_TYPE_NAME:        
+                Set<String> svcTypeList = 
+                    (Set) bpItemList.stream().map(x -> ((ServiceTypeSummary)x).getTypeName()).collect(Collectors.toSet());
+                itemList = new ArrayList<String>();
+                itemList.addAll(svcTypeList);
                 break;
             case SERVICE_TYPES:
-                ServiceTypeQueryParams serviceQueryParams =
-                    new ServiceTypeQueryParams.Builder().onlyLatest(false).build();
-                itemList = inventoryClient.getServiceTypes(serviceQueryParams)
-                    .collect(Collectors.toList());
-                if (roleLevel.equals("app")) {
-                    for (String userApp : userApps) {
-                        logger.debug(">>>> check component type from BP: " + userApp);
-                        for (ServiceType bp : (List<ServiceType>) itemList) {
-                            String bpComp = bp.getComponent();
-                            String bpOwner = bp.getOwner(); // for backward compatibility
-                            logger.debug(">>>> BP component name: " + bpComp);
-                            if ((bpComp != null && bpComp.equalsIgnoreCase(userApp))
-                                || bpOwner.contains(userApp)) {
-                                logger.debug(">>>> adding item to filtered subset");
-                                filterList.add(bp);
-                            }
-                        }
-                    }
+                // apply response filters
+                itemList = bpItemList;
+                String outFilter = request.getParameter("_include");
+                if (outFilter != null) {
+                    List<String> svcSummaryList = 
+                        (List) itemList.stream().map(x -> extractBpSummary((ServiceTypeSummary)x)).collect(Collectors.toList());
+                    return objectMapper.writeValueAsString(svcSummaryList);
                 }
-                if (searchBy != null) {
-                    if (!roleLevel.equals("app")) {
-                        itemList = (List) itemList.stream()
-                            .filter(s -> ((ServiceType) s).contains(searchBy))
-                            .collect(Collectors.toList());
-                    } else {
-                        if (!filterList.isEmpty()) {
-                            filterList = (List) filterList.stream()
-                                .filter(s -> ((ServiceType) s).contains(searchBy))
+                // apply user search filters
+                if (searchBy != null && !searchBy.isEmpty()) {
+                    if (!svcRefFilterStr.isEmpty()) {
+                        List<String> svcFilterList = 
+                            new ArrayList<String>(Arrays.asList(svcRefFilterStr.split(",")));
+                        if (!svcFilterList.isEmpty()) {
+                            itemList =  (List) itemList.stream().filter(s -> svcFilterList.stream()
+                                .anyMatch(svcFilter -> ((ServiceTypeSummary) s).getTypeName().toLowerCase().contains(svcFilter.toLowerCase())))
                                 .collect(Collectors.toList());
                         }
-                    }
-                }
-                if (roleLevel.equals("app")) {
-                    logger.debug(">>>> update response with authorized content");
-                    itemList.clear();
-                    itemList.addAll(filterList);
-                }
+                    }                                      
+                    if (!appFilterStr.isEmpty()) {
+                        List<String> appFilterList = 
+                            new ArrayList<String>(Arrays.asList(appFilterStr.split(",")));
+                        Predicate<ServiceTypeSummary> srvcAppFilter =
+                            p -> p.getApplication() != null;
+                            Stream<ServiceTypeSummary> svcStream = itemList.stream();
 
-                // check for authorization to perform update/delete/deploy blueprints
-                if (!roleLevel.equals("ops")) {
-                    for (ServiceType bp : (List<ServiceType>) itemList) {
-                        String bpComp = bp.getComponent();
-                        if (bpComp != null && bpComp.length() > 0) {
-                            bpComp = bpComp.toLowerCase();
-                        } else {
-                            String bpOwner = bp.getOwner(); // for backward compatibility
-                            if (bpOwner != null && bpOwner.contains(":")) {
-                                bpComp = bp.getOwner().split(":")[0].toLowerCase();
-                            }
-                        }
-                        logger.debug(">>>> BP component name: " + bpComp);
-                        if (comp_deploy_tab.containsKey(bpComp)) {
-                            boolean enableDeploy = comp_deploy_tab.get(bpComp);
-                            logger.debug(">>>> enable deploy button: " + enableDeploy);
-                            bp.setCanDeploy(Optional.of(enableDeploy));
-                        } else {
-                            bp.setCanDeploy(Optional.of(false));
-                        }
+                            itemList =  svcStream.filter( srvcAppFilter.and(
+                                s -> appFilterList.stream()
+                                .anyMatch(appFilter ->((ServiceTypeSummary) s).getApplication().equalsIgnoreCase(appFilter))))
+                                .collect(Collectors.toList()); 
+                    } 
+                    if (!compFilterStr.isEmpty()) {
+                        List<String> compFilterList = 
+                            new ArrayList<String>(Arrays.asList(compFilterStr.split(",")));                       
+                        Predicate<ServiceTypeSummary> srvcCompFilter =
+                            p -> p.getComponent() != null;
+                            Stream<ServiceTypeSummary> svcStream = itemList.stream();
+                            itemList =  svcStream.filter( srvcCompFilter.and(
+                                s -> compFilterList.stream()
+                                .anyMatch(compFilter ->((ServiceTypeSummary) s).getComponent().equalsIgnoreCase(compFilter))))
+                                .collect(Collectors.toList()); 
                     }
-                } else {
-                    for (ServiceType bp : (List<ServiceType>) itemList) {
-                        bp.setCanDeploy(Optional.of(true));
-                    }
-                }
 
+                    if (!containsFilterStr.isEmpty()) {
+                        final String simpleSrch = containsFilterStr.split(",")[0];
+                        itemList = (List<ServiceTypeSummary>) itemList.stream()
+                            .filter(s -> ((ServiceTypeSummary) s).contains(simpleSrch)).collect(Collectors.toList());
+                    }
+                } 
                 if (sortBy != null) {
                     if (sortBy.equals("owner")) {
-                        Collections.sort(itemList, serviceTypeOwnerComparator);
+                        ((List<ServiceTypeSummary>)itemList).sort(
+                            (ServiceTypeSummary o1, ServiceTypeSummary o2) -> o1.getOwner().compareTo(o2.getOwner()));
                     } else if (sortBy.equals("typeId")) {
-                        Collections.sort(itemList, serviceTypeIdComparator);
+                        ((List<ServiceTypeSummary>)itemList).sort(
+                            (ServiceTypeSummary o1, ServiceTypeSummary o2) -> o1.getTypeId().get().compareTo(o2.getTypeId().get()));
                     } else if (sortBy.equals("typeName")) {
-                        Collections.sort(itemList, serviceTypeNameComparator);
+                        ((List<ServiceTypeSummary>)itemList).sort(
+                            (ServiceTypeSummary o1, ServiceTypeSummary o2) -> o1.getTypeName().compareTo(o2.getTypeName()));
                     } else if (sortBy.equals("typeVersion")) {
-                        Collections.sort(itemList, serviceTypeVersionComparator);
+                        ((List<ServiceTypeSummary>)itemList).sort(
+                            (ServiceTypeSummary o1, ServiceTypeSummary o2) -> o1.getTypeVersion().compareTo(o2.getTypeVersion()));
                     } else if (sortBy.equals("created")) {
-                        Collections.sort(itemList, serviceTypeCreatedComparator);
+                        ((List<ServiceTypeSummary>)itemList).sort(
+                            (ServiceTypeSummary o1, ServiceTypeSummary o2) -> o1.getCreated().get().compareTo(o2.getCreated().get()));
                     } else if (sortBy.equals("application")) {
-                        Collections.sort(itemList, serviceTypeApplComparator);
+                        ((List<ServiceTypeSummary>)itemList).sort(
+                            (ServiceTypeSummary o1, ServiceTypeSummary o2) -> o1.getApplication().compareTo(o2.getApplication()));
                     } else if (sortBy.equals("component")) {
-                        Collections.sort(itemList, serviceTypeCompComparator);
+                        ((List<ServiceTypeSummary>)itemList).sort(
+                            (ServiceTypeSummary o1, ServiceTypeSummary o2) -> o1.getComponent().compareTo(o2.getComponent()));
                     }
                 }
                 break;
@@ -380,18 +366,91 @@ public class InventoryController extends DashboardRestrictedBaseController {
                 throw new Exception(
                     "getItemListForPage failed: unimplemented case: " + option.name());
         }
-
         // Shrink if needed
-        final int totalItems = itemList.size();
+        if (itemList != null) {
+            totalItems = itemList.size();
+        }
         final int pageCount = (int) Math.ceil((double) totalItems / pageSize);
-        if (totalItems > pageSize)
+        if (totalItems > pageSize && option.equals(InventoryDataItem.SERVICE_TYPES)) {
             itemList = getPageOfList(pageNum, pageSize, itemList);
-
+        }       
+        if (option.equals(InventoryDataItem.SERVICE_TYPES)) {
+            if (!roleLevel.equals("ops")) {
+                if (roleLevel.equals("dev") || roleLevel.equals("app_dev")) {
+                    boolean deployFlag = roleAuth.equals("WRITE") ? true : false;
+                    for (ServiceTypeSummary bp : (List<ServiceTypeSummary>) itemList) {
+                        bp.setCanDeploy(Optional.of(deployFlag));
+                    }
+                } else {
+                    for (ServiceTypeSummary bp : (List<ServiceTypeSummary>) itemList) {
+                        String bpComp = bp.getComponent();
+                        if (bpComp != null && bpComp.length() > 0) {
+                            bpComp = bpComp.toLowerCase();
+                        } else {
+                            String bpOwner = bp.getOwner(); // for backward compatibility
+                            if (bpOwner != null && bpOwner.contains(":")) {
+                                bpComp = bp.getOwner().split(":")[0].toLowerCase();
+                            }
+                        }
+                        if (comp_deploy_tab.containsKey(bpComp)) {
+                            boolean enableDeploy = comp_deploy_tab.get(bpComp);
+                            logger.debug(">>>> enable deploy button: " + enableDeploy);
+                            bp.setCanDeploy(Optional.of(enableDeploy));
+                        } else {
+                            bp.setCanDeploy(Optional.of(false));
+                        }
+                    }
+                }
+            } else {
+                for (ServiceTypeSummary bp : (List<ServiceTypeSummary>) itemList) {
+                    bp.setCanDeploy(Optional.of(true));
+                }
+            }
+            // add the deployments mapping to the list
+            lock.readLock().lock();
+            List<ServiceTypeServiceMap> cache_bp_map_arr = 
+                (List<ServiceTypeServiceMap>) getCacheManager().getObject("bp_deploy_map");
+            lock.readLock().unlock();
+            if (cache_bp_map_arr != null) {
+                for (ServiceTypeSummary bpSum: (List<ServiceTypeSummary>)itemList) {
+                    // correlate the cached data for deployments
+                        List<ServiceTypeServiceMap> bp_depl_list = 
+                            cache_bp_map_arr.stream().filter(
+                                (Predicate<? super ServiceTypeServiceMap>) 
+                                s->s.getServiceTypeId().equals(bpSum.getTypeId().get())).
+                                collect(Collectors.toList());
+                        if (bp_depl_list != null && !bp_depl_list.isEmpty()) {
+                            bpSum.setDeployments((ServiceRefCfyList)bp_depl_list.get(0).getServiceRefList());
+                        }
+                }
+            }
+        }
         RestResponsePage<List> model = new RestResponsePage<>(totalItems, pageCount, itemList);
         String outboundJson = objectMapper.writeValueAsString(model);
         return outboundJson;
     }
-
+ 
+    @SuppressWarnings("unchecked")
+    @Scheduled(fixedDelay=600000, initialDelay=150000)
+    public void cacheOwnerToBpMap() {
+        ReadWriteLock lock = new ReentrantReadWriteLock();
+        lock.readLock().lock();
+        List<ServiceTypeSummary> bpList = 
+            (List<ServiceTypeSummary>)getCacheManager().getObject(SERVICE_TYPES_PATH);
+        lock.readLock().unlock();
+        if (bpList != null) {
+            Map<String, List<ServiceTypeSummary>> bpPerOwner = bpList.stream()
+                .collect(Collectors.groupingBy(bp -> bp.getOwner()));
+    
+            lock.writeLock().lock();
+            getCacheManager().putObject("owner_bp_map", bpPerOwner);
+            lock.writeLock().unlock();
+        }
+    }
+    
+    private BlueprintResponse extractBpSummary(ServiceTypeSummary bp) {
+        return new BlueprintResponse(bp.getTypeName(), bp.getTypeVersion(), bp.getTypeId().get());
+    }
     /**
      * Gets one page of the specified items. This method traps exceptions and
      * constructs an appropriate JSON block to report errors.
@@ -407,16 +466,8 @@ public class InventoryController extends DashboardRestrictedBaseController {
         try {
             int pageNum = getRequestPageNumber(request);
             int pageSize = getRequestPageSize(request);
-            String appEnv = "os";
-            appEnv =
-                DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_TYPE, "auth");
-            if (appEnv.equals("os")) {
-                outboundJson =
-                    getItemListForPage(request, option, pageNum, pageSize, sortBy, searchBy);
-            } else {
-                outboundJson =
-                    getItemListForPageAuth(request, option, pageNum, pageSize, sortBy, searchBy);
-            }
+            outboundJson =
+                getItemListForPageAuth(request, option, pageNum, pageSize, sortBy, searchBy);
         } catch (Exception ex) {
             MDC.put(SystemProperties.STATUS_CODE, "ERROR");
             MDC.put("TargetEntity", "DCAE Inventory");
@@ -445,121 +496,24 @@ public class InventoryController extends DashboardRestrictedBaseController {
     }
 
     /**
-     * Supports sorting service types by owner
+     * Serves one page of blueprint owners
+     * 
+     * @param request HttpServletRequest
+     * @return List of ServiceTypes objects
      */
-    private static Comparator<ServiceType> serviceTypeOwnerComparator =
-        new Comparator<ServiceType>() {
-            @Override
-            public int compare(ServiceType o1, ServiceType o2) {
-                return o1.getOwner().compareToIgnoreCase(o2.getOwner());
-            }
-        };
-
-    /**
-     * Supports sorting service types by application
-     */
-    private static Comparator<ServiceType> serviceTypeApplComparator =
-        new Comparator<ServiceType>() {
-            @Override
-            public int compare(ServiceType o1, ServiceType o2) {
-                return o1.getApplication().compareToIgnoreCase(o2.getApplication());
-            }
-        };
-
-    /**
-     * Supports sorting service types by component
-     */
-    private static Comparator<ServiceType> serviceTypeCompComparator =
-        new Comparator<ServiceType>() {
-            @Override
-            public int compare(ServiceType o1, ServiceType o2) {
-                return o1.getComponent().compareToIgnoreCase(o2.getComponent());
-            }
-        };
-
-    /**
-     * Supports sorting service types by type id
-     */
-    private static Comparator<ServiceType> serviceTypeIdComparator = new Comparator<ServiceType>() {
-        @Override
-        public int compare(ServiceType o1, ServiceType o2) {
-            return o1.getTypeId().get().compareToIgnoreCase(o2.getTypeId().get());
-        }
-    };
-
-    /**
-     * Supports sorting service types by type name
-     */
-    private static Comparator<ServiceType> serviceTypeNameComparator =
-        new Comparator<ServiceType>() {
-            @Override
-            public int compare(ServiceType o1, ServiceType o2) {
-                return o1.getTypeName().compareToIgnoreCase(o2.getTypeName());
-            }
-        };
-
-    /**
-     * Supports sorting service types by type version
-     */
-    private static Comparator<ServiceType> serviceTypeVersionComparator =
-        new Comparator<ServiceType>() {
-            @Override
-            public int compare(ServiceType o1, ServiceType o2) {
-                return o1.getTypeVersion().compareTo(o2.getTypeVersion());
-            }
-        };
-
-    /**
-     * Supports sorting service types by created date
-     */
-    private static Comparator<ServiceType> serviceTypeCreatedComparator =
-        new Comparator<ServiceType>() {
-            @Override
-            public int compare(ServiceType o1, ServiceType o2) {
-                return o1.getCreated().get().compareToIgnoreCase(o2.getCreated().get());
-            }
-        };
-
-    /**
-     * Supports sorting services by deploymentRef
-     */
-    private static Comparator<Service> serviceDeploymentRefComparator = new Comparator<Service>() {
-        @Override
-        public int compare(Service o1, Service o2) {
-            return o1.getDeploymentRef().compareToIgnoreCase(o2.getDeploymentRef());
-        }
-    };
-
-    /**
-     * Supports sorting services by service id
-     */
-    private static Comparator<Service> serviceIdComparator = new Comparator<Service>() {
-        @Override
-        public int compare(Service o1, Service o2) {
-            return o1.getServiceId().compareToIgnoreCase(o2.getServiceId());
-        }
-    };
-
-    /**
-     * Supports sorting services by created date
-     */
-    private static Comparator<Service> serviceCreatedComparator = new Comparator<Service>() {
-        @Override
-        public int compare(Service o1, Service o2) {
-            return o1.getCreated().compareToIgnoreCase(o2.getCreated());
-        }
-    };
-
-    /**
-     * Supports sorting services by created date
-     */
-    private static Comparator<Service> serviceModifiedComparator = new Comparator<Service>() {
-        @Override
-        public int compare(Service o1, Service o2) {
-            return o1.getModified().compareToIgnoreCase(o2.getModified());
-        }
-    };
-
+    @RequestMapping(
+        value = {OWNERS},
+        method = RequestMethod.GET,
+        produces = "application/json")
+    @ResponseBody
+    public String getOwnersByPage(HttpServletRequest request) {
+        preLogAudit(request);
+        String json = getItemListForPageWrapper(request, InventoryDataItem.OWNER,
+            request.getParameter("sortBy"), request.getParameter("searchBy"));
+        postLogAudit(request);
+        return json;
+    }
+    
     /**
      * Serves one page of service types
      * 
@@ -600,27 +554,50 @@ public class InventoryController extends DashboardRestrictedBaseController {
         return objectMapper.writeValueAsString(result);
     }
 
+    
     /**
-     * Serves one page of services
-     *
+     * Serves the complete list of service type names
+     * 
      * @param request HttpServletRequest
-     *
-     * @return List of Service objects
+     * 
+     * @return list of service type names
      */
     @RequestMapping(
-        value = {SERVICES_PATH},
+        value = {SERVICE_TYPE_NAME},
         method = RequestMethod.GET,
         produces = "application/json")
     @ResponseBody
-    public String getServicesByPage(HttpServletRequest request) {
+    @Cacheable
+    public String getAllServiceTypeNames(HttpServletRequest request) {
         // preLogAudit(request);
         String json = null;
-        json = getItemListForPageWrapper(request, InventoryDataItem.SERVICES,
+        json = getItemListForPageWrapper(request, InventoryDataItem.SERVICE_TYPE_NAME,
             request.getParameter("sortBy"), request.getParameter("searchBy"));
         postLogAudit(request);
         return json;
-    }
-
+    } 
+    
+    /**
+     * Serves the aggregate count of service types
+     * 
+     * @param request HttpServletRequest
+     * 
+     * @return count of service types
+     */
+    @RequestMapping(
+        value = {SERVICE_TYPE_ID},
+        method = RequestMethod.GET,
+        produces = "application/json")
+    @ResponseBody
+    @Cacheable
+    public String getAllServiceTypeIds(HttpServletRequest request) {
+        String json = null;
+        json = getItemListForPageWrapper(request, InventoryDataItem.SERVICE_TYPE_ID,
+            request.getParameter("sortBy"), request.getParameter("searchBy"));
+        postLogAudit(request);
+        return json;
+    } 
+    
     /**
      * Gets the specified blueprint content for viewing.
      * 
@@ -679,23 +656,61 @@ public class InventoryController extends DashboardRestrictedBaseController {
      * @throws Exception On serialization failure
      */
     @RequestMapping(
-        value = {SERVICE_TYPES_PATH + "/{typeid}"},
+        value = {SERVICE_TYPES_PATH + "/{typeId}"},
         method = RequestMethod.DELETE,
         produces = "application/json")
     @ResponseBody
-    public String deleteServiceType(@PathVariable("typeid") String typeid,
-        HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public String deleteServiceType(@PathVariable("typeId") String typeId,
+        HttpServletRequest request, 
+        HttpServletResponse response) throws Exception {
         preLogAudit(request);
-        String json = "{\"202\": \"OK\"}";
+        String json = "{\"204\": \"Blueprint deleted\"}";
+        boolean allow = true;
         try {
-            inventoryClient.deleteServiceType(typeid);
+            // check if these dep_ids exist in cloudify
+            List<CloudifyDeployedTenant> deplForBp = 
+                cloudifyClient.getDeploymentForBlueprint("TID-"+typeId);
+            if (deplForBp.size() > 0 ) {
+                allow = false;
+            } else {                        
+                ServiceQueryParams qryParams = 
+                    new ServiceQueryParams.Builder().typeId(typeId).build();
+                ServiceRefList srvcRefs = inventoryClient.getServicesForType(qryParams);
+                Set<String> dep_ids = srvcRefs.items.stream().map(x -> ((ServiceRef)x).id).collect(Collectors.toSet());  
+                if (dep_ids.size() > 0) {
+                    // now check again if these dep_ids still exist in cloudify
+                    List<String> allDepNames = cloudifyClient.getDeploymentNamesWithFilter(request);
+                    for (String str: dep_ids) {
+                        if (allDepNames.stream().anyMatch(s->s.equalsIgnoreCase(str))) {
+                            allow = false;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (!allow) {
+                response.setStatus(HttpStatus.SC_BAD_REQUEST);
+                json = objectMapper.writeValueAsString(
+                    new RestResponseError("Deployments exist for this blueprint"));
+                /*
+                PrintWriter out = response.getWriter();
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                out.print(json);
+                out.flush();
+                */
+                return json;
+            } else {
+                inventoryClient.deleteServiceType(typeId);
+                this.cacheOwnerToBpMap();
+            }
         } catch (ServiceTypeNotFoundException | ServiceTypeAlreadyDeactivatedException e) {
             MDC.put(SystemProperties.STATUS_CODE, "ERROR");
             MDC.put("TargetEntity", "DCAE Inventory");
             MDC.put("TargetServiceName", "DCAE Inventory");
             MDC.put("ErrorCode", "300");
             MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Deleting service type " + typeid + " failed!");
+            MDC.put("ErrorDescription", "Deleting service type " + typeId + " failed!");
             logger.error(EELFLoggerDelegate.errorLogger, "deleteServiceType caught exception");
             json = objectMapper.writeValueAsString(new RestResponseError(e.getMessage()));
         } catch (Exception t) {
@@ -704,55 +719,10 @@ public class InventoryController extends DashboardRestrictedBaseController {
             MDC.put("TargetServiceName", "DCAE Inventory");
             MDC.put("ErrorCode", "300");
             MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Deleting service type " + typeid + " failed!");
+            MDC.put("ErrorDescription", "Deleting service type " + typeId + " failed!");
             logger.error(EELFLoggerDelegate.errorLogger, "deleteServiceType caught exception");
             json = objectMapper
-                .writeValueAsString(new RestResponseError("deleteDeployment failed", t));
-        } finally {
-            postLogAudit(request);
-        }
-        return json;
-    }
-
-    /**
-     * Deletes the specified service i.e. deployment from inventory
-     *
-     * @param id Service ID
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     * @return status code on success; error on failure.
-     * @throws Exception On serialization failure
-     */
-    @RequestMapping(
-        value = {SERVICES_PATH + "/{serviceId}"},
-        method = RequestMethod.DELETE,
-        produces = "application/json")
-    @ResponseBody
-    public String deleteService(@PathVariable("serviceId") String serviceId,
-        HttpServletRequest request, HttpServletResponse response) throws Exception {
-        preLogAudit(request);
-        String json = "{\"202\": \"OK\"}";
-        try {
-            inventoryClient.deleteService(serviceId);
-        } catch (ServiceNotFoundException | ServiceAlreadyDeactivatedException e) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "DCAE Inventory");
-            MDC.put("TargetServiceName", "DCAE Inventory");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Deleting service " + serviceId + " failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "deleteServiceType caught exception");
-            json = objectMapper.writeValueAsString(new RestResponseError(e.getMessage()));
-        } catch (Exception t) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "DCAE Inventory");
-            MDC.put("TargetServiceName", "DCAE Inventory");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Deleting service " + serviceId + " failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "deleteServiceType caught exception");
-            json = objectMapper
-                .writeValueAsString(new RestResponseError("deleteDeployment failed", t));
+                .writeValueAsString(new RestResponseError("delete blueprint failed", t));
         } finally {
             postLogAudit(request);
         }
@@ -778,8 +748,7 @@ public class InventoryController extends DashboardRestrictedBaseController {
         String json = "{\"201\": \"OK\"}";
         try {
             // Verify that the Service Type can be parsed for inputs.
-            Blueprint.parse(serviceType.getBlueprintTemplate());
-            // InventoryClient inventoryClient = getInventoryClient(request);
+            Blueprint.parse(serviceType.getBlueprintTemplate());  
             inventoryClient.addServiceType(serviceType);
         } catch (BlueprintParseException e) {
             MDC.put(SystemProperties.STATUS_CODE, "ERROR");
@@ -839,8 +808,8 @@ public class InventoryController extends DashboardRestrictedBaseController {
         String json = "{\"201\": \"OK\"}";
         try {
             Blueprint.parse(serviceTypeRequest.getBlueprintTemplate());
-            // InventoryClient inventoryClient = getInventoryClient(request);
             inventoryClient.addServiceType(serviceTypeRequest);
+            this.cacheOwnerToBpMap();
         } catch (BlueprintParseException e) {
             MDC.put(SystemProperties.STATUS_CODE, "ERROR");
             MDC.put("TargetEntity", "DCAE Inventory");

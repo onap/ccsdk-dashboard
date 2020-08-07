@@ -22,16 +22,22 @@
 
 package org.onap.ccsdk.dashboard.controller;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Matchers;
 import org.mockito.Mock;
@@ -39,39 +45,51 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.onap.ccsdk.dashboard.core.MockUser;
 import org.onap.ccsdk.dashboard.core.MockitoTestSuite;
-import org.onap.ccsdk.dashboard.model.CloudifyBlueprint;
-import org.onap.ccsdk.dashboard.model.CloudifyBlueprintList;
-import org.onap.ccsdk.dashboard.model.CloudifyDeployedTenant;
-import org.onap.ccsdk.dashboard.model.CloudifyDeployedTenantList;
-import org.onap.ccsdk.dashboard.model.CloudifyDeployment;
-import org.onap.ccsdk.dashboard.model.CloudifyDeploymentList;
-import org.onap.ccsdk.dashboard.model.CloudifyDeploymentUpdateRequest;
-import org.onap.ccsdk.dashboard.model.CloudifyDeploymentUpdateResponse;
-import org.onap.ccsdk.dashboard.model.CloudifyEvent;
-import org.onap.ccsdk.dashboard.model.CloudifyEventList;
-import org.onap.ccsdk.dashboard.model.CloudifyExecution;
-import org.onap.ccsdk.dashboard.model.CloudifyExecutionList;
-import org.onap.ccsdk.dashboard.model.CloudifyExecutionRequest;
-import org.onap.ccsdk.dashboard.model.CloudifyNodeInstance;
-import org.onap.ccsdk.dashboard.model.CloudifyNodeInstanceId;
-import org.onap.ccsdk.dashboard.model.CloudifyNodeInstanceIdList;
-import org.onap.ccsdk.dashboard.model.CloudifyNodeInstanceList;
-import org.onap.ccsdk.dashboard.model.CloudifyTenant;
-import org.onap.ccsdk.dashboard.model.CloudifyTenantList;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyBlueprint;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyBlueprintList;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyDeployedTenant;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyDeployment;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyDeploymentExt;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyDeploymentHelm;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyDeploymentList;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyEvent;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyEventList;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyExecution;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyExecutionList;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyExecutionRequest;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyNodeInstance;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyNodeInstanceId;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyNodeInstanceIdList;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyNodeInstanceList;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyPlugin;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyPluginList;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifySecret;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyTenantList;
+import org.onap.ccsdk.dashboard.model.inventory.ServiceQueryParams;
+import org.onap.ccsdk.dashboard.model.inventory.ServiceRef;
+import org.onap.ccsdk.dashboard.model.inventory.ServiceRefList;
 import org.onap.ccsdk.dashboard.rest.CloudifyClient;
+import org.onap.ccsdk.dashboard.rest.InventoryClient;
 import org.onap.portalsdk.core.domain.User;
+import org.onap.portalsdk.core.util.CacheManager;
 import org.onap.portalsdk.core.web.support.UserUtils;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
+@RunWith(PowerMockRunner.class)
 public class CloudifyControllerTest extends MockitoTestSuite {
 
     @Mock
     private CloudifyClient restClient;
+    
+    @Mock
+    private InventoryClient invClient;
 
     @InjectMocks
     private CloudifyController subject = new CloudifyController();
@@ -93,6 +111,8 @@ public class CloudifyControllerTest extends MockitoTestSuite {
         MockitoAnnotations.initMocks(this);
         objectMapper.registerModule(new Jdk8Module());
         httpException = new HttpClientErrorException(HttpStatus.BAD_REQUEST, "statusText");
+        CacheManager testCache = new CacheManager();
+        subject.setCacheManager(testCache); 
     }
 
     @SuppressWarnings("unchecked")
@@ -125,6 +145,409 @@ public class CloudifyControllerTest extends MockitoTestSuite {
         assertTrue(tenantStr.contains("error"));
     }
 
+    @Test
+    public final void testGetAllServiceNames() {
+        User user = mockUser.mockUser();
+        user.setLoginId("tester");
+        MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
+        //mockedRequest.addParameter("searchBy", "xyz");
+        mockedRequest.addParameter("sortBy", "owner");
+        Mockito.when(UserUtils.getUserSession(mockedRequest)).thenReturn(user);
+        
+        CloudifyDeployment cldDepl = new CloudifyDeployment("description", "blueprint_id",
+            "created_at", "updated_at", "id1", null, null, null, null, null, null, null, "tenant1");
+
+        List<CloudifyDeployment> items = new ArrayList<CloudifyDeployment>();
+        items.add(cldDepl);
+
+        CloudifyDeploymentList.Metadata.Pagination pageObj =
+            new CloudifyDeploymentList.Metadata.Pagination(1, 0, 1);
+
+        CloudifyDeploymentList.Metadata metadata = new CloudifyDeploymentList.Metadata(pageObj);
+
+        CloudifyDeploymentList cldDeplList = new CloudifyDeploymentList(items, metadata);
+        
+        Mockito.when(restClient.getDeployments(
+            Mockito.any(),Mockito.anyInt(), Mockito.anyInt(), Mockito.anyBoolean()))
+            .thenReturn(items);
+        
+        String actual = subject.getAllServiceNames(mockedRequest);
+        assertTrue(actual.contains("id1"));
+    }
+    @Test
+    public final void testGetDeploymentsByPage() {
+        User user = mockUser.mockUser();
+        user.setLoginId("tester");
+        MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
+        mockedRequest.addParameter("searchBy", "tenant:default_tenant;cache:false;serviceRef:id1");
+        mockedRequest.addParameter("sortBy", "owner");
+        Mockito.when(UserUtils.getUserSession(mockedRequest)).thenReturn(user);
+        
+        CloudifyDeployment cldDepl = new CloudifyDeployment("description", "blueprint_id",
+            "created_at", "updated_at", "id1", null, null, null, null, null, null, null, "tenant1");
+
+        List<CloudifyDeployment> items = new ArrayList<CloudifyDeployment>();
+        items.add(cldDepl);
+
+        CloudifyDeploymentList.Metadata.Pagination pageObj =
+            new CloudifyDeploymentList.Metadata.Pagination(1, 0, 1);
+
+        CloudifyDeploymentList.Metadata metadata = new CloudifyDeploymentList.Metadata(pageObj);
+
+        CloudifyDeploymentList cldDeplList = new CloudifyDeploymentList(items, metadata);
+ 
+        Mockito.when(restClient.getDeployments(
+            Mockito.any(),Mockito.anyInt(), Mockito.anyInt(), Mockito.anyBoolean(), Mockito.anyBoolean()))
+            .thenReturn(items);
+        List<CloudifyDeploymentExt> cfyDepExList = 
+            new ArrayList<CloudifyDeploymentExt>();
+        List<CloudifyDeploymentHelm> cfyDeplHelmList = 
+            new ArrayList<CloudifyDeploymentHelm>();
+        
+        Mockito.when(restClient.updateWorkflowStatus(Mockito.any())).
+        thenReturn(cfyDepExList);
+        Mockito.when(restClient.updateHelmInfo(Mockito.any())).
+        thenReturn(cfyDeplHelmList);
+        
+        String actual = subject.getDeploymentsByPage(mockedRequest);
+        assertTrue(actual.contains("id1"));
+    }
+    
+    @Test
+    public final void testViewBlueprintContentById() throws Exception {
+        byte[] result = "sample blueprint yaml content".getBytes();
+        
+        when(restClient.viewBlueprint(Mockito.any(), Mockito.any())).thenReturn(result);
+        
+        byte[] actual = subject.viewBlueprintContentById("id", "tenant", mockedRequest);
+        assertArrayEquals(result, actual);
+    }
+    
+    @Test
+    public final void testGetDepCount() throws Exception {
+        User user = mockUser.mockUser();
+        user.setLoginId("tester");
+        MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
+        //mockedRequest.addParameter("searchBy", "xyz");
+        mockedRequest.addParameter("sortBy", "owner");
+        Mockito.when(UserUtils.getUserSession(mockedRequest)).thenReturn(user);
+        
+        CloudifyDeployment cldDepl = new CloudifyDeployment("description", "blueprint_id",
+            "created_at", "updated_at", "id1", null, null, null, null, null, null, null, "tenant1");
+
+        List<CloudifyDeployment> items = new ArrayList<CloudifyDeployment>();
+        items.add(cldDepl);
+
+        CloudifyDeploymentList.Metadata.Pagination pageObj =
+            new CloudifyDeploymentList.Metadata.Pagination(1, 0, 1);
+
+        CloudifyDeploymentList.Metadata metadata = new CloudifyDeploymentList.Metadata(pageObj);
+
+        CloudifyDeploymentList cldDeplList = new CloudifyDeploymentList(items, metadata);
+        
+        Mockito.when(restClient.getDeploymentsWithFilter(Mockito.any()))
+            .thenReturn(items);
+        
+        String actual = subject.getDepCount(mockedRequest);
+        assertTrue(actual.contains("items"));
+    }
+    
+    @Test
+    public final void testGetPluginCount() throws JsonProcessingException {
+        CloudifyPlugin sampleData = 
+            new CloudifyPlugin("plugin1", "202001", "linux", "linux_k8s_plugin", "20200801");
+
+        List<CloudifyPlugin> cfyPlugins = new ArrayList<CloudifyPlugin>();
+        cfyPlugins.add(sampleData);
+
+        CloudifyPluginList.Metadata.Pagination pageObj =
+            new CloudifyPluginList.Metadata.Pagination(1, 0, 1);
+        CloudifyPluginList.Metadata metadata = new CloudifyPluginList.Metadata(pageObj);
+
+        CloudifyPluginList cfyPluginList = new CloudifyPluginList(cfyPlugins, metadata);
+    
+        when(restClient.getPlugins()).thenReturn(cfyPluginList);
+        String actual = subject.getPluginCount(mockedRequest);
+        assertTrue(actual.contains("1"));
+    }
+    
+    @Test
+    public final void testDeleteBlueprint() throws Exception {
+        String json = "{\"202\": \"OK\"}";       
+             
+        doNothing().doThrow(httpException).doThrow(Exception.class).when(restClient).deleteBlueprint(Mockito.any(), Mockito.any());
+    
+        String actual = subject.deleteBlueprint("id", "tenant", mockedRequest, mockedResponse);
+        assertTrue(actual.equals(json));
+        
+        actual = subject.deleteBlueprint("id", "tenant", mockedRequest, mockedResponse);
+        assertTrue(actual.contains("error"));
+        
+        actual = subject.deleteBlueprint("id", "tenant", mockedRequest, mockedResponse);
+        assertTrue(actual.contains("error"));
+    }
+    
+    @Test
+    public final void testGetDeploymentsForType() throws Exception {              
+        String[] testTypeIds = {"44234234"};
+        ServiceRef expectedSrvc = new ServiceRef("dcae_dtiapi_1902", "432423", "433434");
+        Collection<ServiceRef> expectedSrvcIds = new ArrayList<ServiceRef>();
+        expectedSrvcIds.add(expectedSrvc);
+        ServiceRefList expectedSrvcRefList = new ServiceRefList(expectedSrvcIds, 1);
+
+        CloudifyDeployedTenant cfyDepTen = 
+            new CloudifyDeployedTenant("id", "tenant_name", "created_at", "updated_at");
+        
+        List<CloudifyDeployedTenant> cfyDeplTenList = new ArrayList<>();
+        cfyDeplTenList.add(cfyDepTen);
+        
+        when(restClient.getDeploymentForBlueprint(Mockito.any())).thenReturn(cfyDeplTenList);
+        
+        when(invClient.getServicesForType(Matchers.<ServiceQueryParams>any()))
+            .thenReturn(expectedSrvcRefList);
+        String actual = subject.getDeploymentsForType(mockedRequest, testTypeIds);
+        assertTrue(actual.contains(testTypeIds[0]));
+    }
+    
+    @Test
+    @Ignore
+    public final void testCacheOwnerDeployMap() {
+        
+    }
+    
+    @Test
+    public final void testGetExecutionsPerTenant() throws Exception {
+        String tenantsList =
+            "{\"items\": [{\"id\": 1, \"name\": \"default_tenant\", \"dName\": \"default_tenant\" }, "
+                + "{\"id\": 2, \"name\": \"dyh1b1902\", \"dName\": \"dyh1b1902\"}], "
+                + "\"metadata\": {\"pagination\": {\"total\": 2, \"offset\": 0, \"size\": 0}}}";
+        CloudifyTenantList tenantData = null;
+        try {
+            tenantData = objectMapper.readValue(tenantsList, CloudifyTenantList.class);
+        } catch (Exception e) {
+        }
+        MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
+        Mockito.when(restClient.getTenants()).thenReturn(tenantData);
+        
+        CloudifyExecution cldExecution =
+            new CloudifyExecution("successful", "created_at", "ended_at", "install", false, "bp1", "id1",
+                "tenant1", "error", "execution_id1", null);
+        
+        List<CloudifyExecution> cldExecutionList = new ArrayList<CloudifyExecution>();
+
+        cldExecutionList.add(cldExecution);
+
+        CloudifyExecutionList cloudifyExecutionList =
+            new CloudifyExecutionList(cldExecutionList, null);
+        
+        when(restClient.getExecutionsSummaryPerTenant(Mockito.any()))
+            .thenReturn(cloudifyExecutionList).thenReturn(cloudifyExecutionList)
+            .thenReturn(cloudifyExecutionList);
+        
+        String actual = subject.getExecutionsPerTenant(mockedRequest, "default_tenant", "failed");
+        assertFalse(actual.contains("execution_id1"));
+        actual = subject.getExecutionsPerTenant(mockedRequest, "default_tenant", "successful");
+        assertTrue(actual.contains("execution_id1"));
+        actual = subject.getExecutionsPerTenant(mockedRequest, null, "successful");
+        assertTrue(actual.contains("execution_id1"));
+    }
+    
+    @Test
+    public final void testGetExecutionsPerTenant_error() throws Exception {
+        String tenantsList =
+            "{\"items\": [{\"id\": 1, \"name\": \"default_tenant\", \"dName\": \"default_tenant\" }, "
+                + "{\"id\": 2, \"name\": \"dyh1b1902\", \"dName\": \"dyh1b1902\"}], "
+                + "\"metadata\": {\"pagination\": {\"total\": 2, \"offset\": 0, \"size\": 0}}}";
+        CloudifyTenantList tenantData = null;
+        try {
+            tenantData = objectMapper.readValue(tenantsList, CloudifyTenantList.class);
+        } catch (Exception e) {
+        }
+        MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
+        Mockito.when(restClient.getTenants()).thenReturn(tenantData);
+        
+        CloudifyExecution cldExecution =
+            new CloudifyExecution("successful", "created_at", "ended_at", "install", false, "bp1", "id1",
+                "tenant1", "error", "execution_id1", null);
+        
+        List<CloudifyExecution> cldExecutionList = new ArrayList<CloudifyExecution>();
+
+        cldExecutionList.add(cldExecution);
+
+        CloudifyExecutionList cloudifyExecutionList =
+            new CloudifyExecutionList(cldExecutionList, null);
+        
+        when(restClient.getExecutionsSummaryPerTenant(Mockito.any()))
+            .thenThrow(Exception.class).thenThrow(Exception.class).thenThrow(Exception.class);
+        
+        String actual = subject.getExecutionsPerTenant(mockedRequest, "default_tenant", "failed");
+        assertTrue(actual.contains("error"));
+        
+        actual = subject.getExecutionsPerTenant(mockedRequest, "default_tenant", "successful");
+        assertTrue(actual.contains("error"));
+        
+        actual = subject.getExecutionsPerTenant(mockedRequest, null, "failed");
+        assertTrue(actual.contains("error"));
+    }
+    
+    @Test
+    public final void testQueryExecution() throws Exception {      
+        CloudifyExecution cldExecution =
+            new CloudifyExecution("successful", "created_at", "ended_at", "install", false, "bp1", "id1",
+                "tenant1", "error", "execution_id1", null);      
+        List<CloudifyExecution> cldExecutionList = new ArrayList<CloudifyExecution>();
+        cldExecutionList.add(cldExecution);
+        
+        when(restClient.getExecutionIdSummary(
+            Mockito.any(), Mockito.any())).thenReturn(cldExecution);
+        
+        String actual = subject.queryExecution("id", "tenant", mockedRequest);
+        assertTrue(actual.contains("items"));
+    }
+     
+    @SuppressWarnings("unchecked")
+    @Test
+    public final void testGetActiveExecutions() throws Exception {
+        String tenantsList =
+            "{\"items\": [{\"id\": 1, \"name\": \"default_tenant\", \"dName\": \"default_tenant\" }, "
+                + "{\"id\": 2, \"name\": \"dyh1b1902\", \"dName\": \"dyh1b1902\"}], "
+                + "\"metadata\": {\"pagination\": {\"total\": 2, \"offset\": 0, \"size\": 0}}}";
+        CloudifyTenantList tenantData = null;
+        try {
+            tenantData = objectMapper.readValue(tenantsList, CloudifyTenantList.class);
+        } catch (Exception e) {
+        }
+        MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
+        Mockito.when(restClient.getTenants()).thenReturn(tenantData).thenThrow(Exception.class);
+        
+        CloudifyExecution cldExecution =
+            new CloudifyExecution("started", "created_at", "ended_at", "install", false, "bp1", "id1",
+                "tenant1", "error", "execution_id1", null);
+        
+        List<CloudifyExecution> cldExecutionList = new ArrayList<CloudifyExecution>();
+
+        cldExecutionList.add(cldExecution);
+
+        CloudifyExecutionList cloudifyExecutionList =
+            new CloudifyExecutionList(cldExecutionList, null);
+        
+        when(restClient.getExecutionsSummaryPerTenant(Mockito.any()))
+            .thenReturn(cloudifyExecutionList).thenReturn(cloudifyExecutionList);
+        
+        String actual = subject.getActiveExecutions(mockedRequest);
+        assertTrue(actual.contains("execution_id1"));
+        actual = subject.getActiveExecutions(mockedRequest);
+        assertTrue(actual.contains("error"));
+        
+    }
+    
+    @Test
+    public final void testGetNodeInstanceDetails() throws Exception {
+        
+        Map<String, Object> runtime_properties = 
+            new HashMap<>();
+        runtime_properties.put("key1", "value1");
+        
+        CloudifyNodeInstance cfyNodeInst = 
+            new CloudifyNodeInstance("node_instance_id1", runtime_properties);
+
+        List<CloudifyNodeInstance> cfyNodeInstItems = new ArrayList<CloudifyNodeInstance>();
+
+        cfyNodeInstItems.add(cfyNodeInst);
+
+        CloudifyNodeInstanceList cfyNodeInstList =
+            new CloudifyNodeInstanceList(cfyNodeInstItems, null);
+        
+        when(restClient.getNodeInstanceDetails(Mockito.any(), Mockito.any())).
+        thenReturn(cfyNodeInstList).thenThrow(httpException).
+        thenThrow(Exception.class);
+        
+        String actual = 
+            subject.getNodeInstanceDetails("deploymentId", "tenant", mockedRequest);
+        assertTrue(actual.contains("node_instance_id1"));
+        
+        actual = 
+            subject.getNodeInstanceDetails("deploymentId", "tenant", mockedRequest);
+        assertTrue(actual.contains("error"));
+        
+        actual = 
+            subject.getNodeInstanceDetails("deploymentId", "tenant", mockedRequest);
+        assertTrue(actual.contains("error"));  
+    }
+    
+    @Test
+    public final void testGetNodeInstances() throws Exception {
+        CloudifyNodeInstanceId cfyNodeInst = new CloudifyNodeInstanceId("node_instance_id1");
+
+        List<CloudifyNodeInstanceId> cfyNodeInstItems = new ArrayList<CloudifyNodeInstanceId>();
+
+        cfyNodeInstItems.add(cfyNodeInst);
+
+        CloudifyNodeInstanceIdList cfyNodeInstList =
+            new CloudifyNodeInstanceIdList(cfyNodeInstItems, null);
+        
+        when(restClient.getNodeInstances(Mockito.any(), Mockito.any())).
+        thenReturn(cfyNodeInstList).thenThrow(httpException).
+        thenThrow(Exception.class);
+        
+        String actual = 
+            subject.getNodeInstances("deploymentId", "tenant", mockedRequest);
+        assertTrue(actual.contains("node_instance_id1"));
+        
+        actual = 
+            subject.getNodeInstances("deploymentId", "tenant", mockedRequest);
+        assertTrue(actual.contains("error"));
+        
+        actual = 
+            subject.getNodeInstances("deploymentId", "tenant", mockedRequest);
+        assertTrue(actual.contains("error"));
+    }
+    
+    @Test
+    public final void testGetPlugins() throws Exception {
+        CloudifyPlugin sampleData = 
+            new CloudifyPlugin("plugin1", "202001", "linux", "linux_k8s_plugin", "20200801");
+
+        List<CloudifyPlugin> cfyPlugins = new ArrayList<CloudifyPlugin>();
+        cfyPlugins.add(sampleData);
+
+        CloudifyPluginList.Metadata.Pagination pageObj =
+            new CloudifyPluginList.Metadata.Pagination(1, 0, 1);
+        CloudifyPluginList.Metadata metadata = new CloudifyPluginList.Metadata(pageObj);
+
+        CloudifyPluginList cfyPluginList = new CloudifyPluginList(cfyPlugins, metadata);
+    
+        when(restClient.getPlugins()).thenReturn(cfyPluginList).thenThrow(Exception.class);
+        String actual = subject.getPlugins(mockedRequest);
+        assertTrue(actual.contains("plugin1"));
+        
+        actual = subject.getPlugins(mockedRequest);
+        assertTrue(actual.contains("error"));
+    }
+    
+    @Test
+    @Ignore
+    public final void testGetSecrets() {
+        
+    }
+    
+    @Test
+    @Ignore
+    public final void testGetSecret() {
+        
+    }
+    
+    @Test
+    @Ignore
+    public final void testDeleteSecret() {
+        
+    }
+    
+    @Test
+    @Ignore
+    public final void testCreateSecret() {
+    }
+    
     @SuppressWarnings({"unchecked", "unchecked"})
     @Test
     public final void testGetBlueprintById() throws Exception {
@@ -196,93 +619,13 @@ public class CloudifyControllerTest extends MockitoTestSuite {
         actualResult = subject.getDeploymentById("id1", null, mockedRequest);
         assertTrue(actualResult.contains("error"));
     }
-
-    @SuppressWarnings("unchecked")
-    @Test
-    public void testGetTenantStatusForService() throws Exception {
-
-        String[] deplIds = {"id1", "id2"};
-
-        CloudifyDeployedTenant cldDeplTenant = new CloudifyDeployedTenant("id1", "bp1", "tenant1");
-
-        List<CloudifyDeployedTenant> cldDeplTenantList = new ArrayList<CloudifyDeployedTenant>();
-
-        cldDeplTenantList.add(cldDeplTenant);
-
-        CloudifyDeployedTenantList cldDeployedTenantList =
-            new CloudifyDeployedTenantList(cldDeplTenantList, null);
-
-        CloudifyTenant cldTenant = new CloudifyTenant("tenant1", "tenant1", "tenant_id1");
-
-        List<CloudifyTenant> cldfyTenantList = new ArrayList<CloudifyTenant>();
-        cldfyTenantList.add(cldTenant);
-
-        CloudifyTenantList cloudifyTenantList = new CloudifyTenantList(cldfyTenantList, null);
-
-        CloudifyExecution cldExecution =
-            new CloudifyExecution("successful", "created_at", "install", false, "bp1", "id1",
-                "tenant1", "error", "execution_id1", null, false, false);
-
-        List<CloudifyExecution> cldExecutionList = new ArrayList<CloudifyExecution>();
-
-        cldExecutionList.add(cldExecution);
-
-        CloudifyExecutionList cloudifyExecutionList =
-            new CloudifyExecutionList(cldExecutionList, null);
-
-        Map<String, Object> plan = new HashMap<String, Object>();
-        HashMap<String, String> plugins_to_install = new HashMap<String, String>();
-        plugins_to_install.put("name", "helm-plugin");
-        ArrayList<HashMap<String, String>> deployment_plugins_to_install =
-            new ArrayList<HashMap<String, String>>();
-
-        deployment_plugins_to_install.add(plugins_to_install);
-        plan.put("deployment_plugins_to_install", deployment_plugins_to_install);
-
-        Map<String, String> workflows = new HashMap<String, String>();
-        workflows.put("status", "workflowshelm");
-        plan.put("workflows", workflows);
-
-        CloudifyBlueprint cldBp =
-            new CloudifyBlueprint("file1", "description1", "343242", "3423423", "id1", plan);
-
-        List<CloudifyBlueprint> items = new ArrayList<CloudifyBlueprint>();
-        items.add(cldBp);
-
-        CloudifyBlueprintList.Metadata.Pagination pageObj =
-            new CloudifyBlueprintList.Metadata.Pagination(1, 0, 1);
-
-        CloudifyBlueprintList.Metadata metadata = new CloudifyBlueprintList.Metadata(pageObj);
-
-        CloudifyBlueprintList cldBpList = new CloudifyBlueprintList(items, metadata);
-
-        when(restClient.getTenants()).thenReturn(cloudifyTenantList);
-
-        when(restClient.getTenantInfoFromDeploy(Mockito.any())).thenReturn(cldDeployedTenantList);
-
-        when(restClient.getExecutionsSummary(Mockito.any(), Mockito.any()))
-            .thenReturn(cloudifyExecutionList);
-
-        when(restClient.getBlueprint(Mockito.any(), Mockito.any())).thenReturn(cldBpList)
-            .thenThrow(Exception.class).thenThrow(httpException);
-
-        String actualResult = subject.getTenantStatusForService(mockedRequest, deplIds);
-        assertTrue(actualResult.contains("successful"));
-
-        actualResult = subject.getTenantStatusForService(mockedRequest, deplIds);
-        assertTrue(actualResult.contains("error"));
-
-        actualResult = subject.getTenantStatusForService(mockedRequest, deplIds);
-        assertTrue(actualResult.contains("error"));
-    }
-
-    @SuppressWarnings("unchecked")
+    
     @Test
     public void testGetExecutionsByPage() throws Exception {
         CloudifyExecution cldExecution =
-            new CloudifyExecution("successful", "created_at", "install", false, "bp1", "id1",
-                "tenant1", "error", "execution_id1", null, false, false);
-
+            new CloudifyExecution("successful", "created_at", "ended_at", "install", false, "bp1", "id1",
+                "tenant1", "error", "execution_id1", null);
+        
         List<CloudifyExecution> cldExecutionList = new ArrayList<CloudifyExecution>();
 
         cldExecutionList.add(cldExecution);
@@ -301,8 +644,8 @@ public class CloudifyControllerTest extends MockitoTestSuite {
         CloudifyDeploymentList.Metadata metadata = new CloudifyDeploymentList.Metadata(pageObj);
 
         CloudifyDeploymentList cldDeployList = new CloudifyDeploymentList(cfyDeployItems, metadata);
-
-        when(restClient.getDeployments()).thenReturn(cldDeployList);
+               
+        when(restClient.getDeployments(Mockito.any(), Mockito.anyInt(), Mockito.anyInt())).thenReturn(cldDeployList);
         when(restClient.getExecutions(Mockito.any(), Mockito.any()))
             .thenReturn(cloudifyExecutionList).thenThrow(Exception.class)
             .thenReturn(cloudifyExecutionList);
@@ -317,13 +660,13 @@ public class CloudifyControllerTest extends MockitoTestSuite {
         actualResult = subject.getExecutionsByPage(mockedRequest, null, "successful", "tenant1");
         assertTrue(actualResult.contains("successful"));
     }
-
+/*
     @SuppressWarnings("unchecked")
     @Test
     public void testGetExecutionByIdAndDeploymentId() throws Exception {
         CloudifyExecution cldExecution =
-            new CloudifyExecution("successful", "created_at", "install", false, "bp1", "id1",
-                "tenant1", "error", "execution_id1", null, false, false);
+            new CloudifyExecution("successful", "created_at", "ended_at", "install", false, "bp1", "id1",
+                "tenant1", "error", "execution_id1", null);
 
         List<CloudifyExecution> cldExecutionList = new ArrayList<CloudifyExecution>();
 
@@ -347,7 +690,7 @@ public class CloudifyControllerTest extends MockitoTestSuite {
             "tenant", mockedRequest);
         assertTrue(actualResult.contains("error"));
     }
-
+*/
     @SuppressWarnings("unchecked")
     @Test
     public void testGetExecutionEventsById() throws Exception {
@@ -384,8 +727,9 @@ public class CloudifyControllerTest extends MockitoTestSuite {
     @SuppressWarnings("unchecked")
     @Test
     public void testStartExecution() throws Exception {
-        CloudifyExecution cfyExecObj = new CloudifyExecution("successful", "created_at", "install",
-            false, "bp1", "id1", "tenant1", "error", "execution_id1", null, false, false);
+        CloudifyExecution cldExecution =
+            new CloudifyExecution("successful", "created_at", "ended_at", "install", false, "bp1", "id1",
+                "tenant1", "error", "execution_id1", null);
 
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("key1", "value1");
@@ -401,12 +745,22 @@ public class CloudifyControllerTest extends MockitoTestSuite {
 
         CloudifyNodeInstanceIdList cfyNodeInstList =
             new CloudifyNodeInstanceIdList(cfyNodeInstItems, null);
-
+        
+        String secretTokenStr =
+            "{\"created_at\": \"created_ts\", \"key\": \"acl_key\", \"updated_at\": \"updated_ts\", \"value\": \"acl_token_val\", \"visibility\": \"global\", \"is_hidden_value\": \"false\", \"tenant_name\": \"tenant\", \"resource_availability\": \"rsrc\"}";          
+        CloudifySecret secretData = null;
+        try {
+            secretData = objectMapper.readValue(secretTokenStr, CloudifySecret.class);
+        } catch (Exception e) {
+            
+        }
+        when(restClient.getSecret(Mockito.any(), Mockito.any())).thenReturn(secretData);
+        
         when(restClient.getNodeInstanceId(Mockito.any(), Mockito.any()))
             .thenReturn(cfyNodeInstList);
 
         when(restClient.startExecution(Matchers.<CloudifyExecutionRequest>any()))
-            .thenReturn(cfyExecObj).thenThrow(Exception.class).thenThrow(httpException);
+            .thenReturn(cldExecution).thenThrow(Exception.class).thenThrow(httpException);
 
         String actualResult = subject.startExecution(mockedRequest, cfyExecReq);
         assertTrue(actualResult.contains("execution_id1"));
@@ -416,32 +770,6 @@ public class CloudifyControllerTest extends MockitoTestSuite {
 
         actualResult = subject.startExecution(mockedRequest, cfyExecReq);
         assertTrue(actualResult.contains("error"));
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
-    public void testUpdateDeployment() throws Exception {
-
-        CloudifyDeploymentUpdateRequest cfyDeployUpdateReq =
-            new CloudifyDeploymentUpdateRequest("deployment_id", "update", false, false,
-                "node_instance_id1", "4", "1000", "image", 2, "my_container");
-
-        CloudifyDeploymentUpdateResponse cfyDeployUpdateResp = new CloudifyDeploymentUpdateResponse(
-            "terminated", "created_at", "update", false, "blueprint_id", "deployment_id", "", "id1",
-            null, "tenant1", "junit", false, "resource_availability");
-
-        when(restClient.updateDeployment(Matchers.<CloudifyDeploymentUpdateRequest>any()))
-            .thenReturn(cfyDeployUpdateResp).thenThrow(Exception.class).thenThrow(httpException);
-
-        String actualResult = subject.updateDeployment(mockedRequest, cfyDeployUpdateReq);
-        assertTrue(actualResult.contains("terminated"));
-
-        actualResult = subject.updateDeployment(mockedRequest, cfyDeployUpdateReq);
-        assertTrue(actualResult.contains("error"));
-
-        actualResult = subject.updateDeployment(mockedRequest, cfyDeployUpdateReq);
-        assertTrue(actualResult.contains("error"));
-
     }
 
     @SuppressWarnings("unchecked")
@@ -506,8 +834,9 @@ public class CloudifyControllerTest extends MockitoTestSuite {
         HttpHeaders httpHeader = new HttpHeaders();
         httpHeader.put("tenant", tenants);
 
-        CloudifyExecution cfyExecObj = new CloudifyExecution("successful", "created_at", "cancel",
-            false, "bp1", "id1", "tenant1", "error", "execution_id1", null, false, false);
+        CloudifyExecution cfyExecObj =
+            new CloudifyExecution("successful", "created_at", "ended_at", "install", false, "bp1", "id1",
+                "tenant1", "error", "execution_id1", null);
 
         when(restClient.cancelExecution(Mockito.any(), Mockito.any(), Mockito.any()))
             .thenReturn(cfyExecObj).thenThrow(Exception.class).thenThrow(httpException);
