@@ -1,5 +1,5 @@
 <script type="text/ng-template"
-	id="inventory_blueprint_update_popup.html">
+  id="inventory_blueprint_update_popup.html">
 
 	<style>
 	.ecd-parameter-table
@@ -29,6 +29,13 @@
 				<i class="icon-spinner small" role="img" aria-label="Please wait while upload is in progress"></i>
 				Blueprint <span style="font-weight: bolder;background: aqua;">{{ecdapp.serviceType.typeName}}</span> upload is in progress... 
 			</div>
+		</div>
+	 	<!-- show progress indicator -->
+		<div ng-show="ecdapp.isDataLoading">
+			<div class="span" style="margin-bottom:20px;">
+    			<i class="icon-spinner small" role="img" aria-label="Please wait while the content loads"></i>
+	    		Please wait while the content loads.
+	    	</div>
 		</div>
 		<form name="updateForm">
 		<div class="row-nowrap" style="margin-top:-20px;">
@@ -89,9 +96,9 @@
 	        <div class="span6 form-row">
 				<label class="span12" for="typeName">*Blueprint Version</label>
 				<div class="field-group tooltip-onclick"  b2b-tooltip>
-					<input type="text" id="typeVer" name="typeVer" class="span12" data-ng-model="ecdapp.serviceType.typeVersion" disabled="disabled">
+					<input type="text" id="typeVer" name="typeVer" class="span12" data-ng-model="ecdapp.serviceType.typeVersion">
 					<button class="reset-field" type="button" aria-label="Reset text field"></button>
-					<button id="tooltipButton3" class="btn icon-content-listguide tooltip-element icon-tooltip" data-toggle="button" aria-label="Email help"   aria-describedby="tooltipContent4" >
+					<button id="tooltipButton33" class="btn icon-content-listguide tooltip-element icon-tooltip" data-toggle="button" aria-label="Email help"   aria-describedby="tooltipContent4" >
 	            	</button>
 	            	<div class="helpertext" tabindex="-1" role="tooltip" id="tooltipContent4">  
 	                	<div class="popover-title">Blueprint or Type version - a required input</div>  
@@ -140,7 +147,7 @@
 	</div>
 
 	<div class="b2b-modal-footer ng-scope ng-isolate-scope">
-		<div class="cta-button-group in">
+		<div ng-hide="ecdapp.updateInProgress" class="cta-button-group in">
 			<button class="btn btn-alt btn-small" type="submit" ng-disabled="updateForm.$invalid"
 					ng-click="ecdapp.updateBlueprint(ecdapp.serviceType);">
 				Save
@@ -153,9 +160,8 @@
 	</div>
 	
 </script>
-
 <script type="text/ng-template"
-	id="inventory_blueprint_upload_popup.html">
+  id="inventory_blueprint_upload_popup.html">
 
 	<style>
 	.ecd-parameter-table
@@ -218,7 +224,7 @@
 			</div>
 		</div>
 		<form name="uploadForm">
-		<div class="row-nowrap" style="margin-top:-20px;" ng-show="ecdapp.isImport">
+		<div class="row-nowrap" style="margin-top:-20px;" ng-show="ecdapp.isImport && ecdapp.isInternal">
 			<div class="span3 form-row" ng-class="{'error':uploadForm.appl.$touched && !ecdapp.validAppl}">
 				<div class="tooltip" b2b-tooltip trigger="focus">
             		<a  href="javascript:void(0)" class="tooltip-element" data-placement="bottom" role="button" aria-label="Help"  aria-describedby="tooltiptext1" >
@@ -302,7 +308,7 @@
             	</div>	
 	        </div>
 		</div>
-		<div class="row-nowrap" style="margin-top:-20px;" ng-hide="ecdapp.isImport">
+		<div class="row-nowrap" style="margin-top:-20px;" ng-show="!ecdapp.isImport && ecdapp.isInternal">
 			<div class="span3 form-row" ng-class="{'error':uploadForm.appl.$touched && !ecdapp.validAppl}">
 				<div class="tooltip" b2b-tooltip trigger="focus">
             		<a  href="javascript:void(0)" class="tooltip-element" data-placement="bottom" role="button" aria-label="Help"  aria-describedby="tooltiptext1" >
@@ -322,7 +328,8 @@
             		</div>
 				</div>
 				<div class="field-group">
-				<select id="appl" name="appl" b2b-dropdown placeholder-text="Select Application" class="span8" data-ng-model="ecdapp.serviceTypeRequest.application" ng-change="ecdapp.selectAppComp(ecdapp.serviceTypeRequest.application)" required>
+				<select id="appl" name="appl" b2b-dropdown placeholder-text="Select Application" 
+				class="span8" data-ng-model="ecdapp.serviceTypeRequest.application" ng-change="ecdapp.selectAppComp(ecdapp.serviceTypeRequest.application)" required>
 					<option b2b-dropdown-list option-repeat="d in ecdapp.apps" value="{{d}}">{{d}}</option>
 				</select>
 				</div>
@@ -356,7 +363,11 @@
             		</div>
 				</div>
 				<div class="field-group">
-				<select b2b-dropdown name="comp" class="span8" placeholder-text="Select Component" data-ng-model="ecdapp.serviceTypeRequest.component" ng-change="ecdapp.validateComp()" ng-disabled="!ecdapp.validAppl" required>
+							
+				<select b2b-dropdown name="comp" class="span8" placeholder-text="Select Component"
+				data-ng-init="ecdapp.serviceTypeRequest.component" 
+				data-ng-model="ecdapp.serviceTypeRequest.component" ng-change="ecdapp.validateComp()" 
+				ng-disabled="!ecdapp.validAppl" required>
 					<option b2b-dropdown-list option-repeat="d in ecdapp.comps" value="{{d.cname}}">{{d.dname}}</option>
 				</select>
 				</div>
@@ -396,56 +407,13 @@
             	</div>	
 	        </div>
 		</div>
-		<div class="row-nowrap" ng-hide="ecdapp.isImport">
-			<div id="addAppDiv" class="span12 row-nowrap" ng-show="ecdapp.enableAppForm">
-			<div class="span4 form-row">
-				<label>*Component Name</label>
-				<div class="field-group tooltip-onclick"  b2b-tooltip>
-					<input type="text" class="span12" data-ng-model="ecdapp.newCompName" placeholder="Example: scheduler">
-					<button class="reset-field" type="button" aria-label="Reset text field"></button>
-					<button id="tooltipButton1" class="btn icon-tooltip tooltip-element" data-toggle="button" aria-label="Comp Name"   aria-describedby="tooltipContent1" >
-	            	</button>
-	            	<div class="helpertext" tabindex="-1" role="tooltip" id="tooltipContent1">  
-	                	<div class="popover-title">Component name - a required input</div>  
-	                	<div class="popover-content">
-	                    	<p>Component name is a sub-string of the application namespace in AAF. A non-admin user should only add a new component if that user's role belongs to the component namespace.</p>
-	                    	<strong class="hidden-spoken">Double tap to close help message.</strong>
-	                	</div>
-	            	</div>
-	            </div>
-	        </div>
-			<div class="span4 form-row">
-				<label>*Component Display Name</label>
-				<div class="field-group tooltip-onclick"  b2b-tooltip>
-					<input type="text" class="span12" data-ng-model="ecdapp.newCompDisplayName" placeholder="Example: ECOMP SCHEDULER" style="text-transform:uppercase">
-					<button class="reset-field" type="button" aria-label="Reset text field"></button>
-					<button id="tooltipButton2" class="btn icon-tooltip tooltip-element" data-toggle="button" aria-label="Email help"   aria-describedby="tooltipContent2" >
-	            	</button>
-	            	<div class="helpertext" tabindex="-1" role="tooltip" id="tooltipContent2">  
-	                	<div class="popover-title">Component Display Name - a required input</div>  
-	                	<div class="popover-content">
-	                    	<p>Component display name in selection menu</p>
-	                    	<strong class="hidden-spoken">Double tap to close help message.</strong>
-	                	</div>
-	            	</div>
-	            </div>
-	        </div>
-	        <div class="span1 form-row">
-	        	<label></label>
-	        	<div class="field-group" ng-click="ecdapp.addApplication(ecdapp.serviceTypeRequest.application, ecdapp.newCompId, 
-	        	ecdapp.newCompName, ecdapp.newCompDisplayName);">
-				<a href="" title="Add Component" class="icon-arrows-quick-sync ecd-icon-action"></a>
-				</div>
-			</div> 
-			</div>      
-		</div>
 		<div class="row-nowrap">
 			<div class="span6 form-row" ng-class="{'error':uploadForm.typeName.$touched && uploadForm.typeName.$invalid}">
 				<label class="span12" for="typeName">*Blueprint Name</label>
 				<div class="field-group tooltip-onclick"  b2b-tooltip>
 					<input type="text" id="typeName" name="typeName" class="span12" data-ng-model="ecdapp.serviceTypeRequest.typeName" placeholder="Example: mso_helm_chart" required>
 					<button class="reset-field" type="button" aria-label="Reset text field"></button>
-					<button id="tooltipButton3" class="btn icon-tooltip tooltip-element" data-toggle="button" aria-label="Email help"   aria-describedby="tooltipContent3" >
+					<button id="tooltipButton35" class="btn icon-tooltip tooltip-element" data-toggle="button" aria-label="Email help"   aria-describedby="tooltipContent3" >
 	            	</button>
 	            	<div class="helpertext" tabindex="-1" role="tooltip" id="tooltipContent3">  
 	                	<div class="popover-title">Blueprint or Type name - a required input</div>  
@@ -465,12 +433,12 @@
 				<div class="field-group tooltip-onclick"  b2b-tooltip>
 					<input type="text" id="typeVer" name="typeVer" class="span12" data-ng-model="ecdapp.serviceTypeRequest.typeVersion" placeholder="Example: 181017" required>
 					<button class="reset-field" type="button" aria-label="Reset text field"></button>
-					<button id="tooltipButton3" class="btn icon-tooltip tooltip-element" data-toggle="button" aria-label="Email help"   aria-describedby="tooltipContent4" >
+					<button id="tooltipButton41" class="btn icon-tooltip tooltip-element" data-toggle="button" aria-label="Email help"   aria-describedby="tooltipContent4" >
 	            	</button>
 	            	<div class="helpertext" tabindex="-1" role="tooltip" id="tooltipContent4">  
 	                	<div class="popover-title">Blueprint or Type version - a required input</div>  
 	                	<div class="popover-content">
-	                    	<p>Blueprint or Service Type version may be an integer, example: 10, 181017 or a semantic version string, example: 1902.01.03. Semantic version string is converted to an integer by removing "...", before inserting into inventory. This field is used to identify the blueprint template version or a component package version.</p>
+	                    	<p>Blueprint or Service Type version should be an integer. This field is used to identify the blueprint template version or a component package version.</p>
 	                    	<strong class="hidden-spoken">Double tap to close help message.</strong>
 	                	</div>
 	            	</div>
@@ -523,8 +491,12 @@
 	</div>
 
 	<div class="b2b-modal-footer ng-scope ng-isolate-scope">
-		<div class="cta-button-group in">
-			<button class="btn btn-alt btn-small" type="submit" ng-disabled="uploadForm.$invalid || !ecdapp.validAppl || !ecdapp.validComp"
+		<div ng-hide="ecdapp.uploadInProgress" class="cta-button-group in">
+			<button class="btn btn-alt btn-small" type="submit" ng-show="ecdapp.isInternal" ng-disabled="uploadForm.$invalid || !ecdapp.validAppl || !ecdapp.validComp"
+					ng-click="ecdapp.uploadBlueprint(ecdapp.serviceTypeRequest);">
+				Save
+			</button>
+			<button class="btn btn-alt btn-small" type="submit" ng-show="!ecdapp.isInternal" ng-disabled="uploadForm.$invalid"
 					ng-click="ecdapp.uploadBlueprint(ecdapp.serviceTypeRequest);">
 				Save
 			</button>
@@ -535,7 +507,6 @@
 		</div>
 	</div>
 </script>
-
 <script type="text/ng-template" id="inventory_blueprint_view_popup.html">
 
 	<div class="b2b-modal-header ng-scope">
@@ -577,9 +548,8 @@
 	</div>
 
 </script>
-
 <script type="text/ng-template"
-	id="inventory_blueprint_deploy_popup.html">
+  id="inventory_blueprint_deploy_popup.html">
 
 	<style>
 	.ecd-parameter-table
@@ -685,7 +655,7 @@
             		</div>
 				</div>
 				<select id="cldTenants" name="tenant" b2b-dropdown placeholder-text="Select Tenant" class="span8" data-ng-model="ecdapp.editRequest.tenant" ng-change="ecdapp.validateTenant()">
-					<option b2b-dropdown-list option-repeat="d in tenantList.data" value="{{d.name}}">{{d.name}}</option>
+					<option b2b-dropdown-list option-repeat="d in ecdapp.availableTenants" value="{{d}}">{{d}}</option>
 				</select>
             	<div ng-if="deployForm.tenant.$touched && !ecdapp.validTenant" id="tenantDropdown" role="alert" class="error-msg" aria-live="polite" aria-atomic="true" >
                   <i class="icon-badgealert" aria-hidden="true"></i>
@@ -710,7 +680,7 @@
 	    	</div>
 		</div>
 
-		<div ng-hide="ecdapp.deploymentInProgress" class="row-nowrap">
+		<div ng-hide="ecdapp.isDataLoading" class="row-nowrap">
 			<div class="span12">
 				<div class="form-row">
 					<label for="parameters">*Parameters</label>
@@ -723,13 +693,17 @@
 				<div class="ecd-parameter-table">
 					<table id="parameters">
 						<tr id="ecd-table-header">
-							<th width="60%">Name</th>
-							<th width="40%">Value</th>
+							<th width="30%">Name</th>
+							<!--<th width="40%">Description</th>-->
+							<th width="70%">Value</th>
 						</tr>
 	            		<tbody ng-repeat="(pkey, pval) in ecdapp.editRequest.parmFileDict">
 							<tr id="tr-rowData">
-								<td ng-bind="pkey"/>
-								<td><input id="parameterValue" class="span12" type="text" data-ng-model="ecdapp.editRequest.parmFileDict[pkey]" autofocus/></td>
+								<td>
+								<div style="font-weight: bold;">{{pkey}}</div>  
+								<div style="margin-top: 8px; font-weight: lighter;">{{ecdapp.editRequest.descriptionDict[pkey]}}</div>
+								</td>
+								<td><input json id="parameterValue" class="span12" type="text" data-ng-model="ecdapp.editRequest.parmFileDict[pkey]" autofocus/></td>
 							</tr>
 						</tbody>
 					</table>

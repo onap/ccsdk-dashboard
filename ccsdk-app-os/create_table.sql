@@ -1145,3 +1145,6 @@ Insert into dashboard_pg_db_common.fn_role_function (ROLE_ID,FUNCTION_CD) values
 Insert into dashboard_pg_db_common.fn_role_function (ROLE_ID,FUNCTION_CD) values (2,'menu_api');
 Insert into dashboard_pg_db_common.fn_role_function (ROLE_ID,FUNCTION_CD) values (3,'menu_api');
 Insert into dashboard_pg_db_common.fn_role_function (ROLE_ID,FUNCTION_CD) values (16,'menu_api');
+
+INSERT INTO dashboard_pg_db_common.fn_menu (MENU_ID, LABEL, PARENT_ID, SORT_ORDER, ACTION, FUNCTION_CD, ACTIVE_YN, SERVLET, QUERY_STRING, EXTERNAL_URL, TARGET, MENU_SET_CD, SEPARATOR_YN, IMAGE_SRC)
+	VALUES (30015,'Cloudify Plugins', 30011,     50,'ecd#/iplug',      'menu_inventory',           'Y','N/A','N/A','N/A','N/A','APP','N',NULL);

@@ -2,7 +2,7 @@
  * =============LICENSE_START=========================================================
  *
  * =================================================================================
- *  Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
+ *  Copyright (c) 2020 AT&T Intellectual Property. All rights reserved.
  * ================================================================================
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
  *  limitations under the License.
  * ============LICENSE_END=========================================================
  *
- *  ECOMP is a trademark and service mark of AT&T Intellectual Property.
  *******************************************************************************/
 package org.onap.ccsdk.dashboard.model.inventory;
 
@@ -28,11 +27,11 @@ public class ServiceTypeServiceMap {
 
     private final String serviceTypeId;
 
-    private final ServiceRefList serviceRefList;
+    private final Object serviceRefList;
 
     @JsonCreator
     public ServiceTypeServiceMap(@JsonProperty("serviceTypeId") String serviceTypeId,
-            @JsonProperty("created") ServiceRefList serviceRefList) {
+            @JsonProperty("serviceRefList") Object serviceRefList) {
         this.serviceTypeId = serviceTypeId;
         this.serviceRefList = serviceRefList;
     }
@@ -41,7 +40,7 @@ public class ServiceTypeServiceMap {
         return serviceTypeId;
     }
 
-    public ServiceRefList getServiceRefList() {
+    public Object getServiceRefList() {
         return serviceRefList;
     }
 }

@@ -23,6 +23,8 @@ package org.onap.ccsdk.dashboard.rest;
 
 import java.util.stream.Stream;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.onap.ccsdk.dashboard.exceptions.BadRequestException;
 import org.onap.ccsdk.dashboard.exceptions.DeploymentNotFoundException;
 import org.onap.ccsdk.dashboard.exceptions.DownstreamException;
@@ -34,6 +36,11 @@ import org.onap.ccsdk.dashboard.model.deploymenthandler.DeploymentResponse;
 
 public interface DeploymentHandlerClient {
 
+    /**
+     * Run deployment handler service health check
+     * 
+     */
+    public String checkHealth();
     /**
      * Gets a list of all service deployments known to the orchestrator.
      * 
@@ -65,16 +72,15 @@ public interface DeploymentHandlerClient {
      *         /dcae-deployments/{deploymentId}
      *
      */
-    public DeploymentResponse putDeployment(String deploymentId, String tenant, DeploymentRequest deploymentRequest)
+    public DeploymentResponse putDeployment(String deploymentId, String tenant, DeploymentRequest deploymentRequest,
+        HttpServletRequest request)
             throws BadRequestException, ServiceAlreadyExistsException, ServerErrorException, DownstreamException;
 
     /**
-     * Initiate update for a deployment
+     * For API use, Request deployment of a DCAE Service.
      * 
      * @param deploymentId      Unique deployment identifier assigned by the API
      *                          client.
-     * 
-     * @param tenant            Cloudify tenant where the deployment should be done
      * 
      * @param deploymentRequest Deployment request object that contains the
      *                          necessary fields for service deployment.
@@ -83,11 +89,21 @@ public interface DeploymentHandlerClient {
      *         /dcae-deployments/{deploymentId}
      *
      */
-    public DeploymentResponse updateDeployment(String deploymentId, String tenant, DeploymentRequest deploymentRequest)
+    public DeploymentResponse putDeployment(String deploymentId, String tenant, DeploymentRequest deploymentRequest)
             throws BadRequestException, ServiceAlreadyExistsException, ServerErrorException, DownstreamException;
 
     /**
      * Uninstall the DCAE service and remove all associated data from the
+     * orchestrator.
+     * 
+     * @param deploymentId Unique deployment identifier assigned by the API client.
+     * 
+     */
+    public void deleteDeployment(String deploymentId, String tenant, HttpServletRequest request)
+            throws BadRequestException, ServerErrorException, DownstreamException, DeploymentNotFoundException;
+    
+    /**
+     * For API use, Uninstall the DCAE service and remove all associated data from the
      * orchestrator.
      * 
      * @param deploymentId Unique deployment identifier assigned by the API client.

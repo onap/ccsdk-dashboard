@@ -27,7 +27,6 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.onap.ccsdk.dashboard.service.ControllerEndpointService;
 import org.onap.ccsdk.dashboard.util.DashboardProperties;
 import org.onap.portalsdk.core.controller.RestrictedBaseController;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,12 +71,7 @@ public class DashboardRestrictedBaseController extends RestrictedBaseController 
     @Autowired
     protected DashboardProperties appProperties;
 
-    /**
-     * For getting selected controller
-     */
-    @Autowired
-    private ControllerEndpointService controllerEndpointService;
-
+ 
     /**
      * Hello Spring, here's your no-arg constructor.
      */

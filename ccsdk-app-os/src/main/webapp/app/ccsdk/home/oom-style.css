@@ -1,0 +1,658 @@
+/* Styles for ECOMP Controller Dashboard */
+
+.content-container {
+	min-height: 650px;
+	width: calc(100% - 50px);
+}
+
+.ecd-error-message {
+	font-size: 14px;
+	font-weight: bold;
+	color: red;
+}
+
+.ecd-icon-display {
+	font-size: 18px;
+}
+
+.ecd-icon-action {
+	font-size: 18px;
+}
+
+.ecd-icon-action:hover {
+	color: red;
+	text-decoration: none;
+}
+
+.selected {
+    background-color:#abb5e6;
+    color:black;
+    font-weight:bold;
+}
+.red-background {
+   background-color: #ff0000b3;
+ }
+.green-background {
+   background-color: #bbf0bb;
+ } 
+.td-error {
+    border-top: 2px dotted red;
+    border-bottom: 2px dotted red;
+    background-color: rgb(210, 190, 190);
+ }
+.menu {
+	display: none;
+	z-index: 1000;
+	border: 1px dotted;
+	border-radius: 5px;
+	padding: 10px;
+	width: 40%;
+	background: azure;
+	position: fixed;
+	overflow: scroll;
+        background: slategray;
+        color: white;
+        right: 20px;
+}
+
+.show-menu {
+	z-index: 800;
+}
+
+#show-menu {
+	display: none;
+}
+
+#show-menu:checked ~ .menu {
+	display: block;
+}
+
+#show-menu:checked ~ .show-menu {
+	color: blue;
+}
+
+.menu-off {
+	position: fixed;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	z-index: 700;
+	display: none;
+}
+
+.menu-off {
+	display: none;
+}
+
+#show-menu:checked ~ .menu-off {
+	display: block;
+}
+
+#show-menu:checked ~ .show-menu {
+	display: none;
+}
+
+.menu-off input[type=checkbox]:checked ~ .menu {
+	display: none;
+}
+
+.menu-off input[type=checkbox]:checked ~ .show-menu {
+	display: block;
+}
+
+.menu-filters {
+	display: block;
+	z-index: 1000;
+	border: 1px dotted;
+	border-radius: 5px;
+	padding: 10px;
+	width: 48%;
+	background: #ffffff;
+	position: absolute;
+	overflow: scroll;
+}
+
+.show-menu-filters {
+	z-index: 800;
+	color: blue;
+}
+
+#show-menu-filters[aria-expanded="true"] ~ .menu-filters {
+	display: block;
+}
+
+#show-menu-filters:checked ~ .show-menu-filters {
+	color: blue;
+}
+
+.menu-filters-off {
+	position: fixed;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	z-index: 700;
+	display: none;
+}
+
+.menu-filters-off {
+	display: none;
+}
+
+#show-menu-filters:checked ~ .menu-filters-off {
+	display: block;
+}
+
+#show-menu-filters:checked ~ .show-menu-filters {
+	display: none;
+}
+
+.menu-filters-off input[type=checkbox]:checked ~ .menu-filters {
+	display: none;
+}
+
+.menu-filters-off input[type=checkbox]:checked ~ .show-menu-filters {
+	display: block;
+}
+
+.ui-select-match .btn {
+	font-size: 1.5rem;
+	padding: 5px;
+}
+
+.ui-select-multiple.ui-select-bootstrap .ui-select-match .close {
+	font-size: 1.0em;
+	margin-left: 10px;
+}
+.advanced-search {
+	display: block;
+	position: relative;
+}
+
+.advanced-search .btn{
+	box-shadow: none;
+	position: absolute;
+	top: 5px;
+	right: 3px;
+	min-width: 10px;
+	width: 25px;
+	height: 25px;
+	padding: 1px 1px 1px 1px;
+	
+}
+
+.advanced-search i {
+	position: relative;
+	top: 0px;
+	right: 0px;
+	width: 20px;
+	height: 20px;
+	padding: 0px 0px 0px 0px;
+	margin: 0px 0px 0px 0px;
+}
+
+.advanced-search-input {
+    padding: 10px 19px 9px 18px;
+    font-size: 1.5rem;
+    border-radius: 8px;
+    width: 100%;
+}
+td > .btn-group {
+	min-width: 0;
+	width: auto;
+}
+
+.dropup,
+.dropdown {
+  position: relative;
+}
+.dropdown-toggle:focus {
+  outline: 0;
+}
+.dropdown-menu {
+  position: absolute;
+  z-index: 1000;
+  display: none;
+  min-width: 160px;
+  padding: 5px 0;
+  margin: 2px 0 0;
+  text-align: left;
+  list-style: none;
+  background-color: #fff;
+  -webkit-background-clip: padding-box;
+          background-clip: padding-box;
+  border: 1px solid #ccc;
+  border: 1px solid rgba(0, 0, 0, .15);
+  border-radius: 4px;
+  -webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, .175);
+          box-shadow: 0 6px 12px rgba(0, 0, 0, .175);
+  top: 30px;
+  left: -10px;
+}
+.dropdown-menu.pull-right {
+  right: 0;
+  left: auto;
+}
+.dropdown-menu .divider {
+  height: 1px;
+  margin: 9px 0;
+  overflow: hidden;
+  background-color: #e5e5e5;
+}
+.dropdown-menu > li > a {
+  display: block;
+  padding: 3px 20px;
+  clear: both;
+  font-weight: normal;
+  line-height: 1.42857143;
+  color: #333;
+  white-space: nowrap;
+}
+.dropdown-menu > li > a:hover,
+.dropdown-menu > li > a:focus {
+  color: #262626;
+  text-decoration: none;
+  background-color: #f5f5f5;
+}
+.dropdown-menu > .active > a,
+.dropdown-menu > .active > a:hover,
+.dropdown-menu > .active > a:focus {
+  color: #fff;
+  text-decoration: none;
+  background-color: #337ab7;
+  outline: 0;
+}
+.dropdown-menu > .disabled > a,
+.dropdown-menu > .disabled > a:hover,
+.dropdown-menu > .disabled > a:focus {
+  color: #777;
+}
+.dropdown-menu > .disabled > a:hover,
+.dropdown-menu > .disabled > a:focus {
+  text-decoration: none;
+  cursor: not-allowed;
+  background-color: transparent;
+  background-image: none;
+  filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+}
+.open > .dropdown-menu {
+  display: block;
+}
+.open > a {
+  outline: 0;
+}
+.dropdown-menu-right {
+  right: 0;
+  left: auto;
+}
+.dropdown-menu-left {
+  right: auto;
+  left: 0;
+}
+.dropdown-header {
+  display: block;
+  padding: 3px 20px;
+  font-size: 12px;
+  line-height: 1.42857143;
+  color: #777;
+  white-space: nowrap;
+}
+.dropdown-backdrop {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 990;
+}
+.pull-right > .dropdown-menu {
+  right: 0;
+  left: auto;
+}
+.dropup .caret,
+.navbar-fixed-bottom .dropdown .caret {
+  content: "";
+  border-top: 0;
+  border-bottom: 4px dashed;
+  border-bottom: 4px solid \9;
+}
+.dropup .dropdown-menu,
+.navbar-fixed-bottom .dropdown .dropdown-menu {
+  top: auto;
+  bottom: 100%;
+  margin-bottom: 2px;
+}
+@media (min-width: 768px) {
+  .navbar-right .dropdown-menu {
+    right: 0;
+    left: auto;
+  }
+  .navbar-right .dropdown-menu-left {
+    right: auto;
+    left: 0;
+  }
+}
+
+.dropdown-menu li {
+	margin-bottom: 5px;
+}
+
+.dropdown-menu li div {
+	padding-left: 5px;
+}
+
+.dropdown-menu li div i {
+	margin-right: 5px;
+}
+
+td > .btn-group > .btn {
+	min-width: 0;
+	color: #0568ae;
+}
+
+td > .btn-group > .btn> i {
+	font-size: 30px;
+}
+
+li > a.active {
+	font-weight: bolder;
+	outline: thin dotted #666;
+}
+
+tr:hover {
+	background-color: #f2f2f2;
+}
+
+tr:focus {
+	background-color: #f2f2f2;
+}
+
+.modalwrapper.modal-docked .modal-jumbo {
+    max-height: 100%;
+    height: 100%;
+    overflow: hidden;
+    top: 0;
+    width: 100%;
+    max-width: 100%;
+}
+
+#addAppDiv {
+	padding-left: 10px;
+    background: lightgray;
+    border-radius: 5px;
+    padding-bottom: 15px;
+}
+
+.field-group.error .error-msg {
+	color: red;
+    display: block;
+    font-size: 14px;
+    line-height: 14px;
+    font-family: "Omnes-ATT-W02-Medium";
+    position: relative;
+    padding-left: 18px;
+    margin-top: 10px;
+}
+
+.heading-page {
+	margin-bottom: 20px;
+}
+
+.footer-container {
+	top: 25px;
+}
+.b2b-dragdrop {
+	padding: 10px;
+}
+
+.my-tooltip {
+  position: relative;
+  display: inline;
+}
+
+.id-tooltip {
+  position: relative;
+  display: inline;
+}
+
+.id-tooltip > .id-tooltiptext, .id-tooltip > .wrapper {
+	display: flex;
+    visibility: hidden;
+    width: 400px;
+    background-color: #dbdde3;
+    white-space: pre-line;
+    border-radius: 6px;
+    padding: 10px;
+    position: absolute;
+    bottom: 25%;
+    left: 80%;
+    transition: opacity 0.3s;
+    border: 1px solid gray;
+}
+
+.id-tooltip:hover > .id-tooltiptext, .id-tooltip:hover > .wrapper {
+  pointer-events: auto;
+  visibility: visible;
+  opacity: 1;
+}
+.wrapper > .id-tooltiptext {
+    overflow-y: auto;
+    max-height: 400px;
+    display: block;
+    clear: both;
+} 
+
+.id-tooltip .id-tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 40%;
+  right: 100%; 
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent #544f4f transparent transparent;
+}
+
+.wrapper {
+    position:relative;
+}
+
+.my-tooltip > .my-tooltiptext, .my-tooltip > .wrapper {
+	visibility: hidden;
+	width: 600px;
+	background-color: #647dd6;
+	color: #fff;
+	white-space: pre-line;
+	border-radius: 6px;
+	padding: 10px;
+	position: absolute;
+	z-index: 1;
+	bottom: 90%;
+	left: -5%;
+	opacity: 0;
+	transition: opacity 0.3s;
+    	overflow: visible;
+}
+
+.my-tooltip .my-tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+.my-tooltip:hover > .my-tooltiptext, .my-tooltip:hover > .wrapper {
+  pointer-events: auto;
+  visibility: visible;
+  opacity: 1;
+}
+.wrapper > .my-tooltiptext {
+    overflow-y: auto;
+    max-height: 400px;
+    display: block;
+    clear: both;
+} 
+
+.stat_tooltip {
+  position: relative;
+  display: inline-block;
+  top: -10px;
+}
+
+.gen_tooltip {
+	display: inline-block;
+	position: relative;
+}
+
+.gen_tooltip .gen_tooltiptext_r {
+    visibility: hidden;
+    width: 250px;
+    background-color: #647dd6;
+    color: #000;
+    text-align: center;
+    border-radius: 2px;
+    border: 1px solid rgba(0, 0, 0, .15);
+    padding: 5px 0;
+    position: absolute;
+    z-index: 100;
+    left: 110%;
+    top: -50%;	
+}
+
+.gen_tooltip .gen_tooltiptext_r::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 100%; /* to the left of tooltip */
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent #fff transparent transparent;
+}
+
+.gen_tooltip:hover .gen_tooltiptext_r {
+  visibility: visible;
+}
+
+.stat_tooltip .stat_tooltiptext, .stat_tooltip .wrapper {
+    visibility: hidden;
+    width: 500px;
+    background-color: #c8d1f0;
+    color: #000;
+    text-align: left;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 0, 0, .15);
+    padding: 5px 0;
+    position: absolute;
+    z-index: 100;
+    bottom: 100%;
+    height: 200px;
+}
+
+.stat_tooltip .stat_tooltiptext::after, .stat_tooltip .wrapper::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 4%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: rgba(0, 0, 0, .15) transparent transparent transparent;
+}
+
+.stat_tooltip:hover .stat_tooltiptext, .stat_tooltip:hover .wrapper {
+  visibility: visible;
+}
+
+.stat_tooltip .wrapper .clip-btn-div {
+    display: inline;
+    left: 50px;
+    top: 80px;
+}
+
+.b2b-card-container {
+	background-color: #ffffff; 
+}
+
+.b2b-cards {
+	transition: .5s;
+	opacity: .7;
+}
+.b2b-cards a {
+	text-decoration: none;	
+}
+
+.b2b-cards:hover {
+  box-shadow: 0px 0px 20px 10px #eccc5e;
+  text-shadow: none !important;
+  background-color: #ffffff !important;
+  opacity: 1;
+  
+}
+
+.b2b-cards .tooltip {
+	visibility: hidden;
+}
+
+.b2b-cards:hover .tooltip {
+	visibility: visible;
+}
+
+.b2b-cards .b2b-card-footer-flyout {
+	visibility: hidden;
+}
+
+.b2b-cards:hover .b2b-card-footer-flyout {
+	visibility: visible;
+}
+.b2b-card-header {
+    text-align: center;
+}
+
+.b2b-card-header i {
+	font-size: 35px;
+}
+.b2b-card-container .b2b-title {
+	font-size: 50px;
+}
+.b2b-card-content {
+	text-align: center;
+}
+
+.collapsible {
+    color: #2196F3;
+    cursor: pointer;
+    padding: 18px;
+    width: 100%;
+    border: none;
+    outline: none;
+    font-size: 25px;
+    font-weight: bolder;
+    background-color: #ffffff;
+    height: 2px;
+    margin-top: -30px;
+}
+
+.collapsible:after {
+  content: "\2796";
+  color: #2196F3;
+  float: right;
+  margin-left: 5px;
+}
+
+.collapsible.active:after {
+  content: '\02795';
+}
+
+.content {
+  padding: 0 18px;
+  height: auto;
+  display: block;
+  transition: max-height 0.2s ease-out;
+
+}

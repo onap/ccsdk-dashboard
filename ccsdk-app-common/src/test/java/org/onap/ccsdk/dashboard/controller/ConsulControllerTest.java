@@ -28,6 +28,8 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -37,14 +39,15 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.onap.ccsdk.dashboard.controller.ConsulController.ConsulDataItem;
 import org.onap.ccsdk.dashboard.core.MockUser;
 import org.onap.ccsdk.dashboard.core.MockitoTestSuite;
-import org.onap.ccsdk.dashboard.model.ConsulDatacenter;
-import org.onap.ccsdk.dashboard.model.ConsulHealthServiceRegistration;
-import org.onap.ccsdk.dashboard.model.ConsulNodeInfo;
-import org.onap.ccsdk.dashboard.model.ConsulServiceHealth;
-import org.onap.ccsdk.dashboard.model.ConsulServiceInfo;
 import org.onap.ccsdk.dashboard.model.RestResponseSuccess;
+import org.onap.ccsdk.dashboard.model.consul.ConsulDatacenter;
+import org.onap.ccsdk.dashboard.model.consul.ConsulHealthServiceRegistration;
+import org.onap.ccsdk.dashboard.model.consul.ConsulNodeInfo;
+import org.onap.ccsdk.dashboard.model.consul.ConsulServiceHealth;
+import org.onap.ccsdk.dashboard.model.consul.ConsulServiceInfo;
 import org.onap.ccsdk.dashboard.rest.ConsulClient;
 import org.onap.portalsdk.core.domain.User;
 import org.onap.portalsdk.core.web.support.UserUtils;
@@ -67,6 +70,8 @@ public class ConsulControllerTest extends MockitoTestSuite {
     MockUser mockUser = new MockUser();
     HttpClientErrorException httpException;
 
+    String[] svcTags = {"cfytenantname=onap"}; 
+    
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
@@ -87,7 +92,7 @@ public class ConsulControllerTest extends MockitoTestSuite {
             "service:pgaas1_Service_ID", "Service 'pgaasServer1' check", "passing",
             "This is a pgaas1_Service_ID health check",
             "HTTP GET http://srvc.com:8000/healthcheck/status: 200 OK Output: { \"output\": \"Thu Apr 20 19:53:01 UTC 2017|INFO|masters=1 pgaas1.com|secondaries=0 |maintenance= |down=1 pgaas2.com| \" }\n",
-            "pgaas1_Service_ID", "pgaasServer1", 190199, 199395);
+            "pgaas1_Service_ID", "pgaasServer1", svcTags, 190199, 199395);
 
         List<ConsulServiceHealth> expectedCnslSrvcHlth = new ArrayList<ConsulServiceHealth>();
         expectedCnslSrvcHlth.add(consulSrvcHlth);
@@ -118,7 +123,7 @@ public class ConsulControllerTest extends MockitoTestSuite {
             "service:pgaas1_Service_ID", "Service 'pgaasServer1' check", "passing",
             "This is a pgaas1_Service_ID health check",
             "HTTP GET http://srvc.com:8000/healthcheck/status: 200 OK Output: { \"output\": \"Thu Apr 20 19:53:01 UTC 2017|INFO|masters=1 pgaas1.com|secondaries=0 |maintenance= |down=1 pgaas2.com| \" }\n",
-            "pgaas1_Service_ID", "pgaasServer1", 190199, 199395);
+            "pgaas1_Service_ID", "pgaasServer1", svcTags, 190199, 199395);
 
         List<ConsulServiceHealth> expectedCnslSrvcHlth = new ArrayList<ConsulServiceHealth>();
         expectedCnslSrvcHlth.add(consulSrvcHlth);
@@ -160,7 +165,7 @@ public class ConsulControllerTest extends MockitoTestSuite {
             "service:pgaas1_Service_ID", "Service 'pgaasServer1' check", "passing",
             "This is a pgaas1_Service_ID health check",
             "HTTP GET http://srvc.com:8000/healthcheck/status: 200 OK Output: { \"output\": \"Thu Apr 20 19:53:01 UTC 2017|INFO|masters=1 pgaas1.com|secondaries=0 |maintenance= |down=1 pgaas2.com| \" }\n",
-            "pgaas1_Service_ID", "pgaasServer1", 190199, 199395);
+            "pgaas1_Service_ID", "pgaasServer1", svcTags, 190199, 199395);
 
         List<ConsulServiceHealth> expectedCnslSrvcHlth = new ArrayList<ConsulServiceHealth>();
         expectedCnslSrvcHlth.add(consulSrvcHlth);
@@ -193,123 +198,15 @@ public class ConsulControllerTest extends MockitoTestSuite {
         assertTrue(actualResult.contains("dc1"));
     }
 
-    @SuppressWarnings("unchecked")
     @Test
-    public final void testRegisterService() throws Exception {
-        ConsulHealthServiceRegistration.EndpointCheck endPoint =
-            new ConsulHealthServiceRegistration.EndpointCheck("endpoint1", "interval1",
-                "description1", "name1");
-        List<ConsulHealthServiceRegistration.EndpointCheck> endPointList =
-            new ArrayList<ConsulHealthServiceRegistration.EndpointCheck>();
-        endPointList.add(endPoint);
-
-        List<String> tagList = new ArrayList<String>();
-        tagList.add("tag1");
-        tagList.add("tag2");
-
-        ConsulHealthServiceRegistration.ConsulServiceRegistration servcReg =
-            new ConsulHealthServiceRegistration.ConsulServiceRegistration("id1", "name1",
-                "address1", "port1", tagList, endPointList);
-        List<ConsulHealthServiceRegistration.ConsulServiceRegistration> servcRegList =
-            new ArrayList<ConsulHealthServiceRegistration.ConsulServiceRegistration>();
-        servcRegList.add(servcReg);
-
-        ConsulHealthServiceRegistration chsrObj = new ConsulHealthServiceRegistration(servcRegList);
-
-        RestResponseSuccess expectedResp = new RestResponseSuccess("Registration yielded code 0");
-        String expectedResult = objectMapper.writeValueAsString(expectedResp);
-
-        String expectedStr = "Registration yielded code 0";
-        when(consulClient.registerService(Matchers.<ConsulHealthServiceRegistration>any()))
-            .thenReturn(expectedStr).thenThrow(Exception.class).thenThrow(httpException);
-
-        String actualResult = subject.registerService(mockedRequest, chsrObj);
-        assertTrue(actualResult.equals(expectedResult));
-
-        actualResult = subject.registerService(mockedRequest, chsrObj);
+    public final void testGetItemListForPageWrapper() {
+        User user = mockUser.mockUser();
+        user.setLoginId("tester");
+        user.setId(1000L);
+        Mockito.when(UserUtils.getUserSession(mockedRequest)).thenReturn(user);
+        String actualResult = 
+            subject.getItemListForPageWrapper(mockedRequest, "dc1", ConsulController.ConsulDataItem.SERVICE_INFO);
         assertTrue(actualResult.contains("error"));
-
-        actualResult = subject.registerService(mockedRequest, chsrObj);
-        assertTrue(actualResult.contains("error"));
+        
     }
-
-    @Test
-    public final void testRegisterService_SrvcError() throws Exception {
-        ConsulHealthServiceRegistration chsrObj = new ConsulHealthServiceRegistration(null);
-
-        String actualResult = subject.registerService(mockedRequest, chsrObj);
-        assertTrue(actualResult.contains("error"));
-    }
-
-    @Test
-    @Ignore
-    public final void testRegisterService_invalidSrvcError() throws Exception {
-        ConsulHealthServiceRegistration.EndpointCheck endPoint =
-            new ConsulHealthServiceRegistration.EndpointCheck("endpoint1", "interval1",
-                "description1", "name1");
-        List<ConsulHealthServiceRegistration.EndpointCheck> endPointList =
-            new ArrayList<ConsulHealthServiceRegistration.EndpointCheck>();
-        endPointList.add(endPoint);
-
-        List<String> tagList = new ArrayList<String>();
-        tagList.add("tag1");
-        tagList.add("tag2");
-
-        ConsulHealthServiceRegistration.ConsulServiceRegistration servcReg =
-            new ConsulHealthServiceRegistration.ConsulServiceRegistration("id1", "name2",
-                "address2", "port1", tagList, endPointList);
-        List<ConsulHealthServiceRegistration.ConsulServiceRegistration> servcRegList =
-            new ArrayList<ConsulHealthServiceRegistration.ConsulServiceRegistration>();
-        servcRegList.add(servcReg);
-
-        ConsulHealthServiceRegistration chsrObj = new ConsulHealthServiceRegistration(servcRegList);
-
-        String actualResult = subject.registerService(mockedRequest, chsrObj);
-        assertTrue(actualResult.contains("error"));
-    }
-
-    @Test
-    public final void testRegisterService_invalidEndptError() throws Exception {
-        ConsulHealthServiceRegistration.EndpointCheck endPoint =
-            new ConsulHealthServiceRegistration.EndpointCheck("", "", "description1", "name1");
-        List<ConsulHealthServiceRegistration.EndpointCheck> endPointList =
-            new ArrayList<ConsulHealthServiceRegistration.EndpointCheck>();
-        endPointList.add(endPoint);
-
-        List<String> tagList = new ArrayList<String>();
-        tagList.add("tag1");
-        tagList.add("tag2");
-
-        ConsulHealthServiceRegistration.ConsulServiceRegistration servcReg =
-            new ConsulHealthServiceRegistration.ConsulServiceRegistration("id1", "", "", "port1",
-                tagList, endPointList);
-        List<ConsulHealthServiceRegistration.ConsulServiceRegistration> servcRegList =
-            new ArrayList<ConsulHealthServiceRegistration.ConsulServiceRegistration>();
-        servcRegList.add(servcReg);
-
-        ConsulHealthServiceRegistration chsrObj = new ConsulHealthServiceRegistration(servcRegList);
-
-        String actualResult = subject.registerService(mockedRequest, chsrObj);
-        assertTrue(actualResult.contains("error"));
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
-    public final void testDeregisterService() throws Exception {
-        RestResponseSuccess expectedResp = new RestResponseSuccess("Deregistration yielded code 0");
-        String expectedResult = objectMapper.writeValueAsString(expectedResp);
-
-        when(consulClient.deregisterService(Mockito.any())).thenReturn(0).thenThrow(Exception.class)
-            .thenThrow(httpException);
-
-        String actualResult = subject.deregisterService(mockedRequest, "srvc1");
-        assertTrue(actualResult.equals(expectedResult));
-
-        actualResult = subject.deregisterService(mockedRequest, "srvc1");
-        assertTrue(actualResult.contains("error"));
-
-        actualResult = subject.deregisterService(mockedRequest, "srvc1");
-        assertTrue(actualResult.contains("error"));
-    }
-
 }

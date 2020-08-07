@@ -4,7 +4,7 @@ appDS2.factory('InventoryDeploymentService', function ($http, $q, $log) {
 		 * Gets one page of objects.
 		 * @param {Number} pageNum - page number; e.g., 1 
 		 * @param {Number} viewPerPage - number of items per page; e.g., 25
-		 * @return {JSON} Response object from remote side
+		 * @return {JSON} Response object from remote side.
 		 */
 		getDeployments: function(pageNum,viewPerPage,sortBy,searchBy) {
 			// cache control for IE
@@ -17,7 +17,7 @@ appDS2.factory('InventoryDeploymentService', function ($http, $q, $log) {
 			} else if (searchBy) {
 				url = 'inventory/dcae-services?pageNum=' + pageNum + '&viewPerPage=' + viewPerPage + '&searchBy=' + searchBy + cc;
 			} else {
-				url = url = 'inventory/dcae-services?pageNum=' + pageNum + '&viewPerPage=' + viewPerPage + cc;
+				url = 'inventory/dcae-services?pageNum=' + pageNum + '&viewPerPage=' + viewPerPage + cc;
 			}
 			return $http({
 					method: 'GET',
@@ -34,6 +34,94 @@ appDS2.factory('InventoryDeploymentService', function ($http, $q, $log) {
 				$log.error('InventoryDeploymentService.getDeployments failed: ' + JSON.stringify(error));
 				return $q.reject(error.statusText);
 			});
+		},
+		getDeploymentsAafFilter: function(pageNum,viewPerPage,aafUsername) {
+			// cache control for IE
+			let cc = "&cc=" + new Date().getTime().toString();
+			let url = null;
+
+			url = 'filtered-deployments?pageNum=' + pageNum + '&viewPerPage=' + viewPerPage + '&inputKey=aaf_username' + '&inputValue=' + aafUsername + cc;
+
+			return $http({
+					method: 'GET',
+					url: url,
+					cache: false,
+					responseType: 'json' 
+			}).then(function(response) {
+				if (response.data == null || typeof response.data != 'object') 
+					return $q.reject('InventoryDeploymentService.getDeploymentsAafFilter: response.data null or not object');
+				else 
+					return response.data;
+			}, 
+			function(error) {
+				$log.error('InventoryDeploymentService.getDeploymentsAafFilter failed: ' + JSON.stringify(error));
+				return $q.reject(error.statusText);
+			});
+		},
+		getDeploymentsDcaeTargetTypeFilter: function(pageNum,viewPerPage,dcaeTargetType) {
+			// cache control for IE
+			let cc = "&cc=" + new Date().getTime().toString();
+			let url = null;
+
+			url = 'filtered-deployments?pageNum=' + pageNum + '&viewPerPage=' + viewPerPage + '&inputKey=dcae_target_type' + '&inputValue=' + dcaeTargetType + cc;
+
+			return $http({
+					method: 'GET',
+					url: url,
+					cache: false,
+					responseType: 'json' 
+			}).then(function(response) {
+				if (response.data == null || typeof response.data != 'object') 
+					return $q.reject('InventoryDeploymentService.getDeploymentsDcaeTargetTypeFilter: response.data null or not object');
+				else 
+					return response.data;
+			}, 
+			function(error) {
+				$log.error('InventoryDeploymentService.getDeploymentsDcaeTargetTypeFilter failed: ' + JSON.stringify(error));
+				return $q.reject(error.statusText);
+			});
+		},
+    getDeploymentCount: function(searchBy) {
+      let url = 'service-list-count';
+      if (searchBy) {
+        url = url + '?searchBy=' + searchBy;
+      }
+      return $http({
+        method: 'GET',
+        url: url,
+        cache: false,
+        responseType: 'json' 
+      }).then(function(response) {
+        if (response.data == null || typeof response.data != 'object') 
+          return $q.reject('InventoryDeploymentService.getDeploymentList: response.data null or not object');
+        else 
+          return response.data;
+      }, 
+      function(error) {
+        $log.error('InventoryDeploymentService.getDeploymentList failed: ' + JSON.stringify(error));
+        return $q.reject(error.statusText);
+      });
+    },
+		getDeploymentList: function(searchBy) {
+		  let url = 'service-list';
+		  if (searchBy) {
+		    url = url + '?searchBy=' + searchBy;
+		  }
+      return $http({
+        method: 'GET',
+        url: url,
+        cache: false,
+        responseType: 'json' 
+      }).then(function(response) {
+        if (response.data == null || typeof response.data != 'object') 
+          return $q.reject('InventoryDeploymentService.getDeploymentList: response.data null or not object');
+        else 
+          return response.data;
+      }, 
+      function(error) {
+        $log.error('InventoryDeploymentService.getDeploymentList failed: ' + JSON.stringify(error));
+        return $q.reject(error.statusText);
+      });
 		},
 		getDeploymentStatus: function(srvcIds) {
 			let url = 'deployment-status';	
@@ -128,6 +216,26 @@ appDS2.factory('InventoryDeploymentService', function ($http, $q, $log) {
 				return $q.reject(error.statusText);
 			});
 		},
+		deleteBlueprint: function(blueprintId, tenant) {
+		  let url = 'blueprints/' + blueprintId + '?tenant=' + tenant;
+      return $http({
+        method: 'DELETE',
+        url: url,
+        responseType: 'json'
+      }).then(function(response) {
+        if (response.data == null)  
+          return $q.reject('InventoryDeploymentService.deleteBlueprint: response.data null or not object');
+        else {
+          console.log('%c DELETE BLUEPRINT FOR ID ' + blueprintId, 'color: blue; font-weight: bold;');
+          console.log(response.data);
+          return response.data;
+        }
+      },
+      function(error) {
+        $log.error('InventoryDeploymentService.deleteBlueprint failed: ' + JSON.stringify(error));
+        return $q.reject(error.statusText);
+      });
+		},
 		getBlueprint: function(blueprintId, tenant) {
 			let url = 'blueprints/' + blueprintId + '?tenant=' + tenant;
 			//console.log("url: " + url);
@@ -191,6 +299,46 @@ appDS2.factory('InventoryDeploymentService', function ($http, $q, $log) {
 				return $q.reject(error.statusText);
 			});
 		},	
+    getNodeInstances: function(deploymentId, tenant) {
+      console.log("entered getNodeInstances service function");
+      let url = 'node-instances/' + deploymentId + '?tenant=' + tenant;
+      return $http({
+        method: 'GET',
+        url: url,
+        cache: false,
+        responseType: 'json'
+      }).then(function(response) {
+        if (response.data == null) 
+          return $q.reject('InventoryDeploymentService.getNodeInstances: response.data null or not object');
+        else {
+          return response.data;
+        }
+      },
+      function(error) {
+        $log.error('InventoryDeploymentService.getNodeInstances failed: ' + JSON.stringify(error));
+        return $q.reject(error.statusText);
+      });
+    },
+    getNodeInstanceData: function(deploymentId, tenant) {
+      console.log("entered getNodeInstanceData service function");
+      let url = 'node-instances-data?deployment=' + deploymentId + '&tenant=' + tenant;
+      return $http({
+        method: 'GET',
+        url: url,
+        cache: false,
+        responseType: 'json'
+      }).then(function(response) {
+        if (response.data == null) 
+          return $q.reject('InventoryDeploymentService.getNodeInstanceData: response.data null or not object');
+        else {
+          return response.data;
+        }
+      },
+      function(error) {
+        $log.error('InventoryDeploymentService.getNodeInstances failed: ' + JSON.stringify(error));
+        return $q.reject(error.statusText);
+      });
+    },
 		updateResources: function(deploymentId, nodeInstanceId, resource_definition_changes) {
 			let body = {
 				"deployment_id": deploymentId,
@@ -291,6 +439,7 @@ appDS2.factory('InventoryDeploymentService', function ($http, $q, $log) {
 			let configFormat = resource_definition_changes["config-format"];
 			let chartUrl = resource_definition_changes["chart-repo-url"];
 			let chartVersion = resource_definition_changes["chart-version"];
+			let configSet = resource_definition_changes["config-set"];
 			let body = {
 				"deployment_id": deploymentId,
 				"workflow_id": "upgrade",
@@ -298,11 +447,12 @@ appDS2.factory('InventoryDeploymentService', function ($http, $q, $log) {
 				"force": true,
 				"tenant": tenant,
 				"parameters": {
+					"config_set": configSet,
 					"node_instance_id": nodeInstanceId,
+					"chart_version": chartVersion,
+					"chart_repo_url": chartUrl,
 					"config_url": configUrl,
-					"config_format": configFormat,
-					"chartRepo": chartUrl,
-					"chartVersion": chartVersion
+					"config_format": configFormat
 				}
 			};
 			let urlStr = 'executions';

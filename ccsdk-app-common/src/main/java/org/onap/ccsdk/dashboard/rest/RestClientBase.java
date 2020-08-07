@@ -30,6 +30,7 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyDeploymentList;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.client.RestTemplate;
@@ -42,6 +43,13 @@ import org.springframework.web.client.RestTemplate;
  */
 public class RestClientBase {
     protected RestTemplate restTemplate = null;
+
+    /**
+     * @param restTemplate the restTemplate to set
+     */
+    public void setRestTemplate(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     protected void createRestTemplate(URL url, String user, String pass, String urlScheme) {
         RestTemplate restTempl = null;
@@ -61,7 +69,9 @@ public class RestClientBase {
         HttpComponentsClientHttpRequestFactoryBasicAuth requestFactory = new HttpComponentsClientHttpRequestFactoryBasicAuth(
                 httpHost);
         requestFactory.setHttpClient(httpClient);
-
+        //requestFactory.setReadTimeout(10000);
+        //requestFactory.setConnectionRequestTimeout(2000);
+        //requestFactory.setConnectTimeout(10000);
         // Put the factory in the template
         restTempl = new RestTemplate();
         restTempl.setRequestFactory(requestFactory);
@@ -109,6 +119,18 @@ public class RestClientBase {
     protected HttpEntity<String> getTenantHeader(String tenant) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Tenant", tenant);
+        return new HttpEntity<String>("parameters", headers);
+    }
+
+    /**
+     * Create Http Entity for the consul token header
+     * 
+     * @param token string
+     * @return
+     */
+    protected HttpEntity<String> getConsulTokenHeader(String token) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-Consul-Token", token);
         return new HttpEntity<String>("parameters", headers);
     }
 }

@@ -2,14 +2,14 @@
   "swagger": "2.0",
   "info": {
     "description": "API to manage deployment of microservices using blueprints.",
-    "version": "1.3.0",
+    "version": "1.4.0",
     "title": "DCAE Dashboard API",
     "contact": {
       "email": "rp5662@att.com"
     }
   },
   "host": "dcae-dashboard:8080",
-  "basePath": "/ccsdk-app/nb-api",
+  "basePath": "/ccsdk-app/nb-api/v2",
   "tags": [
     {
       "name": "Blueprints",
@@ -22,10 +22,6 @@
     {
       "name": "Tenants",
       "description": "Query Cloudify Tenants"
-    },
-    {
-      "name": "Components",
-      "description": "Query on-boarded components"
     }
   ],
   "schemes": [
@@ -61,73 +57,12 @@
         }
       }
     },
-    "/components": {
-      "get": {
-        "tags": [
-          "Components"
-        ],
-        "summary": "Lists all application components",
-        "description": "Query all components from database",
-        "operationId": "List Components",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/Component"
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid status value"
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Components"
-        ],
-        "summary": "add an application component",
-        "description": "Insert a component into database",
-        "operationId": "Add Component",
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "in": "body",
-            "name": "body",
-            "description": "New component input",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/ComponentInput"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "schema": {
-              "type": "object"
-            }
-          },
-          "400": {
-            "description": "Invalid status value"
-          }
-        }
-      }
-    },
     "/deployments": {
       "get": {
         "tags": [
           "Deployments"
         ],
-        "summary": "Lists all Deployments",
+        "summary": "List all Deployments",
         "description": "Query all deployments or Service objects from Inventory",
         "operationId": "List Deployments",
         "produces": [
@@ -287,7 +222,7 @@
         "tags": [
           "Deployments"
         ],
-        "summary": "Gets a Deployment",
+        "summary": "Get a Deployment",
         "description": "Query a deployment or Service object from Inventory",
         "operationId": "Get Deployment",
         "produces": [
@@ -314,51 +249,6 @@
           },
           "400": {
             "description": "Invalid status value"
-          }
-        }
-      }
-    },
-    "/deployments/{deploymentId}/update": {
-      "put": {
-        "tags": [
-          "Deployments"
-        ],
-        "summary": "Update an existing deployment",
-        "description": "Dispatch a request to Deployment handler mS to use Cloudify deployment update operation ",
-        "operationId": "Update Deployment",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "deploymentId",
-            "in": "path",
-            "description": "ID of deployment to update",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "in": "body",
-            "name": "body",
-            "description": "Inputs to initiate a deployment: blueprint ID from inventory, Cloudify tenant name, blueprint inputs",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/DeploymentInput"
-            }
-          }
-        ],
-        "responses": {
-          "400": {
-            "description": "Invalid ID supplied"
-          },
-          "404": {
-            "description": "Deployment not found"
-          },
-          "405": {
-            "description": "Validation exception"
           }
         }
       }
@@ -622,56 +512,6 @@
           }
         }
       }
-    },
-    "/blueprints/findByName": {
-      "get": {
-        "tags": [
-          "Blueprints"
-        ],
-        "summary": "Find a blueprint by a name pattern",
-        "description": "Fetch the blueprint objects from inventory whose names match a string pattern",
-        "operationId": "Get Blueprint",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "name",
-            "in": "query",
-            "description": "name pattern to filter by",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "_include",
-            "in": "query",
-            "description": "blueprint object properties need to be considered for filter",
-            "required": false,
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "typeName",
-                "typeId",
-                "typeVersion"
-              ],
-              "default": "typeName"
-            },
-            "collectionFormat": "multi"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of `DCAEServiceType` objects",
-            "schema": {
-              "$ref": "#/definitions/InlineResponse200"
-            }
-          },
-          "400": {
-            "description": "Invalid tag value"
-          }
-        }
-      }
     }
   },
   "responses": {
@@ -691,22 +531,6 @@
         "name": {
           "type": "string",
           "description": "cloudify tenant name"
-        }
-      }
-    },
-    "Component": {
-      "type": "object",
-      "properties": {
-        "compId": {
-          "type": "integer"
-        },
-        "cname": {
-          "type": "string",
-          "description": "component namespace name"
-        },
-        "dname": {
-          "type": "string",
-          "description": "component display name"
         }
       }
     },
