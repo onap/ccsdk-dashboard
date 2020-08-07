@@ -22,7 +22,6 @@
 package org.onap.ccsdk.dashboard.controller;
 
 import java.util.Date;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -50,8 +49,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 /**
  * Controller for Deployment Handler features: get/put/delete deployments
  * Methods serve Ajax requests made by Angular scripts on pages that show
@@ -63,14 +60,15 @@ public class DeploymentHandlerController extends DashboardRestrictedBaseControll
 
     private static EELFLoggerDelegate logger =
         EELFLoggerDelegate.getLogger(DeploymentHandlerController.class);
-
+    
     @Autowired
     DeploymentHandlerClient deploymentHandlerClient;
-
+    
     private static final String DEPLOYMENTS_PATH = "dcae-deployments";
 
     private static Date begin, end;
 
+    @SuppressWarnings("unchecked")
     @RequestMapping(value = {
             DEPLOYMENTS_PATH + "/{deploymentId:.+}" }, method = RequestMethod.PUT, produces = "application/json")
     @ResponseBody
@@ -83,13 +81,8 @@ public class DeploymentHandlerController extends DashboardRestrictedBaseControll
                 json = objectMapper.writeValueAsString(deploymentHandlerClient.putDeployment(
                         deploymentRequestObject.getDeploymentId(), deploymentRequestObject.getTenant(),
                         new DeploymentRequest(deploymentRequestObject.getServiceTypeId(),
-                                deploymentRequestObject.getInputs())));
-            } else {
-                json = objectMapper.writeValueAsString(deploymentHandlerClient.updateDeployment(
-                        deploymentRequestObject.getDeploymentId(), deploymentRequestObject.getTenant(),
-                        new DeploymentRequest(deploymentRequestObject.getServiceTypeId(),
-                                deploymentRequestObject.getInputs())));
-            }
+                                deploymentRequestObject.getInputs()), request));                 
+            } 
         } catch (BadRequestException e) {
             MDC.put(SystemProperties.STATUS_CODE, "ERROR");
             MDC.put("TargetEntity", "Deployment Handler");
@@ -151,9 +144,7 @@ public class DeploymentHandlerController extends DashboardRestrictedBaseControll
         String json = null;
         StringBuffer status = new StringBuffer();
         try {
-            // DeploymentHandlerClient deploymentHandlerClient =
-            // getDeploymentHandlerClient(request);
-            deploymentHandlerClient.deleteDeployment(deploymentId, tenant);
+            deploymentHandlerClient.deleteDeployment(deploymentId, tenant, request);
             String self = request.getRequestURL().toString().split("\\?")[0];
             status.append(self).append("/executions?tenant=").append(tenant);
             DeploymentResource deplRsrc = new DeploymentResource(deploymentId,

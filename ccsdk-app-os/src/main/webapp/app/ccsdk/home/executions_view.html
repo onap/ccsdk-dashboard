@@ -1,0 +1,377 @@
+<div id="page-content">
+  <br>
+  <h4 class="heading-page" id="controllers">Dashboard</h4>
+  <hr class="lite">
+  <div class="span3 form-row btn-switch-label" style="margin-top: -60px;float: right;">
+      <div class="tooltip" b2b-tooltip trigger="focus">
+          <a  href="javascript:void(0)" class="tooltip-element"  data-placement="left" role="button"
+          style="text-decoration: none; margin-right: 10px;">
+              Access Type
+              <div class="arrow"></div>
+          </a>
+          <div class="tooltip-wrapper" role="tooltip" aria-live="polite" aria-atomic="false" style="z-index:1111">
+              <div class="tooltip-size-control">
+                  <div class="helpertext" tabindex="-1" role="tooltip" id="tooltiptext1">  
+                      <div class="popover-title">My Dashboard</div>  
+                      <div class="popover-content">
+                          <p>Toggle access type selection between logged in user's data or user role group data.</p>
+                          <strong class="hidden-spoken">Double tap to close help message.</strong>
+                      </div>
+                  </div>
+              </div>
+          </div>                           
+    </div>
+      <!--  <span aria-hidden="true">Access level</span>-->
+    <div b2b-switches-v2 id="switch1" style="margin-top: -5px;" ng-model="ecdapp.level_switch.value" options="ecdapp.level_options" ng-disabled="allDisabled" ng-change="ecdapp.toggleUserFilt()">
+    </div>
+  </div>
+  <div class="span3 form-row btn-switch-label">
+      <div class="tooltip" b2b-tooltip trigger="focus">
+          <a  href="javascript:void(0)" class="tooltip-element"  data-placement="left" role="button"
+          style="text-decoration: none; margin-right: 10px;">
+              Auto Refresh
+              <div class="arrow"></div>
+          </a>
+          <div class="tooltip-wrapper" role="tooltip" aria-live="polite" aria-atomic="false" style="z-index:1111">
+              <div class="tooltip-size-control">
+                  <div class="helpertext" tabindex="-1" role="tooltip" id="tooltiptext1">  
+                      <div class="popover-title">Reload data automatically</div>  
+                  </div>
+              </div>
+          </div>                           
+    </div>
+      <!--  <span aria-hidden="true">Access level</span>-->
+    <div b2b-switches-v2 id="switch2" ng-model="ecdapp.inv_load.value" options="ecdapp.inv_query_options" >
+    </div>
+  </div>
+  <button title="Expand/Collapse Tiles Container" class="collapsible"></button>
+  <div class="content">
+  <div class="b2b-card-container">
+    <div class="row">
+      <div class="span3 b2b-card-wid">
+        <div class="b2b-cards" style="border-radius: 8px;text-shadow: 1px 1px 7px #0574ac;border: 1px solid gray;border-top: 5px solid #0574ac;">
+          <div ng-show="ecdapp.isBpDataLoading" class="ng-scope ng-hide">
+            <div class="span" style="margin-bottom: 5px;">
+              <i class="icon-spinner small" role="img"></i>
+            </div>
+          </div>
+          <span class="tooltip" b2b-tooltip style="float: right; margin-top: -10px;">
+              <a href="#" class="icon-tooltip tooltip-element" tabindex="0" role="button" data-placement="bottom" aria-label="Help" aria-describedby="tooltiptextRadio" >
+                  <span class="arrow"></span>
+              </a>
+              <span class="tooltip-wrapper">
+                  <span class="tooltip-size-control">
+                      <span id="tooltiptextRadio" role="tooltip" aria-live="polite" aria-hidden="true" class="helpertext" tabindex="-1">  
+                          <span class="popover-title">Aggregate count of blueprints for user/role set</span>  
+                          <span class="popover-content">
+                              <span>Navigation link to blueprints Inventory screen</span>
+                              <strong class="hidden-spoken hidden-desktop">Double tap to close help message.</strong>
+                          </span>
+                      </span>
+                  </span>
+              </span>
+          </span>
+          <a ng-if="ecdapp.level_switch.value" href="ecd#/ibp/owner:{{userId}}">
+            <div class="b2b-card-header">
+              <i class="icon-documents-document" role="img" style="font-size: 35px;margin-top: -20px;margin-left: -20px;"></i>
+              <span class="b2b-title" > {{ecdapp.bpCount}} </span>
+            </div>
+            <div class="b2b-card-content"
+              style="text-align: center;">
+              BLUEPRINTS            
+            </div>
+          </a>
+          <a ng-if="!ecdapp.level_switch.value" href="ecd#/ibp/owner:group">
+            <div class="b2b-card-header">
+              <i class="icon-documents-document" role="img" style="margin-top: -20px; 
+              margin-left: -20px; font-size: 35px"></i>
+              <span class="b2b-title" > {{ecdapp.bpCount}} </span>
+            </div>
+            <div class="b2b-card-content"
+              style="text-align: center;">
+              BLUEPRINTS            
+            </div>
+          </a>
+        </div>
+      </div>
+      <div class="span3 b2b-card-wid">
+        <div class="b2b-cards" style="text-shadow: 1px 1px 7px #008744;border-radius:8px;border: 1px solid gray;border-top: 5px solid #008744;">
+          <div ng-show="ecdapp.isDepDataLoading" class="ng-scope ng-hide">
+            <div class="span" style="margin-bottom: 5px;">
+              <i class="icon-spinner small" role="img"></i>
+            </div>
+          </div>
+                    <span class="tooltip" b2b-tooltip style="float: right; margin-top: -10px;">
+              <a href="#" class="icon-tooltip tooltip-element" tabindex="0" role="button" data-placement="bottom" aria-label="Help" aria-describedby="tooltiptextRadio" >
+                  <span class="arrow"></span>
+              </a>
+              <span class="tooltip-wrapper">
+                  <span class="tooltip-size-control">
+                      <span id="tooltiptextRadio" role="tooltip" aria-live="polite" aria-hidden="true" class="helpertext" tabindex="-1">  
+                          <span class="popover-title">Aggregate count of deployments for user/role set</span>  
+                          <span class="popover-content">
+                              <span>Navigation link to cloudify deployments Inventory screen</span>
+                              <strong class="hidden-spoken hidden-desktop">Double tap to close help message.</strong>
+                          </span>
+                      </span>
+                  </span>
+              </span>
+          </span>
+          <a ng-if="ecdapp.level_switch.value" href="ecd#/idep/owner:{{userId}}">
+            <div class="b2b-card-header">
+              <i class="icon-misc-business" role="img" style="margin-top: -20px; 
+              margin-left: -20px; font-size: 35px"></i>
+              <span class="b2b-title"> {{ecdapp.depCount}} </span>
+            </div>
+            <div class="b2b-card-content"
+              style="text-align: center;">
+              DEPLOYMENTS
+            </div>
+          </a>
+          <a ng-if="!ecdapp.level_switch.value" href="ecd#/idep/owner:group">
+            <div class="b2b-card-header">
+              <i class="icon-misc-business" role="img" style="font-size: 35px;margin-top: -20px;margin-left: -20px;"></i>
+              <span class="b2b-title"> {{ecdapp.depCount}} </span>
+            </div>
+            <div class="b2b-card-content"
+              style="text-align: center;">
+              DEPLOYMENTS
+            </div>                     
+          </a>                   
+        </div>
+      </div>
+      <div class="span3 b2b-card-wid">
+        <div class="b2b-cards" style="text-shadow: 1px 1px 7px #e7d81e;border-radius:8px;border: 1px solid gray;border-top: 5px solid #e7d81e;">
+          <div ng-show="ecdapp.isPluginDataLoading" class="ng-scope ng-hide">
+            <div class="span" style="margin-bottom: 5px;">
+              <i class="icon-spinner small" role="img"></i>
+            </div>
+          </div>
+                    <span class="tooltip" b2b-tooltip style="float: right; margin-top: -10px;">
+              <a href="#" class="icon-tooltip tooltip-element" tabindex="0" role="button" data-placement="bottom" aria-label="Help" aria-describedby="tooltiptextRadio" >
+                  <span class="arrow"></span>
+              </a>
+              <span class="tooltip-wrapper">
+                  <span class="tooltip-size-control">
+                      <span id="tooltiptextRadio" role="tooltip" aria-live="polite" aria-hidden="true" class="helpertext" tabindex="-1">  
+                          <span class="popover-title">Aggregate count of cloudify plugins</span>  
+                          <span class="popover-content">
+                              <span>Navigation link to cloudify plugins screen</span>
+                              <strong class="hidden-spoken hidden-desktop">Double tap to close help message.</strong>
+                          </span>
+                      </span>
+                  </span>
+              </span>
+          </span>
+          <a href="ecd#/iplug">
+            <div class="b2b-card-header">
+              <i class="icon-controls-gear" role="img" style="font-size: 35px;margin-top: -20px;margin-left: -20px;"></i>
+              <span class="b2b-title"> {{ecdapp.pluginCount}} </span>
+            </div>
+            <div class="b2b-card-content"
+              style="text-align: center;">
+              PLUGINS
+            </div>
+          </a>                  
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="span9 row-nowrap" style="margin-bottom: 10px; float: right; margin-top: -30px;">
+    <div class="span6 form-row">
+      <div class="span12 field-group">
+      <input class="span12" list="bpList" type="input" ng-model="ecdapp.currentBpId" ng-change="ecdapp.updateDepl()" placeholder="Blueprints"/>
+      <span class="tooltip" style="float: right; margin-top: -30px;" b2b-tooltip>
+          <a href="#" class="icon-tooltip tooltip-element" tabindex="0" role="button" data-placement="bottom" aria-label="Help" aria-describedby="tooltiptextRadio" >
+              <span class="arrow"></span>
+          </a>
+          <span class="tooltip-wrapper">
+              <span class="tooltip-size-control">
+                  <span id="tooltiptextRadio" role="tooltip" aria-live="polite" aria-hidden="true" class="helpertext" tabindex="-1">  
+                      <span class="popover-title">Blueprints list</span>  
+                      <span class="popover-content">
+                          <span>autocomplete dropdown list of blueprints, a selection will trigger deployment list query</span>
+                          <strong class="hidden-spoken hidden-desktop">Double tap to close help message.</strong>
+                      </span>
+                  </span>
+              </span>
+          </span>
+      </span>
+      <datalist id="bpList">
+        <option ng-repeat="d in ecdapp.bpObjList" value="{{d.typeId}}">{{d.typeName}}</option>
+      </datalist>
+      </div>
+    </div>
+    <div class="span1 form-row">
+        <div ng-show="ecdapp.isDeplDataLoading" class="ng-scope ng-hide">
+          <div class="span" style="margin-bottom: 5px;">
+            <i class="icon-spinner small" role="img"></i>
+          </div>
+        </div>
+    </div>
+    <div class="span6 form-row">
+      <!--  <label for="depl">Deployments</label>-->
+
+      <div class="span12 field-group">
+      <input id="depInput" class="span12" list="depList" type="input" ng-model="ecdapp.currentDep" ng-change="ecdapp.updateExec()" placeholder="Deployments"/>
+      <span class="tooltip" style="float: right; margin-top: -30px;" b2b-tooltip>
+              <a href="#" class="icon-tooltip tooltip-element" tabindex="0" role="button" data-placement="bottom" aria-label="Help" aria-describedby="tooltiptextRadio" >
+                  <span class="arrow"></span>
+              </a>
+              <span class="tooltip-wrapper">
+                  <span class="tooltip-size-control">
+                      <span id="tooltiptextRadio" role="tooltip" aria-live="polite" aria-hidden="true" class="helpertext" tabindex="-1">  
+                          <span class="popover-title">Deployments list</span>  
+                          <span class="popover-content">
+                              <span>autocomplete dropdown list of deployments, a selection will trigger deployment executions query</span>
+                              <strong class="hidden-spoken hidden-desktop">Double tap to close help message.</strong>
+                          </span>
+                      </span>
+                  </span>
+              </span>
+          </span>
+      <datalist id="depList">
+        <option ng-repeat="d in ecdapp.depObjList" value="{{d.id}}:{{d.tenant_name}}">{{d.id}}</option>
+      </datalist>
+      </div>
+    </div>
+  </div>
+  </div>
+  <div ng-hide="ecdapp.errMsg"  style="margin-top: 40px;border: 1px solid gray;border-radius: 5px;padding: 10px;clear: both;border-top: 2px solid #0d2dca;">
+    <label for="executions-table">Executions</label>
+              <span class="tooltip" b2b-tooltip style="float: right; margin-top: -10px;">
+              <a href="#" class="icon-tooltip tooltip-element" tabindex="0" role="button" data-placement="bottom" aria-label="Help" aria-describedby="tooltiptextRadio" >
+                  <span class="arrow"></span>
+              </a>
+              <span class="tooltip-wrapper">
+                  <span class="tooltip-size-control">
+                      <span id="tooltiptextRadio" role="tooltip" aria-live="polite" aria-hidden="true" class="helpertext" tabindex="-1">  
+                          <span class="popover-title">Executions summary table</span>  
+                          <span class="popover-content">
+                              <span>Current active executions are displayed by default. Use the search box to specify additional query filters for deployment executions. A deployment selection will automatically trigger a refresh of the executions table.</span>
+                              <strong class="hidden-spoken hidden-desktop">Double tap to close help message.</strong>
+                          </span>
+                      </span>
+                  </span>
+              </span>
+          </span>
+    <div id="button-search-row" style="float: right;width: 50%;">
+        <div class="advanced-search">
+          <input tabindex="0" style="padding-left: 50px;"
+            placeholder="Enter search filters from the dropdown menu"
+            class="advanced-search-input" type="text"></input>
+          <button type="button" id="show-menu-filters"
+            class="btn dropdown-toggle"
+            ng-click="ecdapp.toggleMoreFilters()" data-toggle="dropdown"
+            title="More Filters">
+            <i class="icon-controls-down"></i>
+          </button>
+        </div>
+        <div class="menu-filters" ng-show="ecdapp.showingMoreFilters" style="width: 40%;">
+          <div class="group">
+            <label class="col-sm-3 control-label">Execution ID: </label> <input
+              tabindex="0" class="advanced-search-input" type="text"
+              title="Search by execution ID"
+              ng-model="ecdapp.execId"></input>
+          </div>
+          <div class="group">
+            <label class="col-sm-3 control-label">Tenants: </label>
+              <div class="field-group">
+                <select class="span12" name="tenant" b2b-dropdown placeholder-text="Select Tenant" ng-model="ecdapp.selectedTenant">
+                <option b2b-dropdown-list option-repeat="d in ecdapp.availableTenants" value="{{d}}">{{d}}</option>
+                </select>
+              </div>
+          </div>
+          <div class="group">
+            <label class="col-sm-3 control-label">Status: </label>
+              <div class="field-group">
+                <select class="span12" name="status" b2b-dropdown placeholder-text="Select status" ng-model="ecdapp.selectedStatus">
+                <option b2b-dropdown-list option-repeat="d in ecdapp.availableStatus" value="{{d}}">{{d}}</option>
+                </select>
+              </div>
+          </div>
+          <div class="group" style="float: right;">
+            <button tabindex="-1" class="btn btn-small"
+              title="Reset Filters" type="button"
+              ng-click="ecdapp.resetFilters()">
+              <i class="icon-arrows-update-refresh-sync"></i>
+            </button>
+            <button tabindex="1" class="btn btn-small"
+              title="Filtered search" type="button"
+              ng-click="ecdapp.extendedfilterSrch()">
+              <i class="icon-controls-magnifyingglass"></i>
+            </button>
+          </div>
+        </div>
+    </div>
+    <hr class="lite" style="margin-top: 20px;">
+    <div ng-show="ecdapp.isExecDataLoading" class="ng-scope ng-hide">
+      <div class="span" style="margin-bottom: 5px;">
+        <i class="icon-spinner small" role="img"></i>
+      </div>
+    </div>
+    <div b2b-table id="executions-table" class="b2b-table-div"
+      table-data="ecdapp.execData" search-string="ecdapp.searchString"
+      current-page="ecdapp.currentPageIgnored"
+      next-sort="ecdapp.nextSortIgnored">
+      <table>
+        <thead b2b-table-row type="header">
+          <tr id="th-header-row">
+            <th b2b-table-header key="index"></th>
+            <th b2b-table-header key="deployment_id">Deployment</th>
+            <th b2b-table-header key="workflow_id">Workflow</th>
+            <th b2b-table-header key="created_at">Created</th>
+            <th b2b-table-header key="ended_at">Ended</th>          
+            <th b2b-table-header key="tenant_name">Tenant</th>
+            <th b2b-table-header key="status">Status</th>
+          </tr>
+        </thead>
+        <tbody b2b-table-row type="body"
+          ng-repeat="rowData in ecdapp.execData">
+          <tr id="tr-rowData">
+            <td b2b-table-body>
+              <div class="id-tooltip"><span>ID</span>
+                <div class="wrapper">
+                    <button style="border-radius: 5px;margin-right: 20px;font-weight: lighter;border: 1px solid black;" 
+                    ng-click="ecdapp.copyStringToClipboard(rowData.id)" class="">Copy ID</button>
+                  <span class="id-tooltiptext">{{rowData.id}}</span>
+                </div>
+              </div>
+            </td>
+            <!--  <td b2b-table-body>ID</td>-->
+            <td b2b-table-body>
+             <a href="ecd#/idep/tenant:{{rowData.tenant_name}};serviceRef:{{rowData.deployment_id}}">
+                      {{rowData.deployment_id}}
+             </a>
+            </td>
+            <td b2b-table-body ng-bind="rowData.workflow_id" />
+            <td b2b-table-body ng-bind="rowData.created_at" />
+            <td b2b-table-body ng-bind="rowData.ended_at" />
+            <td b2b-table-body ng-bind="rowData.tenant_name" />
+            <!--  <td b2b-table-body ng-bind="rowData.id" />-->
+            <td b2b-table-body ng-if="rowData.status == 'pending'" >
+              <span class="ng-scope" style="background-color: #edef8e;padding: 5px;border-radius: 3px; opacity: 0.6; font-weight: bold;">waiting to start</span></td>
+            <td b2b-table-body ng-if="rowData.status == 'started'" >
+              <span class="ng-scope" style="background-color: ##f0fd2e;padding: 5px;border-radius: 3px; opacity: 0.6; font-weight: bold;">in-progress</span></td>
+            <td b2b-table-body ng-if="rowData.status == 'cancelling'" >
+              <span class="ng-scope" style="background-color: #cabdbd;padding: 5px;border-radius: 3px;opacity: 0.6; font-weight: bold;">cancel in progress</span></td>
+            <td b2b-table-body ng-if="rowData.status == 'force_cancelling'" >
+              <span class="ng-scope" style="background-color: #cabdbd;padding: 5px;border-radius: 3px;opacity: 0.6; font-weight: bold;"">force-cancelling in progress</span> </td>
+            <td b2b-table-body ng-if="rowData.status == 'cancelled'" >
+              <span class="ng-scope" style="background-color: #9a9690;padding: 5px;border-radius: 3px;opacity: 0.6; font-weight: bold;">cancelled</span>
+            </td>
+            <td b2b-table-body ng-if="rowData.status == 'terminated'" >
+              <span class="ng-scope" style="background-color: #62d826;padding: 5px;border-radius: 3px;opacity: 0.6; font-weight: bold;">successful</span>
+            </td>
+            <td b2b-table-body ng-if="rowData.status == 'failed'">
+              <span class="ng-scope" style="background-color: #fd2e2e;padding: 5px;border-radius: 3px;opacity: 0.6; font-weight: bold;">failed</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div b2b-pagination="" total-pages="ecdapp.totalPages"
+      current-page="ecdapp.currentPageNum"
+      click-handler="pageChangeHandler" role="navigation"></div>
+  </div>
+</div>

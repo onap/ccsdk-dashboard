@@ -19,11 +19,31 @@
  */
 package org.onap.portalapp.conf;
 
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+
 import org.onap.ccsdk.dashboard.util.DashboardProperties;
 import org.onap.portalsdk.core.conf.AppInitializer;
+import org.onap.portalsdk.core.logging.format.AlarmSeverityEnum;
+import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.web.context.WebApplicationContext;
 
 public class ExternalAppInitializer extends AppInitializer {
 
+    /*
+    @Override
+    protected WebApplicationContext createServletApplicationContext() {
+        WebApplicationContext context = super.createServletApplicationContext();
+        try {
+            ((ConfigurableEnvironment) context.getEnvironment()).setActiveProfiles("onap");
+        } catch (Exception e) {
+            System.out.println("Unable to set the active profile" + e.getMessage());
+            //throw e;
+        }
+        return context;
+    }
+*/
     @Override
     protected Class<?>[] getRootConfigClasses() {
         return super.getRootConfigClasses();

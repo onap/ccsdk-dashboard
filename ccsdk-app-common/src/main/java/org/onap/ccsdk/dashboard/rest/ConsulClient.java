@@ -21,13 +21,16 @@
  *******************************************************************************/
 package org.onap.ccsdk.dashboard.rest;
 
+import java.net.URL;
 import java.util.List;
 
-import org.onap.ccsdk.dashboard.model.ConsulDatacenter;
-import org.onap.ccsdk.dashboard.model.ConsulHealthServiceRegistration;
-import org.onap.ccsdk.dashboard.model.ConsulNodeInfo;
-import org.onap.ccsdk.dashboard.model.ConsulServiceHealth;
-import org.onap.ccsdk.dashboard.model.ConsulServiceInfo;
+import org.onap.ccsdk.dashboard.model.consul.ConsulDatacenter;
+import org.onap.ccsdk.dashboard.model.consul.ConsulDeploymentHealth;
+import org.onap.ccsdk.dashboard.model.consul.ConsulHealthServiceRegistration;
+import org.onap.ccsdk.dashboard.model.consul.ConsulNodeInfo;
+import org.onap.ccsdk.dashboard.model.consul.ConsulServiceHealth;
+import org.onap.ccsdk.dashboard.model.consul.ConsulServiceInfo;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * Defines the interface of the Consul REST client.
@@ -48,6 +51,16 @@ public interface ConsulClient {
      * @return List of ConsulServiceHealth
      */
     public List<ConsulServiceHealth> getServiceHealth(String datacenter, String srvcName);
+    
+    /**
+     * Gets the status for the service which corresponds to deployment Id on all nodes.
+     * Filters services on Consul to find services that contain service tag that 
+     * matches the given deployment id
+     * 
+     * @param deploymentId Deployment Id
+     * @return List of ConsulServiceHealth
+     */
+    public ConsulDeploymentHealth getServiceHealthByDeploymentId(String deploymentId);
 
     /**
      * Gets all the nodes that are monitored by Consul.
@@ -70,21 +83,5 @@ public interface ConsulClient {
      * @return List of ConsulDatacenter objects
      */
     public List<ConsulDatacenter> getDatacenters();
-
-    /**
-     * Registers a service with Consul for health check.
-     * 
-     * @param registration Details about the service to be registered.
-     * @return Result of registering a service
-     */
-    public String registerService(ConsulHealthServiceRegistration registration);
-
-    /**
-     * Deregisters a service with Consul for health check.
-     * 
-     * @param serviceName Name of the service to be deregistered.
-     * @return Response code
-     */
-    public int deregisterService(String serviceName);
 
 }

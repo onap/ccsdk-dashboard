@@ -57,7 +57,15 @@ public class Service {
     private Optional<Boolean> canDeploy;
     /** tenant name for this service */
     private String tenant;
-
+    /** install execution workflow status */
+    private String installStatus;
+    /** true if helm plugin is used */
+    public Boolean isHelm;
+    /** true if helm status is enabled */
+    public Boolean helmStatus;
+    /** Consul service health status */
+    private String healthStatus;
+    
     @JsonCreator
     public Service(@JsonProperty("serviceId") String serviceId, @JsonProperty("selfLink") Link selfLink,
             @JsonProperty("created") String created, @JsonProperty("modified") String modified,
@@ -165,4 +173,36 @@ public class Service {
      * public ServiceRef build() { return new ServiceRef(serviceId, created,
      * modified); } }
      */
+
+    public String getInstallStatus() {
+        return installStatus;
+    }
+
+    public void setInstallStatus(String installStatus) {
+        this.installStatus = installStatus;
+    }
+
+    public Boolean getIsHelm() {
+        return isHelm;
+    }
+
+    public void setIsHelm(Boolean isHelm) {
+        this.isHelm = isHelm;
+    }
+
+    public Boolean getHelmStatus() {
+        return helmStatus;
+    }
+
+    public void setHelmStatus(Boolean helmStatus) {
+        this.helmStatus = helmStatus;
+    }
+    
+    public String getHealthStatus() {
+    	return this.healthStatus;
+    }
+    
+    public void setHealthStatus(String healthStatus) {
+    	this.healthStatus = healthStatus;
+    }
 }

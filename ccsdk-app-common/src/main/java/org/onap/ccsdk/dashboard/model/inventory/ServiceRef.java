@@ -27,21 +27,25 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ServiceRef {
 
     /** Service ID of the Service */
-    private final String serviceId;
+    public final String id;
     /** Creation date of the Service */
-    private final String created;
+    public final String created_at;
     /** Last modified date of the Service */
-    private final String modified;
-
+    public final String updated_at;
+    public final String tenant_name = "";
+    
     @JsonCreator
-    public ServiceRef(@JsonProperty("serviceId") String serviceId, @JsonProperty("created") String created,
-            @JsonProperty("modified") String modified) {
-        this.serviceId = serviceId;
-        this.created = created;
-        this.modified = modified;
+    public ServiceRef(
+        @JsonProperty("id") String serviceId, 
+        @JsonProperty("created_at") String created,
+        @JsonProperty("updated_at") String modified
+        ) {
+        this.id = serviceId;
+        this.created_at = created;
+        this.updated_at = modified;
 
     }
-
+/*
     public String getServiceId() {
         return serviceId;
     }
@@ -53,7 +57,7 @@ public class ServiceRef {
     public String getModified() {
         return modified;
     }
-
+*/
     /*
      * private ServiceRef ( String serviceId, String created, String modified) {
      * this.serviceId = serviceId; this.created = created; this.modified = modified;

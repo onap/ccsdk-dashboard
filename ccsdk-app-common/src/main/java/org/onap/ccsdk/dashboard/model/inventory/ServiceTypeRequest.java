@@ -100,6 +100,16 @@ public class ServiceTypeRequest {
         this.asdcResourceId = asdcResourceId;
         this.asdcServiceURL = asdcServiceURL;
     }
+    
+    public ServiceTypeRequest(String owner, String typeName, Integer typeVersion, String blueprintTemplate,
+        String application, String component) {
+        this.owner = owner;
+        this.typeName = typeName;
+        this.typeVersion = typeVersion;
+        this.blueprintTemplate = blueprintTemplate;
+        this.application = application;
+        this.component = component;
+    }
 
     public static ServiceTypeRequest from(ServiceType serviceType) {
         return new ServiceTypeRequest(serviceType.getOwner(), serviceType.getTypeName(), serviceType.getTypeVersion(),
@@ -107,7 +117,12 @@ public class ServiceTypeRequest {
                 serviceType.getServiceIds(), serviceType.getVnfTypes(), serviceType.getServiceLocations(),
                 serviceType.getAsdcServiceId(), serviceType.getAsdcResourceId(), serviceType.getAsdcServiceURL());
     }
-
+/*
+    public static ServiceTypeRequest from(ServiceType serviceType) {
+        return new ServiceTypeRequest(serviceType.getOwner(), serviceType.getTypeName(), serviceType.getTypeVersion(),
+                serviceType.getBlueprintTemplate(), serviceType.getApplication(), serviceType.getComponent());
+    }
+*/  
     public String getBlueprintTemplate() {
         return this.blueprintTemplate;
     }

@@ -1,24 +1,3 @@
-/*******************************************************************************
- * =============LICENSE_START=========================================================
- *
- * =================================================================================
- *  Copyright (c) 2017 AT&T Intellectual Property. All rights reserved.
- * ================================================================================
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *  
- *      http://www.apache.org/licenses/LICENSE-2.0
- *  
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- * ============LICENSE_END=========================================================
- *
- *  ECOMP is a trademark and service mark of AT&T Intellectual Property.
- *******************************************************************************/
 appDS2.factory('DeploymentService', function ($http, $q, $log) {
 	return {
 		/**
@@ -27,10 +6,19 @@ appDS2.factory('DeploymentService', function ($http, $q, $log) {
 		 * @param {Number} viewPerPage - number of items per page; e.g., 25
 		 * @return {JSON} Response object from remote side
 		 */
-		getDeployments: function(pageNum,viewPerPage) {
+		getDeployments: function(pageNum,viewPerPage,sortBy,searchBy) {
 			// cache control for IE
 			let cc = "&cc=" + new Date().getTime().toString();
-			let url = 'deployments?pageNum=' + pageNum + '&viewPerPage=' + viewPerPage + cc;
+	    let url = null;
+	    if (sortBy && searchBy) {
+	        url = 'deployments?pageNum=' + pageNum + '&viewPerPage=' + viewPerPage + '&sortBy=' + sortBy + '&searchBy=' + searchBy + cc;
+	    } else if (sortBy) {
+	        url = 'deployments?pageNum=' + pageNum + '&viewPerPage=' + viewPerPage + '&sortBy=' + sortBy + cc;
+	    } else if (searchBy) {
+			    url = 'deployments?pageNum=' + pageNum + '&viewPerPage=' + viewPerPage + '&searchBy=' + searchBy + cc;
+			} else {
+			    url = 'deployments?pageNum=' + pageNum + '&viewPerPage=' + viewPerPage +cc;
+			}
 			return $http({
 					method: 'GET',
 					url: url,
@@ -84,6 +72,69 @@ appDS2.factory('DeploymentService', function ($http, $q, $log) {
 				$log.error('DeploymentService.deleteDeployment failed: ' + JSON.stringify(error));
 				return $q.reject(error.statusText);
 			});
+		},
+		
+		getBlueprintContent: function(id, tenant) {
+		  let url ='blueprints/' + id + '/archive?tenant=' + tenant;
+      return $http({
+        method: 'GET',
+        url: url,
+        cache: false,
+        responseType: 'yaml' 
+    }).then(function(response) {
+      // This is called on response code 200..299.
+      // On success, response.data is null.
+      // On failure, response.data has an error message.
+/*      var contentType = "application/octet-stream";
+      var data = response.data
+      var urlCreator = window.URL || window.webkitURL || window.mozURL || window.msURL;
+      if (urlCreator) {
+          var blob = new Blob([data], { type: contentType });
+          var url = urlCreator.createObjectURL(blob);
+          var a = document.createElement("a");
+          document.body.appendChild(a);
+          a.style = "display: none";
+          a.href = url;
+          a.download = "blueprint.yaml"; //you may assign this value from header as well 
+          a.click();
+          window.URL.revokeObjectURL(url);
+      }*/
+      return response;
+    }, 
+    function(error) {
+      $log.error('DeploymentService.getBlueprintContent failed: ' + JSON.stringify(error));
+      return $q.reject(error.statusText);
+    });
+		},
+		
+		reconfigFlow: function(reconfigRequest) {
+		  let body = {
+		      "deployment_id": reconfigRequest.deployment_id,
+		      "workflow_id": reconfigRequest.workflow_id,
+		      "allow_custom_parameters": true,
+		      "force": true,
+		      "tenant": reconfigRequest.tenant,
+		      "parameters": reconfigRequest.parameters
+		  };
+		  let urlStr = 'executions';
+		  return $http({
+		    method: 'POST',
+		    url: urlStr,
+		    data: body,
+		    cache: false,
+		    responseType: 'json'
+		  }).then(function(response) {
+		    if (response.data == null) 
+		      return $q.reject('DeploymentService.reconfigFlow: response.data null or not object');
+		    else {
+		      console.log(response);
+		      return response.data;
+		    }
+		  },
+		  function(error) {
+		    $log.error('DeploymentService.reconfigFlow failed: ' + JSON.stringify(error));
+		    return $q.reject(error.statusText);
+		  });
 		}
 	};
 });

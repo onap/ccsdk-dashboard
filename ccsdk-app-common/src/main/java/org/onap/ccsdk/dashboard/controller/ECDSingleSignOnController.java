@@ -26,8 +26,6 @@ package org.onap.ccsdk.dashboard.controller;
  * ECOMP Portal SDK
  * ================================================================================
  * Copyright (C) 2017 AT&T Intellectual Property
- * 
- * Modifications Copyright (C) 2019 IBM.
  * ================================================================================
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +45,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeSet;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -56,12 +55,16 @@ import javax.servlet.http.HttpSession;
 import org.onap.portalsdk.core.auth.LoginStrategy;
 import org.onap.portalsdk.core.command.LoginBean;
 import org.onap.portalsdk.core.controller.UnRestrictedBaseController;
+import org.onap.portalsdk.core.domain.Role;
 import org.onap.portalsdk.core.domain.User;
+import org.onap.portalsdk.core.domain.UserApp;
+import org.onap.portalsdk.core.domain.FusionObject.Parameters;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
 import org.onap.portalsdk.core.menu.MenuProperties;
 import org.onap.portalsdk.core.onboarding.listener.PortalTimeoutHandler;
 import org.onap.portalsdk.core.onboarding.util.PortalApiConstants;
 import org.onap.portalsdk.core.onboarding.util.PortalApiProperties;
+import org.onap.portalsdk.core.service.DataAccessService;
 import org.onap.portalsdk.core.service.LoginService;
 import org.onap.portalsdk.core.service.RoleService;
 import org.onap.portalsdk.core.util.SystemProperties;
@@ -98,9 +101,84 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
     @Autowired
     private RoleService roleService;
 
+    @Autowired
+    private DataAccessService dataAccessService;
+    
     private String viewName;
     private String welcomeView;
 
+    @RequestMapping(value = { "signup.htm" }, method = RequestMethod.GET)
+    public ModelAndView externalLogin() {
+        Map<String, Object> model = new HashMap<>();
+        return new ModelAndView("signup", "model", model);
+    }
+    
+    /**
+     * User sign up handler 
+     * 
+     * @param request
+     * @return
+     * @throws Exception 
+     */
+    @RequestMapping(value = { "/signup" }, method = RequestMethod.POST)
+    public ModelAndView userSignup(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        LoginBean commandBean = new LoginBean();
+        String loginId = request.getParameter("loginId");
+        String password = request.getParameter("password");
+        if (loginId.isEmpty() || password.isEmpty()) {
+            String loginErrorMessage = "User name and/or password missing";
+            Map<String, String> model = new HashMap<>();
+            model.put("error", loginErrorMessage);
+            return new ModelAndView("signup", "model", model);
+        }   
+        commandBean.setLoginId(loginId);
+        commandBean.setLoginPwd(password);
+        commandBean.setUserid(loginId);
+        commandBean = loginService.findUser(commandBean,
+                (String) request.getAttribute(MenuProperties.MENU_PROPERTIES_FILENAME_KEY), new HashMap());
+
+        if (commandBean.getUser() == null) {
+            // add new user                                  
+            User user = new User();
+            user.setLoginId(loginId);
+            user.setLoginPwd(password);
+            user.setActive(true);
+            user.setOrgUserId(loginId);
+            user.setLastName(request.getParameter("last"));
+            user.setFirstName(request.getParameter("first"));
+            user.setEmail(request.getParameter("email"));
+            Role role = null;
+            HashMap additionalParams = new HashMap();
+            additionalParams.put(Parameters.PARAM_HTTP_REQUEST, request);
+            user.setRoles(new TreeSet<Role>());
+            user.setUserApps(new TreeSet<UserApp>());
+            user.setPseudoRoles(new TreeSet<Role>());
+            try {
+                dataAccessService.saveDomainObject(user, additionalParams);
+                 role = (Role) dataAccessService.getDomainObject(Role.class,
+                        Long.valueOf(SystemProperties.getProperty(SystemProperties.POST_DEFAULT_ROLE_ID)),
+                        null);
+                 if(role.getId() == null){
+                        logger.error(EELFLoggerDelegate.errorLogger,
+                                "process failed: No Role Exsists in DB with requested RoleId :"+ Long.valueOf(SystemProperties.getProperty(SystemProperties.POST_DEFAULT_ROLE_ID)));
+                        throw new Exception("user cannot be added");
+                }
+                user.addRole(role);
+                //saveUserExtension(user);
+                dataAccessService.saveDomainObject(user, additionalParams);
+                } catch (Exception e) {
+                     logger.error(EELFLoggerDelegate.errorLogger, "saveDomainObject failed on user " + user.getLoginId(), e);
+                     String loginErrorMessage = (e.getMessage() != null) ? e.getMessage()
+                         : "login.error.external.invalid - saveDomainObject failed on user " + user.getLoginId();
+                     Map<String, String> model = new HashMap<>();
+                     model.put("error", loginErrorMessage);
+                     return new ModelAndView("signup", "model", model);
+            }
+        }
+        Map<String, Object> model = new HashMap<>();
+        return new ModelAndView("login_external", "model", model);
+    }
+    
     /**
      * Handles requests directed to the single sign-on page by the session timeout
      * interceptor.
@@ -225,6 +303,16 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
         }
     }
 
+    @RequestMapping(value = { "logout.htm" }, method = RequestMethod.GET)
+    public ModelAndView appLogout(HttpServletRequest request) {
+        try {
+            request.getSession().invalidate();
+        } catch (Exception e) {
+            logger.error(EELFLoggerDelegate.errorLogger, "Logout failed", e);
+        }
+        return new ModelAndView("redirect:login.htm");
+    }
+
     /**
      * Discover if the portal is available by GET-ing a resource from the REST URL
      * specified in portal.properties, using a very short timeout.
@@ -273,16 +361,14 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
         return request.getSession().getId();
     }
 
-    @Override
     public String getViewName() {
         return viewName;
     }
-    
-    @Override
+
     public void setViewName(String viewName) {
         this.viewName = viewName;
     }
-    
+
     public String getWelcomeView() {
         return welcomeView;
     }
