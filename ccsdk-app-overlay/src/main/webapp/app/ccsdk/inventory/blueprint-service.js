@@ -35,11 +35,92 @@ appDS2.factory('InventoryBlueprintService', function ($http, $q, $log) {
 				return $q.reject(error.statusText);
 			});
 		},
+		getBlueprintsSummary: function() {
+      // cache control for IE
+      let  cc = "&cc=" + new Date().getTime().toString();
+      let url = null;
+      url = 'inventory/dcae-service-types?_include=typeName,typeVersion,typeId' + cc;
+      return $http({
+          method: 'GET',
+          url: url,
+          cache: false,
+          responseType: 'json' 
+      }).then(function(response) {
+        if (response.data == null || typeof response.data != 'object') 
+          return $q.reject('InventoryBlueprintService.getBlueprintsSummary: response.data null or not object');
+        else 
+          return response.data;
+      }, 
+      function(error) {
+        $log.error('InventoryBlueprintService.getBlueprintsSummary failed: ' + JSON.stringify(error));
+        return $q.reject(error.statusText);
+      });
+    },
+    getOwnersList: function() {
+      let url = 'inventory/owners';
+      return $http({
+        method: 'GET',
+        url: url,
+        cache: false,
+        responseType: 'json' 
+      }).then(function(response) {
+        if (response.data == null || typeof response.data != 'object') 
+          return $q.reject('InventoryBlueprintService.getOwnersList: response.data null or not object');
+        else 
+          return response.data;
+      }, 
+      function(error) {
+        $log.error('InventoryBlueprintService.getOwnersList failed: ' + JSON.stringify(error));
+        return $q.reject(error.statusText);
+      });
+    },
+		getBlueprintsList: function() {
+      let url = 'inventory/service-type-list';
+      return $http({
+        method: 'GET',
+        url: url,
+        cache: false,
+        responseType: 'json' 
+      }).then(function(response) {
+        if (response.data == null || typeof response.data != 'object') 
+          return $q.reject('InventoryBlueprintService.getBlueprintsList: response.data null or not object');
+        else 
+          return response.data;
+      }, 
+      function(error) {
+        $log.error('InventoryBlueprintService.getBlueprintsList failed: ' + JSON.stringify(error));
+        return $q.reject(error.statusText);
+      });
+    },
+    getBlueprintIdsList: function(searchBy) {
+      let url = '';
+      if (searchBy) {
+        url = 'inventory/service-type-id-list?searchBy=' + searchBy;
+      } else {
+        url = 'inventory/service-type-id-list';
+      }
+      return $http({
+        method: 'GET',
+        url: url,
+        cache: false,
+        responseType: 'json' 
+      }).then(function(response) {
+        if (response.data == null || typeof response.data != 'object') 
+          return $q.reject('InventoryBlueprintService.getBlueprintIdsList: response.data null or not object');
+        else 
+          return response.data;
+      }, 
+      function(error) {
+        $log.error('InventoryBlueprintService.getBlueprintIdsList failed: ' + JSON.stringify(error));
+        return $q.reject(error.statusText);
+      });
+    },
 		/**
 		 *  get deployments for a blueprint
 		 */
 		getDeploymentForBp: function(bpArr) {
-			let url = 'inventory/dcae-services/typeIds';	
+		  let url = 'deployment_blueprint_map';
+			//let url = 'inventory/dcae-services/typeIds';	
 			return $http({
 				method: 'POST',
 				url: url,
@@ -49,7 +130,6 @@ appDS2.factory('InventoryBlueprintService', function ($http, $q, $log) {
 			if (response.data == null) 
 				return $q.reject('InventoryBlueprintService.getDeploymentForBp: response.data null or not object');
 			else {
-                console.log(response.data);
                 return response.data;
 			}
             },
@@ -166,7 +246,6 @@ appDS2.factory('InventoryBlueprintService', function ($http, $q, $log) {
 				if (response.data == null) 
 					return $q.reject('InventoryBlueprintService.viewBlueprint: response.data null or not object');
 				else {
-                    console.log(response.data);
                     return response.data;
                 }
 			}, 
@@ -281,6 +360,12 @@ appDS2.factory('InventoryBlueprintService', function ($http, $q, $log) {
 		},	
 */		
 		deleteBlueprint: function(typeId) {
+		  /*var typeId = blueprint.typeId;
+		  var deploymentItems = blueprint.deployments.items;
+		  var deplIdList = [];
+		  for (var i=0; i < deploymentItems.length; i++) {
+		    deplIdList.push(deploymentItems.id);
+		  }*/
 			let url = 'inventory/dcae-service-types/' + typeId;
 			return $http({
 					method: 'DELETE',

@@ -6,6 +6,64 @@ appDS2.factory('InventoryExecutionService', function ($http, $q, $log) {
 		 * @param {Number} viewPerPage - number of items per page; e.g., 25
 		 * @return {JSON} Response object from remote side
 		 */
+	   getActiveExecutions: function(pageNum, viewPerPage) {
+       let cc = "&cc=" + new Date().getTime().toString();
+	     let url = 'executions/active?pageNum=' + pageNum + '&viewPerPage=' + viewPerPage + cc;
+       return $http({
+         method: 'GET',
+         url: url,
+         cache: false,
+         responseType: 'json' 
+       }).then(function(response) {
+         if (response.data == null || typeof response.data != 'object') 
+           return $q.reject('InventoryExecutionService.getActiveExecutions: response.data null or not object');
+         else 
+           return response.data;
+       }, 
+       function(error) {
+         $log.error('InventoryExecutionService.getActiveExecutions failed: ' + JSON.stringify(error));
+         return $q.reject(error.statusText);
+       });
+	   },
+	   getExecutionsById: function(id, tenant, pageNum, viewPerPage) {
+       let cc = "&cc=" + new Date().getTime().toString();
+       let url = 'executions/'+ id + '?pageNum=' + pageNum + '&viewPerPage=' + viewPerPage + '&tenant=' + tenant + '&status=' + status + cc;
+       return $http({
+         method: 'GET',
+         url: url,
+         cache: false,
+         responseType: 'json' 
+       }).then(function(response) {
+         if (response.data == null || typeof response.data != 'object') 
+           return $q.reject('InventoryExecutionService.getExecutionsById: response.data null or not object');
+         else 
+           return response.data;
+       }, 
+       function(error) {
+         $log.error('InventoryExecutionService.getExecutionsById failed: ' + JSON.stringify(error));
+         return $q.reject(error.statusText);
+       });
+	   },
+	   getExecutionsByTenant: function(tenant, status, pageNum, viewPerPage) {
+	      // cache control for IE
+	      let cc = "&cc=" + new Date().getTime().toString();
+	      let url = 'executions/tenant?pageNum=' + pageNum + '&viewPerPage=' + viewPerPage + '&tenant=' + tenant + '&status=' + status + cc;
+	      return $http({
+	          method: 'GET',
+	          url: url,
+	          cache: false,
+	          responseType: 'json' 
+	      }).then(function(response) {
+	        if (response.data == null || typeof response.data != 'object') 
+	          return $q.reject('InventoryExecutionService.getExecutionsByTenant: response.data null or not object');
+	        else 
+	          return response.data;
+	      }, 
+	      function(error) {
+	        $log.error('InventoryExecutionService.getExecutionsByTenant failed: ' + JSON.stringify(error));
+	        return $q.reject(error.statusText);
+	      });
+	    },
 		getExecutionsByDeployment: function(deploymentId, tenant, pageNum, viewPerPage) {
 			// cache control for IE
 			let cc = "&cc=" + new Date().getTime().toString();

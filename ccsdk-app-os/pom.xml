@@ -6,12 +6,12 @@
 	<parent>
 		<groupId>org.onap.ccsdk.dashboard</groupId>
 		<artifactId>ccsdk-app-parent</artifactId>
-		<version>1.3.2-SNAPSHOT</version>
+		<version>1.4.0-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.onap.ccsdk.dashboard</groupId>
 	<artifactId>ccsdk-app-os</artifactId>
-	<version>1.3.2-SNAPSHOT</version>
+	<version>1.4.0-SNAPSHOT</version>
 	<packaging>war</packaging>
 	<name>ONAP Operations Manager Dashboard app</name>
 	<description>CCSDK Dashboard Web Application for external release</description>
@@ -69,6 +69,7 @@
 
 		<plugins>
 			<!-- Compile to Java 1.8 class output format -->
+			<!--  
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -78,6 +79,16 @@
 					<target>1.8</target>
 				</configuration>
 			</plugin>
+			-->
+			<plugin>
+			    <groupId>org.apache.maven.plugins</groupId>
+			    <artifactId>maven-compiler-plugin</artifactId>
+			    <version>3.8.0</version>
+			    <configuration>
+			        <release>11</release>
+			    </configuration>
+			</plugin>
+			<!--  
 			<plugin>
 				<groupId>org.codehaus.groovy.maven</groupId>
 				<artifactId>gmaven-plugin</artifactId>
@@ -93,10 +104,11 @@
 					</execution>
 				</executions>
 			</plugin>
+			-->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-war-plugin</artifactId>
-				<version>3.0.0</version>
+				<version>3.3.1</version>
 				<configuration>
 					<archive>
 						<manifest>
@@ -111,6 +123,14 @@
 						<overlay>
 							<groupId>org.onap.ccsdk.dashboard</groupId>
 							<artifactId>ccsdk-app-overlay</artifactId>
+							<excludes>
+								<exclude>app/ccsdk/home/api_view.html</exclude>
+								<exclude>app/ccsdk/home/ecd_router.js</exclude>
+								<exclude>app/ccsdk/home/executions_view.html</exclude>
+								<exclude>app/ccsdk/home/executions-view-controller.js</exclude>
+								<exclude>app/ccsdk/home/ecd_spa.html</exclude>
+								<exclude>app/ccsdk/home/ecd-style.css</exclude>
+							</excludes>
 						</overlay>
 						<overlay>
 							<groupId>org.onap.portal.sdk</groupId>
@@ -293,6 +313,11 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
 			<version>${springframework.version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>javax.xml.bind</groupId>
+		    <artifactId>jaxb-api</artifactId>
+		    <version>2.3.0</version>
 		</dependency>
 	</dependencies>
 </project>

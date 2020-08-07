@@ -32,12 +32,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Blueprint {
 
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
+
 
     static {
         YAML_MAPPER.registerModule(new Jdk8Module());

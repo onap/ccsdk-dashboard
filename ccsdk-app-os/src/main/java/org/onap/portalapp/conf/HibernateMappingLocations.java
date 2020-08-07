@@ -43,8 +43,8 @@ public class HibernateMappingLocations implements HibernateMappingLocatable {
             // a leading slash gets stripped so don't bother.
             // new ClassPathResource("../fusion/orm/Fusion.hbm.xml"),
             // This is a COPY to work around a bug in the 1.1.0 release.
-            new ClassPathResource("../fusion/orm/Fusion.hbm.xml"),
-            new ClassPathResource("../oom-app.hbm.xml")};
+            new ClassPathResource("../fusion/orm/Fusion.hbm.xml")};
+            //new ClassPathResource("../oom-app.hbm.xml")};
     }
 
     /*

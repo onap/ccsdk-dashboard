@@ -24,6 +24,9 @@
 	final String appDisplayName = SystemProperties.containsProperty(SystemProperties.APP_DISPLAY_NAME)
 			? SystemProperties.getProperty(SystemProperties.APP_DISPLAY_NAME)
 			: SystemProperties.APP_DISPLAY_NAME;
+    String signUpPage = "signup.htm";
+	String signupUrl = (request.isSecure() ? "https://" : "http://") + request.getServerName() + ":"
+				+ request.getServerPort() + request.getContextPath() + "/" + signUpPage;
 %>
 
 <html>
@@ -73,6 +76,30 @@
 			margin-left: auto;
 			margin-right: auto;
 		}
+        .formIn {
+            width: 200px;
+            height:25px;
+            border-radius: 4px;
+            font-size:18px;
+            padding-left:5px;
+            background-color: #f1ecec;
+        }
+        #regLink {
+          background: #0081a4;
+          border-radius: 3px;
+          padding: 4px;
+          font-size: large;
+          font-weight: bold;
+          text-decoration: none;
+          color: black;
+        }
+        #formDiv {
+          background-color: #0081a4b0;
+          width: 300px;
+          margin-left: auto;
+          margin-right: auto;
+          padding-bottom: 10px;
+        }
 		</style>
 	</head>
 	<body>
@@ -81,19 +108,20 @@
 			<h2>
 				<%=appDisplayName%>
 			</h2>
-			<br />
-			<form action="login_external" method="POST"> 
-				<label for="loginId">Login ID:</label>
-				<input id="loginId" name="loginId" type="text" style="width: 140px;height:25px;border-radius:7px;font-size:18px;padding-left:5px;" maxlength="30">
-				<br/>
-				<br/>
-				<label for="password">Password:</label>
-				<input id="password" name="password" type="password" style="width: 140px;height:25px;border-radius:7px;font-size:18px;padding-left:5px;"
-							maxlength="30" >
-				<br />
-				<br />
-				<input id="loginBtn" type="submit" alt="Login" value="Login">
-			</form>
+            <div id="formDiv">
+            <form action="login_external" method="POST"> 
+                <h3> Login </h3>
+				<input class="formIn" id="loginId" name="loginId" type="text" maxlength="30" placeholder="User ID">
+				<br>
+				<br>
+				<input class="formIn" id="password" name="password" type="password" maxlength="30" placeholder="Password">
+				<br>
+				<br>
+				<input id="loginBtn" type="submit" alt="Login" value="LOG IN" style="width: 200px; font-weight: bolder;">
+			</form> 
+            <br>   
+            <p>Not registered yet? <a id="regLink" href="<%=signupUrl%>">Sign up</a></p>
+            </div>
 		</div>
 		<br />
 		<br />

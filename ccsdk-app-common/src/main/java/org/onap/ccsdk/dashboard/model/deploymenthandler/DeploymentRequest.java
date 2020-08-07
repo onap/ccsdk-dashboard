@@ -57,10 +57,10 @@ public class DeploymentRequest {
      * deployed.
      */
     private final Map<String, Object> inputs;
-
+       
     @JsonCreator
     public DeploymentRequest(@JsonProperty("serviceTypeId") String serviceTypeId,
-            @JsonProperty("inputs") Map<String, Object> inputs) {
+            @JsonProperty("inputs") Map<String, Object> inputs ) {
         this.serviceTypeId = serviceTypeId;
         this.inputs = inputs;
     }
@@ -72,4 +72,5 @@ public class DeploymentRequest {
     public Map<String, Object> getInputs() {
         return this.inputs;
     }
+
 }

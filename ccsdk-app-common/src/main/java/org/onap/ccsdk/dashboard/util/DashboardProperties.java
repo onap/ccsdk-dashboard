@@ -3,8 +3,6 @@
  *
  * =================================================================================
  *  Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
- *  
- *  Modifications Copyright (C) 2019 IBM.
  * ================================================================================
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -45,82 +43,60 @@ import org.springframework.core.env.Environment;
 public class DashboardProperties {
 
     /**
-     * Key for property that indicates if test data should be used
+     * Key for property with list of sites
      */
-    public static final String CONTROLLER_MOCK_DATA = "controller.mock.data";
+    public static final String CONTROLLER_SITE_LIST = "controller.site.list";
     /**
-     * Key for property with list of controllers
+     * Subkey for property with site name
      */
-    public static final String CONTROLLER_KEY_LIST = "controller.key.list";
+    public static final String SITE_SUBKEY_NAME = "name";
     /**
-     * Subkey for property with Controller name (description)
+     * Subkey for property with Cloudify URL
      */
-    public static final String CONTROLLER_SUBKEY_NAME = "name";
-    /**
-     * Subkey for property with Controller URL
-     */
-    public static final String CONTROLLER_SUBKEY_URL = "url";
+    public static final String SITE_SUBKEY_CLOUDIFY_URL = "cloudify.url";
     /**
      * Subkey for property with Inventory URL
      */
-    public static final String CONTROLLER_SUBKEY_INVENTORY_URL = "inventory.url";
+    public static final String SITE_SUBKEY_INVENTORY_URL = "inventory.url";
     /**
      * Subkey for property with Deployment Handler URL
      */
-    public static final String CONTROLLER_SUBKEY_DHANDLER_URL = "dhandler.url";
+    public static final String SITE_SUBKEY_DHANDLER_URL = "dhandler.url";
     /**
      * Subkey for property with Consul URL
      */
-    public static final String CONTROLLER_SUBKEY_CONSUL_URL = "consul.url";
+    public static final String SITE_SUBKEY_CONSUL_URL = "consul.url";
+    /**
+     * Subkey for property with DBCL URL
+     */
+    public static final String SITE_SUBKEY_DBCL_URL = "dbcl.url";
+    /**
+     * Subkey for property with DBCL URL
+     */
+    public static final String SITE_SUBKEY_FEED_URL = "feed_m.url";
     /**
      * Subkey for property with Controller user name for authentication
      */
-    public static final String CONTROLLER_SUBKEY_USERNAME = "username";
+    public static final String SITE_SUBKEY_CLOUDIFY_USERNAME = "cloudify.username";
     /**
      * Subkey for property with Controller password
      */
-    public static final String CONTROLLER_SUBKEY_PASS = "password";
+    public static final String SITE_SUBKEY_CLOUDIFY_PASS = "cloudify.password";
     /**
      * Subkey for property with Controller password encryption status
      */
-    public static final String CONTROLLER_SUBKEY_ENCRYPTED = "is_encrypted";
+    public static final String SITE_SUBKEY_CLOUDIFY_ENCRYPTED = "is_encrypted";
+    
     /**
      * Key for dashboard deployment environment - dev/uat/prod
      */
     public static final String CONTROLLER_IN_ENV = "controller.env";
 
     /**
-     * Key for cloudify tenant environment
-     */
-    public static final String CLOUDIFY_TENANT_PRIM = "cloudify.tenant.primary";
-
-    /**
-     * Key for aic tenant environment
-     */
-    public static final String AIC_TENANT_PRIM = "aic.tenant.primary";
-
-    /**
-     * Key for controller type: ATT or OS
-     */
-    public static final String CONTROLLER_TYPE = "controller.type";
-
-    /**
      * Key for K8s deploy permission string
      * 
      */
     public static final String APP_K8S_PERM = "k8s.deploy.perm";
-
-    public static final String OPS_K8S_URL = "ops.k8s.url";
-
-    public static final String OPS_GRAFANA_URL = "ops.grf.url";
-
-    public static final String OPS_CLOUDIFY_URL = "ops.cfy.url";
-
-    public static final String OPS_CONSUL_URL = "ops.cnsl.url";
-
-    public static final String OPS_PROMETHEUS_URL = "ops.prom.url";
-
-    public static final String OPS_DBCL_URL = "ops.dbcl.url";
 
     private static Environment environment;
 
@@ -133,7 +109,7 @@ public class DashboardProperties {
      */
     @Autowired
     public void setEnvironment(final Environment environment) {
-        DashboardProperties.environment = environment;
+        this.environment = environment;
     }
 
     /**
@@ -180,8 +156,8 @@ public class DashboardProperties {
         String listVal = getProperty(key);
         if (listVal == null)
             return null;
-        
-        return listVal.split("\\s*,\\s*");
+        String[] vals = listVal.split("\\s*,\\s*");
+        return vals;
     }
 
     /**
@@ -197,4 +173,16 @@ public class DashboardProperties {
         return getProperty(key);
     }
 
+    /**
+     * Convenience method to get a property from the fake hierarchical key-value
+     * set.
+     * 
+     * @param controllerKey First part of key
+     * @param propKey       Second part of key
+     * @return Property value for key "controllerKey.propKey"
+     */
+    public static String getControllerPropertyDef(final String controllerKey, final String propKey, String defVal) {
+        final String key = controllerKey + '.' + propKey;
+        return getPropertyDef(key, defVal);
+    }
 }

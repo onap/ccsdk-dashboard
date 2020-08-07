@@ -21,20 +21,26 @@
  *******************************************************************************/
 package org.onap.ccsdk.dashboard.rest;
 
+import java.util.List;
 import java.util.Map;
 
-import org.onap.ccsdk.dashboard.model.CloudifyBlueprintList;
-import org.onap.ccsdk.dashboard.model.CloudifyDeployedTenantList;
-import org.onap.ccsdk.dashboard.model.CloudifyDeploymentList;
-import org.onap.ccsdk.dashboard.model.CloudifyDeploymentUpdateRequest;
-import org.onap.ccsdk.dashboard.model.CloudifyDeploymentUpdateResponse;
-import org.onap.ccsdk.dashboard.model.CloudifyEventList;
-import org.onap.ccsdk.dashboard.model.CloudifyExecution;
-import org.onap.ccsdk.dashboard.model.CloudifyExecutionList;
-import org.onap.ccsdk.dashboard.model.CloudifyExecutionRequest;
-import org.onap.ccsdk.dashboard.model.CloudifyNodeInstanceIdList;
-import org.onap.ccsdk.dashboard.model.CloudifyNodeInstanceList;
-import org.onap.ccsdk.dashboard.model.CloudifyTenantList;
+import javax.servlet.http.HttpServletRequest;
+
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyBlueprintList;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyDeployedTenant;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyDeployment;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyDeploymentExt;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyDeploymentHelm;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyDeploymentList;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyEventList;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyExecution;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyExecutionList;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyExecutionRequest;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyNodeInstanceIdList;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyNodeInstanceList;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyPluginList;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyTenantList;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifySecret;
 
 /**
  * @author rp5662
@@ -51,7 +57,7 @@ public interface CloudifyClient {
     /**
      * Gets the list of Cloudify tenants.
      * 
-     * @return CloudifyBlueprintList
+     * @return CloudifyTenantList
      */
     public CloudifyTenantList getTenants();
 
@@ -85,13 +91,6 @@ public interface CloudifyClient {
     public CloudifyNodeInstanceIdList getNodeInstanceId(String deploymentId, String nodeId, String tenant);
 
     /**
-     * Gets all the deployments with include filters for tenant name
-     * 
-     * @return List of CloudifyDeployedTenant objects
-     */
-    public CloudifyDeployedTenantList getTenantInfoFromDeploy(String tenant);
-
-    /**
      * Get the node-instance-id.
      * 
      * @param deploymentId deployment ID
@@ -100,14 +99,6 @@ public interface CloudifyClient {
      * @return CloudifyNodeInstanceList
      */
     public CloudifyNodeInstanceIdList getNodeInstanceId(String id, String tenant);
-
-    /**
-     * Initiate a deployment update in cloudify
-     * 
-     * @param execution
-     * @return
-     */
-    public CloudifyDeploymentUpdateResponse updateDeployment(CloudifyDeploymentUpdateRequest execution);
 
     /**
      * Query execution information for a deployment ID passed as input
@@ -167,7 +158,21 @@ public interface CloudifyClient {
      * Query deployments from cloudify
      * 
      */
-    public CloudifyDeploymentList getDeployments();
+    public CloudifyDeploymentList getDeployments(String tenant, int pageSize, int pageOffset);
+    
+    /**
+     * Query deployments from cloudify and filter based
+     * on given input key and value
+     * At the moment only supports key "contains" not "equals"
+     * For value it supports only "equals" not "contains"
+     * @param inputKey
+     * @param inputValue
+     * @param returnFullDeployment If true, returns full deployment obj, otherwise only some attributes
+     * @return
+     */
+    public List<CloudifyDeployment> getDeploymentsByInputFilter(String inputKey, String inputValue) throws Exception;
+    
+    public List<CloudifyDeployment> getDeploymentsWithFilter(HttpServletRequest request, String filter) throws Exception;
 
     /**
      * Query a blueprint object matching the blueprint ID in cloudify
@@ -186,4 +191,70 @@ public interface CloudifyClient {
      * @return
      */
     public CloudifyDeploymentList getDeploymentInputs(String id, String tenant);
+    
+    /**
+     * Query a cloudify secret under a tenant scope
+     * 
+     * @param secretName
+     * @param tenant
+     * @return
+     */
+    public CloudifySecret getSecret(String secretName, String tenant);
+
+    /**
+     * Query install workflow execution summary for a deployment ID
+     * 
+     * @param deploymentId
+     * @param tenant
+     * @return
+     */
+    public CloudifyExecutionList getInstallExecutionSummary(String deploymentId, String tenant);
+    
+    /**
+     * 
+     * Delete Blueprint
+     * 
+     * @param blueprint ID
+     */
+    public void deleteBlueprint(String bpName, String tenant);
+    /**
+     * 
+     * Query deployment node instances
+     * 
+     * @param deploymentId
+     * @param tenant
+     * @return
+     */
+    public CloudifyNodeInstanceIdList getNodeInstances(String deploymentId, String tenant);
+
+    public List<CloudifyDeployment> getDeployments(String tenant, int pageSize, int pageOffset,
+        boolean recurse);
+
+    public List<CloudifyDeployment> getDeployments(String tenant, int pageSize, int pageOffset,
+        boolean recurse, boolean cache);
+    
+    public byte[] viewBlueprint(String tenant, String id);
+
+    public void cacheDeployments();
+
+    public CloudifyDeployment getDeploymentResource(final String id, final String tenant);
+
+    public List<CloudifyDeployment> getDeploymentsWithFilter(HttpServletRequest request) throws Exception;
+
+    public CloudifyNodeInstanceList getNodeInstanceDetails(String deploymentId, String tenant);
+    
+    public List<CloudifyDeployedTenant> getDeploymentForBlueprint(final String bpId);
+
+    public List<CloudifyDeploymentExt> updateWorkflowStatus(List<CloudifyDeployment> itemList);
+    
+    public List<CloudifyDeploymentHelm> updateHelmInfo(List<CloudifyDeployment> itemList);
+
+    public List<String> getDeploymentNamesWithFilter(HttpServletRequest request)
+        throws Exception;
+    
+    public CloudifyPluginList getPlugins();
+
+    public CloudifyExecutionList getExecutionsSummaryPerTenant(String tenant);
+    
+    public CloudifyExecution getExecutionIdSummary(final String id, final String tenant);
 }

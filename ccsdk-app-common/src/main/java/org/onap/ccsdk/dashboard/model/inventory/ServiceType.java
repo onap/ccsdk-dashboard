@@ -237,8 +237,9 @@ public class ServiceType {
             this.blueprintInputs = bpObj.getInputs();
             this.blueprintDescription = bpObj.getDescription();
         } catch (BlueprintParseException e) {
-/*            throw new RuntimeException(
-                    "Error while parsing blueprint template for " + this.typeName + " " + this.typeVersion, e);*/
+            //this.blueprintDescription = "";
+            //throw new RuntimeException(
+                    //"Error while parsing blueprint template for " + this.typeName + " " + this.typeVersion, e);
         }
     }
 
