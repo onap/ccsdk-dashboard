@@ -1,0 +1,216 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "510d798f_d5c35932",
+        "filename": "ccsdk-app-common/src/main/java/org/onap/ccsdk/api/controller/ApiBaseController.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 93
+      },
+      "writtenOn": "2020-08-11T22:17:17Z",
+      "side": 1,
+      "message": "2020 for new files",
+      "range": {
+        "startLine": 5,
+        "startChar": 18,
+        "endLine": 5,
+        "endChar": 22
+      },
+      "revId": "e96c3f00938daf2ad39f5dbda8462f02b2187517",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d037050f_61d16991",
+        "filename": "ccsdk-app-common/src/main/java/org/onap/ccsdk/api/controller/ApiBaseController.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 93
+      },
+      "writtenOn": "2020-08-11T22:17:17Z",
+      "side": 1,
+      "message": "remove this line",
+      "range": {
+        "startLine": 20,
+        "startChar": 2,
+        "endLine": 20,
+        "endChar": 72
+      },
+      "revId": "e96c3f00938daf2ad39f5dbda8462f02b2187517",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57cd52da_0007b8af",
+        "filename": "ccsdk-app-common/src/main/java/org/onap/ccsdk/api/controller/NbApiController.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 93
+      },
+      "writtenOn": "2020-08-11T22:17:17Z",
+      "side": 1,
+      "message": "same comment as earlier",
+      "range": {
+        "startLine": 5,
+        "startChar": 17,
+        "endLine": 5,
+        "endChar": 22
+      },
+      "revId": "e96c3f00938daf2ad39f5dbda8462f02b2187517",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d39fea05_e914fd14",
+        "filename": "ccsdk-app-common/src/main/java/org/onap/ccsdk/api/controller/NbApiController.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 93
+      },
+      "writtenOn": "2020-08-11T22:17:17Z",
+      "side": 1,
+      "message": "roles noted are not applicable for onap; would be better if these are sourced through config instead of hardcoding",
+      "range": {
+        "startLine": 182,
+        "startChar": 0,
+        "endLine": 204,
+        "endChar": 9
+      },
+      "revId": "e96c3f00938daf2ad39f5dbda8462f02b2187517",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "427d99c4_d9c4b9da",
+        "filename": "ccsdk-app-common/src/main/java/org/onap/ccsdk/api/controller/PaginatedResultsRetrievedEvent.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 93
+      },
+      "writtenOn": "2020-08-11T22:17:17Z",
+      "side": 1,
+      "message": "2020",
+      "range": {
+        "startLine": 5,
+        "startChar": 18,
+        "endLine": 5,
+        "endChar": 22
+      },
+      "revId": "e96c3f00938daf2ad39f5dbda8462f02b2187517",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7395b2e4_c6477f78",
+        "filename": "ccsdk-app-common/src/main/java/org/onap/ccsdk/api/controller/PaginatedResultsRetrievedEvent.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 93
+      },
+      "writtenOn": "2020-08-11T22:17:17Z",
+      "side": 1,
+      "message": "remove this line",
+      "range": {
+        "startLine": 20,
+        "startChar": 4,
+        "endLine": 20,
+        "endChar": 72
+      },
+      "revId": "e96c3f00938daf2ad39f5dbda8462f02b2187517",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "94896a68_84892404",
+        "filename": "ccsdk-app-common/src/main/java/org/onap/ccsdk/api/controller/PagingEventListener.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 93
+      },
+      "writtenOn": "2020-08-11T22:17:17Z",
+      "side": 1,
+      "message": "update year and remove ecomp line from license header",
+      "revId": "e96c3f00938daf2ad39f5dbda8462f02b2187517",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "01ff9e6d_ac0a8cf1",
+        "filename": "ccsdk-app-common/src/main/java/org/onap/ccsdk/dashboard/controller/CloudifyController.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 93
+      },
+      "writtenOn": "2020-08-11T22:17:17Z",
+      "side": 1,
+      "message": "these dont apply for onap",
+      "range": {
+        "startLine": 199,
+        "startChar": 0,
+        "endLine": 211,
+        "endChar": 8
+      },
+      "revId": "e96c3f00938daf2ad39f5dbda8462f02b2187517",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fea67e64_45805cc7",
+        "filename": "ccsdk-app-os/src/main/webapp/app/ccsdk/images/ecomp-login-550x360.jpg",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 93
+      },
+      "writtenOn": "2020-08-11T22:17:17Z",
+      "side": 1,
+      "message": "should be removed",
+      "revId": "e96c3f00938daf2ad39f5dbda8462f02b2187517",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a1333762_1057d24f",
+        "filename": "ccsdk-app-os/src/main/webapp/app/ccsdk/images/ecomp.png",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 93
+      },
+      "writtenOn": "2020-08-11T22:17:17Z",
+      "side": 1,
+      "message": "should be removed",
+      "revId": "e96c3f00938daf2ad39f5dbda8462f02b2187517",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": true
+    }
+  ]
+}
