@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f2f65412_68b715e0",
+        "filename": "ccsdk-app-os/src/main/webapp/WEB-INF/conf/dashboard.properties",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 93
+      },
+      "writtenOn": "2020-08-13T21:07:25Z",
+      "side": 1,
+      "message": "ONAP settings should be as below\n\ndhandler_url: https://deployment-handler:8443\ncfy_url: https://dcae-cloudify-manager/api/v3.1\ninventory_url: https://inventory:8080\nconsul: http://consul-server:8500",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 71
+      },
+      "revId": "dfe19fbbc5066674b956a23939dfc82b2467b0b2",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": true
+    }
+  ]
+}
