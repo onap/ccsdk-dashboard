@@ -33,14 +33,13 @@ rm -f /home/deployments/ccsdk-app*.war
 
 # Update dashboard.properties
 cat /home/deployments/ccsdk-app/WEB-INF/conf/dashboard.properties | \
-sed "s/^dev.is_encrypted.*$/dev.is_encrypted=false/g" | \
-sed "s~^dev.url.*$~dev.url = ${cfy_url}~g" | \
-sed "s~^dev.inventory.url.*$~dev.inventory.url = ${inventory_url}~g" | \
-sed "s~^dev.dhandler.url.*$~dev.dhandler.url = ${dhandler_url}~g" | \
-sed "s~^dev.consul.url.*$~dev.consul.url = ${consul_url}~g" | \
-sed "s/^dev.username.*$/dev.username = ${cloudify_user}/g" | \
-sed "s/^dev.password.*$/dev.password = ${cloudify_password}/g" | \
-sed "s/^controller.env.*$/controller.env = ${app_env}/g"  > /tmp/dash.prop
+sed "s~^site.primary.cloudify.url.*$~site.primary.cloudify.url = ${cfy_url}~" | \
+sed "s~^site.primary.consul.url.*$~site.primary.consul.url = ${consul_url}~" | \
+sed "s~^site.primary.inventory.url.*$~site.primary.inventory.url = ${inventory_url}~" | \
+sed "s~^site.primary.dhandler.url.*$~site.primary.dhandler.url = ${dhandler_url}~" | \
+sed "s/^site.primary.cloudify.username.*$/site.primary.cloudify.username = ${cloudify_user}/" | \
+sed "s~^site.primary.cloudify.password.*$~site.primary.cloudify.password = ${cloudify_password}~" | \
+sed "s/^controller.env.*$/controller.env = ${app_env}/" > /tmp/dash.prop
 mv /tmp/dash.prop /home/deployments/ccsdk-app/WEB-INF/conf/dashboard.properties
 
 # Update system.properties
