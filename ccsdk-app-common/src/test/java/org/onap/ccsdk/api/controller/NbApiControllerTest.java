@@ -21,7 +21,10 @@
 
 package org.onap.ccsdk.api.controller;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
@@ -47,7 +50,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -76,6 +78,7 @@ import org.onap.ccsdk.dashboard.model.deploymenthandler.DeploymentInput;
 import org.onap.ccsdk.dashboard.model.deploymenthandler.DeploymentRequest;
 import org.onap.ccsdk.dashboard.model.deploymenthandler.DeploymentResponse;
 import org.onap.ccsdk.dashboard.model.deploymenthandler.DeploymentResponseLinks;
+import org.onap.ccsdk.dashboard.model.inventory.Blueprint;
 import org.onap.ccsdk.dashboard.model.inventory.Service;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceList;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceQueryParams;
@@ -94,6 +97,9 @@ import org.onap.ccsdk.dashboard.rest.DeploymentHandlerClient;
 import org.onap.ccsdk.dashboard.rest.InventoryClient;
 import org.onap.portalsdk.core.domain.User;
 import org.onap.portalsdk.core.util.CacheManager;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -108,6 +114,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
+@PrepareForTest({Blueprint.class})
 public class NbApiControllerTest extends MockitoTestSuite {
 
     @Mock
@@ -124,10 +132,10 @@ public class NbApiControllerTest extends MockitoTestSuite {
 
     @Mock
     ServletUriComponentsBuilder uriBuilder;
-    
+
     @InjectMocks
-    NbApiController subject = new NbApiController();
-    
+    NbApiController subject;
+
     private HttpStatusCodeException httpException =
         new HttpServerErrorException(HttpStatus.BAD_GATEWAY);
 
@@ -139,7 +147,6 @@ public class NbApiControllerTest extends MockitoTestSuite {
     MockUser mockUser = new MockUser();
     ServiceList deplList = null;
     Service deplItem = null;
-
 
     ServiceTypeSummary bpItem, bpItem2 = null;
     ServiceTypeSummaryList bpList, bpList2 = null;
@@ -171,13 +178,14 @@ public class NbApiControllerTest extends MockitoTestSuite {
         downStrmError = new DownstreamException("error occured in downstream");
         notFoundError = new DeploymentNotFoundException("item not found");
         CacheManager testCache = new CacheManager();
-        subject.setCacheManager(testCache); 
+        subject.setCacheManager(testCache);
         User user = mockUser.mockUser();
         user.setLoginId("tester");
         StringBuffer urlBuff = new StringBuffer();
         urlBuff.append("http://orcl.com");
-        //Mockito.when(mockedRequest.getRemoteUser()).thenReturn("tester");
+        // Mockito.when(mockedRequest.getRemoteUser()).thenReturn("tester");
         Mockito.when(mockedRequest.getRequestURL()).thenReturn(urlBuff);
+        PowerMockito.mockStatic(Blueprint.class);
     }
 
     public void getExpectedDeployments()
@@ -199,15 +207,17 @@ public class NbApiControllerTest extends MockitoTestSuite {
 
     public void getExpectedBueprints()
         throws JsonParseException, JsonMappingException, IOException {
-       
-        /*bpItem = new ServiceTypeSummary.Builder().application("DCAE").component("dcae").
-        typeName("xyz1731-helm-1906").owner("xyz1731").typeVersion(1906).build();*/
-        
-        bpItem = new ServiceTypeSummary("xyz1730", "xyz1730-helm-1905", 1905, "DCAE", "dcae", "123-456-321",
-            "342343", true);
-        
-        bpItem2 = new ServiceTypeSummary("xyz1731", "xyz1731-helm-1906", 1906, "DCAE", "dcae", "123-456-789",
-            "342343", true);
+
+        /*
+         * bpItem = new ServiceTypeSummary.Builder().application("DCAE").component("dcae").
+         * typeName("xyz1731-helm-1906").owner("xyz1731").typeVersion(1906).build();
+         */
+
+        bpItem = new ServiceTypeSummary("xyz1730", "xyz1730-helm-1905", 1905, "DCAE", "dcae",
+            "123-456-321", "342343", true);
+
+        bpItem2 = new ServiceTypeSummary("xyz1731", "xyz1731-helm-1906", 1906, "DCAE", "dcae",
+            "123-456-789", "342343", true);
         bpItemFull = new ServiceType.Builder("xyz1731", "xyz1731-helm-1906", 1906,
             "tosca_definitions_version: cloudify_dsl_1_3", "", "DCAE", "dcae").build();
 
@@ -216,7 +226,7 @@ public class NbApiControllerTest extends MockitoTestSuite {
 
         Collection<ServiceTypeSummary> items2 = new ArrayList<ServiceTypeSummary>();
         items2.add(bpItem2);
-        
+
         String pageLinks2 =
             "{\"previousLink\":null,\"nextLink\":{\"rel\":\"next\",\"href\":\"https://invt.com:30123/dcae-services/?offset=25\"}}";
         ServiceTypeSummaryList.PaginationLinks paginationLinks =
@@ -224,7 +234,7 @@ public class NbApiControllerTest extends MockitoTestSuite {
         int totalCount = 1;
         bpList = new ServiceTypeSummaryList(items, totalCount, paginationLinks);
         bpList2 = new ServiceTypeSummaryList(items2, totalCount, paginationLinks);
-        
+
     }
 
     public void createBpUploadItem() {
@@ -237,52 +247,66 @@ public class NbApiControllerTest extends MockitoTestSuite {
 
     @Test
     public final void testCreateBlueprint() throws Exception {
+        // Given
         String bpTemplate = "tosca_definitions_version: cloudify_dsl_1_3";
-        ServiceTypeUploadRequest bpUploadReq = 
+        ServiceTypeUploadRequest bpUploadReq =
             new ServiceTypeUploadRequest("dcae_user", "mod1", 2008, bpTemplate, "DCAE", "dcae");
-        
-        when(inventoryClient.addServiceType(Matchers.<ServiceTypeRequest>any()))
-        .thenThrow(BlueprintParseException.class).thenThrow(httpException)
-        .thenThrow(Exception.class).thenReturn(bpItemFull);
-        
-        //when(mockedRequest.getRequestURI()).thenReturn("https://invt-svc:8080/dcae-service-types");
-        String actual = subject.createBlueprint(mockedRequest, mockedResponse, bpUploadReq, uriBuilder);
-        assertTrue(actual.contains("error"));
-        actual = subject.createBlueprint(mockedRequest, mockedResponse, bpUploadReq, uriBuilder);
+
+        // When
+        when(inventoryClient.addServiceType(Mockito.<ServiceTypeRequest>any()))
+            .thenThrow(httpException).thenThrow(Exception.class).thenReturn(bpItemFull);
+
+        // Then
+        String actual =
+            subject.createBlueprint(mockedRequest, mockedResponse, bpUploadReq, uriBuilder);
         assertTrue(actual.contains("error"));
         actual = subject.createBlueprint(mockedRequest, mockedResponse, bpUploadReq, uriBuilder);
         assertTrue(actual.contains("error"));
         actual = subject.createBlueprint(mockedRequest, mockedResponse, bpUploadReq, uriBuilder);
         assertTrue(actual.contains("xyz"));
     }
-    
+
+    @Test
+    public final void testCreateBlueprint_badBp() throws Exception {
+
+        String bpTemplate = "tosca_definitions_version: cloudify_dsl_1_3";
+        ServiceTypeUploadRequest bpUploadReq =
+            new ServiceTypeUploadRequest("dcae_user", "mod1", 2008, bpTemplate, "DCAE", "dcae");
+
+        when(Blueprint.parse(bpUploadReq.getBlueprintTemplate()))
+            .thenThrow(BlueprintParseException.class);
+
+        String actual1 =
+            subject.createBlueprint(mockedRequest, mockedResponse, bpUploadReq, uriBuilder);
+        assertTrue(actual1.contains("error"));
+    }
+
     @Test
     public final void testCreateBlueprint_badReq() throws Exception {
         String bpTemplate = "tosca_definitions_version: cloudify_dsl_1_3";
-        ServiceTypeUploadRequest bpUploadReq = 
+        ServiceTypeUploadRequest bpUploadReq =
             new ServiceTypeUploadRequest("dcae_user", "mod1", 2008, bpTemplate, "DCAE", "");
-        
-        when(inventoryClient.addServiceType(Matchers.<ServiceTypeRequest>any()))
-        .thenThrow(BlueprintParseException.class).thenThrow(httpException)
-        .thenThrow(Exception.class).thenReturn(null);
-        
-        String actual = subject.createBlueprint(mockedRequest, mockedResponse, bpUploadReq, uriBuilder);
+
+        String actual =
+            subject.createBlueprint(mockedRequest, mockedResponse, bpUploadReq, uriBuilder);
         assertTrue(actual.contains("error"));
     }
-    
+
     @Test
     public final void testQueryBlueprint() throws Exception {
-        
+
         Optional<ServiceType> optionBp = Optional.ofNullable(bpItemFull);
-        when(inventoryClient.getServiceType(Mockito.any())).thenReturn(optionBp).thenThrow(Exception.class);
-        
-        String actual = subject.queryBlueprint("123-343", mockedRequest, mockedResponse, uriBuilder);
+        when(inventoryClient.getServiceType(Mockito.any())).thenReturn(optionBp)
+            .thenThrow(Exception.class);
+
+        String actual =
+            subject.queryBlueprint("123-343", mockedRequest, mockedResponse, uriBuilder);
         assertTrue(actual.contains("xyz"));
-        
+
         actual = subject.queryBlueprint("123-343", mockedRequest, mockedResponse, uriBuilder);
         assertTrue(actual.contains("error"));
     }
-    
+
     @Test
     public final void testGetTenants() throws Exception {
         String tenantsList =
@@ -301,38 +325,41 @@ public class NbApiControllerTest extends MockitoTestSuite {
         String tenantStr = subject.getTenants(mockedRequest);
         assertTrue(tenantStr.contains("dyh1b"));
     }
-    
+
     @Test
-    public final void testGetBlueprintsByPage() {
+    public final void testGetBlueprintsByPage() throws Exception {
         User user = mockUser.mockUser();
         user.setLoginId("tester");
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
-        String filterStr = "{\"owner\": \"xyz1730\", \"name\": \"xyz1730-helm-1905\", \"id\": \"123\"}";
-       
+        String filterStr =
+            "{\"owner\": \"xyz1730\", \"name\": \"xyz1730-helm-1905\", \"id\": \"123\"}";
+
         mockedRequest.addParameter("filters", filterStr);
         mockedRequest.addParameter("sort", "name");
 
         Set<String> userRoleSet = new HashSet<String>();
         Set<String> userApps = new TreeSet<>();
         userRoleSet.add("Standard User");
-        userRoleSet.add("ECOMPC_DCAE_WRITE");
+        userRoleSet.add("DCAE_WRITE");
         userApps.add("dcae");
-        
+
         Mockito.when(mockedRequest.getAttribute("userRoles")).thenReturn(userRoleSet);
         Mockito.when(mockedRequest.getAttribute("userApps")).thenReturn(userApps);
 
         Collection<ServiceTypeSummary> items = bpList.items;
         Stream<ServiceTypeSummary> sampleStream1 = items.stream();
-        Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream1).thenThrow(Exception.class);
-        String result = subject.getBlueprintsByPage(mockedRequest, 1, 1, uriBuilder, mockedResponse);
-        assertTrue(result.contains("xyz")); 
-        
+        Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream1)
+            .thenThrow(Exception.class);
+        String result =
+            subject.getBlueprintsByPage(mockedRequest, 1, 1, uriBuilder, mockedResponse);
+        assertTrue(result.contains("xyz"));
+
         result = subject.getBlueprintsByPage(mockedRequest, 1, 1, uriBuilder, mockedResponse);
         assertTrue(result.contains("error"));
     }
-    
+
     @Test
-    public final void testGetBlueprintsByPage_sortByOwner() {
+    public final void testGetBlueprintsByPage_sortByOwner() throws Exception {
         User user = mockUser.mockUser();
         user.setLoginId("tester");
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
@@ -343,22 +370,24 @@ public class NbApiControllerTest extends MockitoTestSuite {
         userRoleSet.add("Standard User");
         userRoleSet.add("ECOMPC_DCAE_WRITE");
         userApps.add("dcae");
-        
+
         Mockito.when(mockedRequest.getAttribute("userRoles")).thenReturn(userRoleSet);
         Mockito.when(mockedRequest.getAttribute("userApps")).thenReturn(userApps);
 
         Collection<ServiceTypeSummary> items = bpList.items;
         Stream<ServiceTypeSummary> sampleStream1 = items.stream();
-        Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream1).thenThrow(Exception.class);
-        String result = subject.getBlueprintsByPage(mockedRequest, 1, 1, uriBuilder, mockedResponse);
-        assertTrue(result.contains("xyz")); 
-        
+        Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream1)
+            .thenThrow(Exception.class);
+        String result =
+            subject.getBlueprintsByPage(mockedRequest, 1, 1, uriBuilder, mockedResponse);
+        assertTrue(result.contains("xyz"));
+
         result = subject.getBlueprintsByPage(mockedRequest, 1, 1, uriBuilder, mockedResponse);
         assertTrue(result.contains("error"));
     }
-    
+
     @Test
-    public final void testGetBlueprintsByPage_sortByTypeId() {
+    public final void testGetBlueprintsByPage_sortByTypeId() throws Exception {
         User user = mockUser.mockUser();
         user.setLoginId("tester");
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
@@ -369,22 +398,24 @@ public class NbApiControllerTest extends MockitoTestSuite {
         userRoleSet.add("Standard User");
         userRoleSet.add("ECOMPC_DCAE_WRITE");
         userApps.add("dcae");
-        
+
         Mockito.when(mockedRequest.getAttribute("userRoles")).thenReturn(userRoleSet);
         Mockito.when(mockedRequest.getAttribute("userApps")).thenReturn(userApps);
 
         Collection<ServiceTypeSummary> items = bpList.items;
         Stream<ServiceTypeSummary> sampleStream1 = items.stream();
-        Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream1).thenThrow(Exception.class);
-        String result = subject.getBlueprintsByPage(mockedRequest, 1, 1, uriBuilder, mockedResponse);
-        assertTrue(result.contains("xyz")); 
-        
+        Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream1)
+            .thenThrow(Exception.class);
+        String result =
+            subject.getBlueprintsByPage(mockedRequest, 1, 1, uriBuilder, mockedResponse);
+        assertTrue(result.contains("xyz"));
+
         result = subject.getBlueprintsByPage(mockedRequest, 1, 1, uriBuilder, mockedResponse);
         assertTrue(result.contains("error"));
     }
-    
+
     @Test
-    public final void testGetBlueprintsByPage_sortByCreated() {
+    public final void testGetBlueprintsByPage_sortByCreated() throws Exception {
         User user = mockUser.mockUser();
         user.setLoginId("tester");
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
@@ -395,22 +426,24 @@ public class NbApiControllerTest extends MockitoTestSuite {
         userRoleSet.add("Standard User");
         userRoleSet.add("ECOMPC_DCAE_WRITE");
         userApps.add("dcae");
-        
+
         Mockito.when(mockedRequest.getAttribute("userRoles")).thenReturn(userRoleSet);
         Mockito.when(mockedRequest.getAttribute("userApps")).thenReturn(userApps);
 
         Collection<ServiceTypeSummary> items = bpList.items;
         Stream<ServiceTypeSummary> sampleStream1 = items.stream();
-        Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream1).thenThrow(Exception.class);
-        String result = subject.getBlueprintsByPage(mockedRequest, 1, 1, uriBuilder, mockedResponse);
-        assertTrue(result.contains("xyz")); 
-        
+        Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream1)
+            .thenThrow(Exception.class);
+        String result =
+            subject.getBlueprintsByPage(mockedRequest, 1, 1, uriBuilder, mockedResponse);
+        assertTrue(result.contains("xyz"));
+
         result = subject.getBlueprintsByPage(mockedRequest, 1, 1, uriBuilder, mockedResponse);
         assertTrue(result.contains("error"));
     }
-    
+
     @Test
-    public final void testGetBlueprintsByPage_sortByVersion() {
+    public final void testGetBlueprintsByPage_sortByVersion() throws Exception {
         User user = mockUser.mockUser();
         user.setLoginId("tester");
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
@@ -421,23 +454,25 @@ public class NbApiControllerTest extends MockitoTestSuite {
         userRoleSet.add("Standard User");
         userRoleSet.add("ECOMPC_DCAE_WRITE");
         userApps.add("dcae");
-        
+
         Mockito.when(mockedRequest.getAttribute("userRoles")).thenReturn(userRoleSet);
         Mockito.when(mockedRequest.getAttribute("userApps")).thenReturn(userApps);
 
         Collection<ServiceTypeSummary> items = bpList.items;
         Stream<ServiceTypeSummary> sampleStream1 = items.stream();
-        Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream1).thenThrow(Exception.class);
-        String result = subject.getBlueprintsByPage(mockedRequest, 1, 1, uriBuilder, mockedResponse);
-        assertTrue(result.contains("xyz")); 
-        
+        Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream1)
+            .thenThrow(Exception.class);
+        String result =
+            subject.getBlueprintsByPage(mockedRequest, 1, 1, uriBuilder, mockedResponse);
+        assertTrue(result.contains("xyz"));
+
         result = subject.getBlueprintsByPage(mockedRequest, 1, 1, uriBuilder, mockedResponse);
         assertTrue(result.contains("error"));
     }
-    
+
     @SuppressWarnings("unchecked")
     @Test
-    public final void testGetDeployment() {
+    public final void testGetDeployment() throws HttpStatusCodeException, Exception {
         CloudifyDeployment cldDepl = new CloudifyDeployment("description", "blueprint_id",
             "created_at", "updated_at", "id1", null, null, null, null, null, null, null, "tenant1");
 
@@ -451,15 +486,16 @@ public class NbApiControllerTest extends MockitoTestSuite {
 
         CloudifyDeploymentList cldDeplList = new CloudifyDeploymentList(items, metadata);
 
-        when(cfyClient.getDeployment(Mockito.any())).thenReturn(cldDeplList).thenThrow(Exception.class);
-        
+        when(cfyClient.getDeployment(Mockito.any())).thenReturn(cldDeplList)
+            .thenThrow(Exception.class);
+
         String actual = subject.getDeployment("id1", mockedRequest);
         assertTrue(actual.contains("id1"));
-        
+
         actual = subject.getDeployment("id1", mockedRequest);
         assertTrue(actual.contains("error"));
     }
-    
+
     @Test
     public final void testGetDeploymentsByPage() throws Exception {
         CloudifyDeployment cldDepl = new CloudifyDeployment("description", "blueprint_id",
@@ -475,15 +511,17 @@ public class NbApiControllerTest extends MockitoTestSuite {
 
         CloudifyDeploymentList cldDeplList = new CloudifyDeploymentList(items, metadata);
 
-        when(cfyClient.getDeploymentsWithFilter(Mockito.any())).thenReturn(items).thenThrow(Exception.class);
-        
-        String actual = subject.getDeploymentsByPage(mockedRequest, 1, 1, uriBuilder, mockedResponse);
+        when(cfyClient.getDeploymentsWithFilter(Mockito.any())).thenReturn(items)
+            .thenThrow(Exception.class);
+
+        String actual =
+            subject.getDeploymentsByPage(mockedRequest, 1, 1, uriBuilder, mockedResponse);
         assertTrue(actual.contains("id1"));
-        
+
         actual = subject.getDeploymentsByPage(mockedRequest, 1, 1, uriBuilder, mockedResponse);
         assertTrue(actual.contains("error"));
     }
-    
+
     @Test
     public final void testGetDeploymentInputs() throws Exception {
         CloudifyDeployment cldDepl = new CloudifyDeployment("description", "blueprint_id",
@@ -499,8 +537,9 @@ public class NbApiControllerTest extends MockitoTestSuite {
 
         CloudifyDeploymentList cldDeplList = new CloudifyDeploymentList(items, metadata);
 
-        when(cfyClient.getDeploymentInputs(Mockito.any(), Mockito.any())).thenReturn(cldDeplList).thenThrow(httpException).thenThrow(Exception.class);
-        
+        when(cfyClient.getDeploymentInputs(Mockito.any(), Mockito.any())).thenReturn(cldDeplList)
+            .thenThrow(httpException).thenThrow(Exception.class);
+
         String actual = subject.getDeploymentInputs("dep_id", "tenant1", mockedRequest);
         assertTrue(actual.contains("id1"));
 
@@ -511,7 +550,7 @@ public class NbApiControllerTest extends MockitoTestSuite {
         assertTrue(actual.contains("error"));
 
     }
-    
+
     @Test
     public final void testGetServicesForType() throws Exception {
         String testTypeIds = "44234234";
@@ -520,56 +559,58 @@ public class NbApiControllerTest extends MockitoTestSuite {
         expectedSrvcIds.add(expectedSrvc);
         ServiceRefList expectedSrvcRefList = new ServiceRefList(expectedSrvcIds, 1);
 
-        when(inventoryClient.getServicesForType(Matchers.<ServiceQueryParams>any()))
+        when(inventoryClient.getServicesForType(any(ServiceQueryParams.class)))
             .thenReturn(expectedSrvcRefList);
         String actual = subject.getServicesForType(mockedRequest, testTypeIds);
         assertTrue(actual.contains(testTypeIds));
     }
-    
+
     @SuppressWarnings("unchecked")
     @Test
     public final void testCreateDeployment() throws Exception {
+        // Given
         Map<String, Object> inputs = new HashMap<>();
         inputs.put("key1", "value1");
         inputs.put("key2", "value2");
         inputs.put("key3", "value3");
         inputs.put("key4", 100);
 
-        DeploymentInput deployInput1 = new DeploymentInput("component1", "tag1",
-            "xyz1731-helm-1906", 1906, "blueprintId", inputs, "tenant1", 
-            null, true, true, true, false, true, false);
+        DeploymentInput deployInput1 =
+            new DeploymentInput("component1", "tag1", "xyz1731-helm-1906", 1906, "blueprintId",
+                inputs, "tenant1", null, true, true, true, false, true, false);
 
-        DeploymentInput deployInput2 = new DeploymentInput("component1", "tag1",
-            "xyz1731-helm-1906", 1906, null, inputs, "tenant1",
-            null, true, true, true, false, true, false);
+        DeploymentInput deployInput2 =
+            new DeploymentInput("component1", "tag1", "xyz1731-helm-1906", 1906, null, inputs,
+                "tenant1", null, true, true, true, false, true, false);
 
         DeploymentResponseLinks expectLink = new DeploymentResponseLinks("self", "status");
         DeploymentResponse expectResp = new DeploymentResponse("req1", expectLink);
 
         Collection<ServiceTypeSummary> items = bpList2.items;
         Stream<ServiceTypeSummary> sampleStream1 = items.stream();
-        Mockito.when(inventoryClient.getServiceTypes(Matchers.<ServiceTypeQueryParams>any()))
-            .thenReturn(sampleStream1);
-
-/*        String actualResp0 = subject.createDeployment(mockedRequest, mockedResponse, deployInput2);
-        assertTrue(actualResp0.contains("error"));*/
 
         Optional<ServiceType> optionBp = Optional.ofNullable(bpItemFull);
-        Mockito.when(inventoryClient.getServiceType(Matchers.anyString())).thenReturn(optionBp);
-        
+
         StringBuffer expectedStrBuff = new StringBuffer();
         expectedStrBuff.append("http://oom.s2.com");
+
+        // When
+        when(inventoryClient.getServiceTypes(any(ServiceTypeQueryParams.class)))
+            .thenReturn(sampleStream1);
+
+        when(inventoryClient.getServiceType(anyString())).thenReturn(optionBp);
+
         when(mockedRequest.getRequestURL()).thenReturn(expectedStrBuff);
 
-        when(deploymentHandlerClient.putDeployment(Matchers.anyString(), Matchers.anyString(),
-            Matchers.<DeploymentRequest>any())).thenReturn(expectResp).thenReturn(expectResp)
-                .thenThrow(badReqError)
-                .thenThrow(srvcExistError).thenThrow(serverError).thenThrow(downStrmError)
-                .thenThrow(Exception.class);
+        when(deploymentHandlerClient.putDeployment(anyString(), anyString(),
+            any(DeploymentRequest.class))).thenReturn(expectResp).thenReturn(expectResp)
+                .thenThrow(badReqError).thenThrow(srvcExistError).thenThrow(serverError)
+                .thenThrow(downStrmError).thenThrow(Exception.class);
 
+        // Then
         String actualResp = subject.createDeployment(mockedRequest, mockedResponse, deployInput1);
         assertTrue(actualResp.contains("component1"));
-        
+
         actualResp = subject.createDeployment(mockedRequest, mockedResponse, deployInput2);
         assertTrue(actualResp.contains("component1"));
 
@@ -589,83 +630,82 @@ public class NbApiControllerTest extends MockitoTestSuite {
         assertTrue(actualResp.contains("error"));
 
     }
-    
+
     @Test
     public final void testGetExecutionByDeploymentId() throws Exception {
-        CloudifyExecution cldExecution =
-            new CloudifyExecution("successful", "created_at", "ended_at", "install", false, "bp1", "id1",
-                "tenant1", "error", "execution_id1", null);
-        
+        CloudifyExecution cldExecution = new CloudifyExecution("successful", "created_at",
+            "ended_at", "install", false, "bp1", "id1", "tenant1", "error", "execution_id1", null);
+
         List<CloudifyExecution> cldExecutionList = new ArrayList<CloudifyExecution>();
 
         cldExecutionList.add(cldExecution);
 
         CloudifyExecutionList cloudifyExecutionList =
             new CloudifyExecutionList(cldExecutionList, null);
-        
+
         when(cfyClient.getExecutionsSummary(Mockito.any(), Mockito.any()))
             .thenReturn(cloudifyExecutionList).thenThrow(httpException).thenThrow(Exception.class);;
-        
+
         String actual = subject.getExecutionByDeploymentId("deploymentId", "tenant", mockedRequest);
         assertTrue(actual.contains("execution_id1"));
-        
+
         actual = subject.getExecutionByDeploymentId("deploymentId", "tenant", mockedRequest);
         assertTrue(actual.contains("error"));
-        
+
         actual = subject.getExecutionByDeploymentId("deploymentId", "tenant", mockedRequest);
         assertTrue(actual.contains("error"));
 
     }
-    
+
     @Test
     public final void testGetServiceHealthByDeploymentId() throws Exception {
-        String[] svcTags = {"cfytenantname=onap"}; 
+        String[] svcTags = {"cfytenantname=onap"};
         ConsulServiceHealth consulSrvcHlth = new ConsulServiceHealth("cjlvmcnsl00",
             "service:pgaas1_Service_ID", "Service 'pgaasServer1' check", "passing",
             "This is a pgaas1_Service_ID health check",
             "HTTP GET http://srvc.com:8000/healthcheck/status: 200 OK Output: { \"output\": \"Thu Apr 20 19:53:01 UTC 2017|INFO|masters=1 pgaas1.com|secondaries=0 |maintenance= |down=1 pgaas2.com| \" }\n",
             "pgaas1_Service_ID", "pgaasServer1", svcTags, 190199, 199395);
-        
-        ConsulDeploymentHealth cnslDeployHlth = 
+
+        ConsulDeploymentHealth cnslDeployHlth =
             new ConsulDeploymentHealth.Builder(consulSrvcHlth).build();
-        
+
         when(consulClient.getServiceHealthByDeploymentId(Mockito.any())).thenReturn(cnslDeployHlth)
             .thenThrow(httpException).thenThrow(Exception.class);
 
         String actual = subject.getServiceHealthByDeploymentId("deploymentId", mockedRequest);
         assertTrue(actual.contains("cjlvmcnsl00"));
-        
+
         actual = subject.getServiceHealthByDeploymentId("deploymentId", mockedRequest);
         assertTrue(actual.contains("error"));
-        
+
         actual = subject.getServiceHealthByDeploymentId("deploymentId", mockedRequest);
         assertTrue(actual.contains("error"));
     }
-    
+
     @Test
     public final void testDeleteBlueprint() throws Exception {
-        //String expected = "{\"202\": \"OK\"}";
+        // String expected = "{\"202\": \"OK\"}";
         String expected = "{\"204\": \"Blueprint deleted\"}";
         List<CloudifyDeployedTenant> deplForBp = new ArrayList<>();
         deplForBp.clear();
-        Mockito.when(cfyClient.getDeploymentForBlueprint(Matchers.<String>any()))
-        .thenReturn(deplForBp);
-        
+        Mockito.when(cfyClient.getDeploymentForBlueprint(anyString())).thenReturn(deplForBp);
+
         Optional<ServiceType> optionBp = Optional.ofNullable(bpItemFull);
-        Mockito.when(inventoryClient.getServiceType(Matchers.anyString())).thenReturn(optionBp);
+        Mockito.when(inventoryClient.getServiceType(anyString())).thenReturn(optionBp);
 
         List<ServiceRef> srvcRefList = new ArrayList<>();
         srvcRefList.clear();
         int itemCnt = 0;
         ServiceRefList mockSvcRefList = new ServiceRefList(srvcRefList, itemCnt);
 
-        Mockito.when(inventoryClient.getServicesForType(Matchers.<ServiceQueryParams>any()))
+        Mockito.when(inventoryClient.getServicesForType(any(ServiceQueryParams.class)))
             .thenReturn(mockSvcRefList);
-        
-        doNothing().doThrow(serviceTypeException).doThrow(Exception.class).when(inventoryClient)
-            .deleteServiceType(Matchers.anyString());
 
-        String actual = subject.deleteBlueprint("srvcId", mockedRequest, mockedResponse, uriBuilder);
+        doNothing().doThrow(serviceTypeException).doThrow(Exception.class).when(inventoryClient)
+            .deleteServiceType(anyString());
+
+        String actual =
+            subject.deleteBlueprint("srvcId", mockedRequest, mockedResponse, uriBuilder);
         assertEquals(expected, actual);
 
         actual = subject.deleteBlueprint("srvcId", mockedRequest, mockedResponse, uriBuilder);
@@ -677,25 +717,26 @@ public class NbApiControllerTest extends MockitoTestSuite {
 
     @Test
     public final void testDeleteBlueprint_withDepl() throws Exception {
-        CloudifyDeployedTenant mockCfyDeplTen = 
+        CloudifyDeployedTenant mockCfyDeplTen =
             new CloudifyDeployedTenant("id1", "tenant", "45435435", "54543534");
-        
+
         Optional<ServiceType> optionBp = Optional.ofNullable(bpItemFull);
-        Mockito.when(inventoryClient.getServiceType(Matchers.anyString())).thenReturn(optionBp);
-        
+        Mockito.when(inventoryClient.getServiceType(anyString())).thenReturn(optionBp);
+
         List<CloudifyDeployedTenant> deplForBp = new ArrayList<>();
         deplForBp.add(mockCfyDeplTen);
-        Mockito.when(cfyClient.getDeploymentForBlueprint(Matchers.<String>any()))
-        .thenReturn(deplForBp);
-        
-        String actual = subject.deleteBlueprint("srvcId", mockedRequest, mockedResponse, uriBuilder);
+        Mockito.when(cfyClient.getDeploymentForBlueprint(anyString())).thenReturn(deplForBp);
+
+        String actual =
+            subject.deleteBlueprint("srvcId", mockedRequest, mockedResponse, uriBuilder);
         assertTrue(actual.contains("error"));
     }
-    
+
     @Test
     public final void testDeleteDeployment() throws Exception {
-        CloudifyDeployment cldDepl = new CloudifyDeployment("description", "blueprint_id",
-            "created_at", "updated_at", "dcae_dep_id", null, null, null, null, null, null, null, "tenant1");
+        CloudifyDeployment cldDepl =
+            new CloudifyDeployment("description", "blueprint_id", "created_at", "updated_at",
+                "dcae_dep_id", null, null, null, null, null, null, null, "tenant1");
 
         List<CloudifyDeployment> items = new ArrayList<CloudifyDeployment>();
         items.add(cldDepl);
@@ -707,27 +748,28 @@ public class NbApiControllerTest extends MockitoTestSuite {
 
         CloudifyDeploymentList cldDeplList = new CloudifyDeploymentList(items, metadata);
 
-        Mockito.when(cfyClient.getDeployment(Matchers.anyString(), Matchers.anyString())).thenReturn(cldDeplList);
-        
-        doNothing().doThrow(badReqError).doThrow(serverError).doThrow(downStrmError)
-        .doThrow(notFoundError).doThrow(Exception.class).when(deploymentHandlerClient)
-        .deleteDeployment(Matchers.anyString(), Matchers.anyString());
+        Mockito.when(cfyClient.getDeployment(anyString(), anyString())).thenReturn(cldDeplList);
 
-        String actual = subject.deleteDeployment("dcae_dep_id", mockedRequest, "tenant1", mockedResponse);
+        doNothing().doThrow(badReqError).doThrow(serverError).doThrow(downStrmError)
+            .doThrow(notFoundError).doThrow(Exception.class).when(deploymentHandlerClient)
+            .deleteDeployment(anyString(), anyString());
+
+        String actual =
+            subject.deleteDeployment("dcae_dep_id", mockedRequest, "tenant1", mockedResponse);
         assertTrue(actual.contains("dcae_dep_id"));
-    
+
         actual = subject.deleteDeployment("dcae_dep_id", mockedRequest, "tenant1", mockedResponse);
         assertTrue(actual.contains("error"));
-    
+
         actual = subject.deleteDeployment("dcae_dep_id", mockedRequest, "tenant1", mockedResponse);
         assertTrue(actual.contains("error"));
-    
+
         actual = subject.deleteDeployment("dcae_dep_id", mockedRequest, "tenant1", mockedResponse);
         assertTrue(actual.contains("error"));
-    
+
         actual = subject.deleteDeployment("dcae_dep_id", mockedRequest, "tenant1", mockedResponse);
         assertTrue(actual.contains("error"));
-    
+
         actual = subject.deleteDeployment("dcae_dep_id", mockedRequest, "tenant1", mockedResponse);
         assertTrue(actual.contains("error"));
 
@@ -742,9 +784,8 @@ public class NbApiControllerTest extends MockitoTestSuite {
         HttpHeaders httpHeader = new HttpHeaders();
         httpHeader.put("tenant", tenants);
 
-        CloudifyExecution cfyExecObj =
-            new CloudifyExecution("successful", "created_at", "ended_at", "install", false, "bp1", "id1",
-                "tenant1", "error", "execution_id1", null);
+        CloudifyExecution cfyExecObj = new CloudifyExecution("successful", "created_at", "ended_at",
+            "install", false, "bp1", "id1", "tenant1", "error", "execution_id1", null);
 
         when(cfyClient.cancelExecution(Mockito.any(), Mockito.any(), Mockito.any()))
             .thenReturn(cfyExecObj).thenThrow(Exception.class).thenThrow(httpException);
@@ -761,13 +802,12 @@ public class NbApiControllerTest extends MockitoTestSuite {
             subject.cancelExecution(httpHeader, "id1", null, mockedRequest, mockedResponse);
         assertTrue(actualResult.contains("error"));
     }
-    
+
     @SuppressWarnings("unchecked")
     @Test
     public final void testModifyDeployment() throws Exception {
-        CloudifyExecution cldExecution =
-            new CloudifyExecution("successful", "created_at", "ended_at", "install", false, "bp1", "id1",
-                "tenant1", "error", "execution_id1", null);
+        CloudifyExecution cldExecution = new CloudifyExecution("successful", "created_at",
+            "ended_at", "install", false, "bp1", "id1", "tenant1", "error", "execution_id1", null);
 
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("tenant", "tenant1");
@@ -775,7 +815,7 @@ public class NbApiControllerTest extends MockitoTestSuite {
 
         CloudifyExecutionRequest cfyExecReq = new CloudifyExecutionRequest("deployment_id",
             "upgrade", false, false, "tenant1", params);
-        
+
         CloudifyNodeInstanceId cfyNodeInst = new CloudifyNodeInstanceId("node_instance_id1");
 
         List<CloudifyNodeInstanceId> cfyNodeInstItems = new ArrayList<CloudifyNodeInstanceId>();
@@ -786,18 +826,18 @@ public class NbApiControllerTest extends MockitoTestSuite {
             new CloudifyNodeInstanceIdList(cfyNodeInstItems, null);
 
         when(cfyClient.getNodeInstanceId(Mockito.any(), Mockito.any())).thenReturn(cfyNodeInstList);
-        
+
         String secretTokenStr =
-            "{\"created_at\": \"created_ts\", \"key\": \"acl_key\", \"updated_at\": \"updated_ts\", \"value\": \"acl_token_val\", \"visibility\": \"global\", \"is_hidden_value\": \"false\", \"tenant_name\": \"tenant\", \"resource_availability\": \"rsrc\"}";          
+            "{\"created_at\": \"created_ts\", \"key\": \"acl_key\", \"updated_at\": \"updated_ts\", \"value\": \"acl_token_val\", \"visibility\": \"global\", \"is_hidden_value\": \"false\", \"tenant_name\": \"tenant\", \"resource_availability\": \"rsrc\"}";
         CloudifySecret secretData = null;
         try {
             secretData = objectMapper.readValue(secretTokenStr, CloudifySecret.class);
         } catch (Exception e) {
-            
+
         }
         when(cfyClient.getSecret(Mockito.any(), Mockito.any())).thenReturn(secretData);
-        when(cfyClient.startExecution(Matchers.<CloudifyExecutionRequest>any()))
-            .thenReturn(cldExecution).thenThrow(Exception.class).thenThrow(httpException);
+        when(cfyClient.startExecution(any(CloudifyExecutionRequest.class))).thenReturn(cldExecution)
+            .thenThrow(Exception.class).thenThrow(httpException);
 
         String inputParamStr = "{\"tenant\": \"tenant1\", \"workflow\":\"upgrade\"}";
 
@@ -805,7 +845,7 @@ public class NbApiControllerTest extends MockitoTestSuite {
         String actualResult = subject.modifyDeployment("depId", mockedRequest, is1);
         assertTrue(actualResult.contains("execution_id1"));
 
-        InputStream is2 = new ByteArrayInputStream(inputParamStr.getBytes());       
+        InputStream is2 = new ByteArrayInputStream(inputParamStr.getBytes());
         actualResult = subject.modifyDeployment("depId", mockedRequest, is2);
         assertTrue(actualResult.contains("error"));
 

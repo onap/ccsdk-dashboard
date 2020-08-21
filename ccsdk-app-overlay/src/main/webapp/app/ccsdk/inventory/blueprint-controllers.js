@@ -1109,6 +1109,242 @@ appDS2.directive('json', function() {
     }
   };  
 });
+
+/*************************************************************************/
+
+
+appDS2.controller('inventoryDeploymentExecutionsViewCtrl', function(
+    $scope, $rootScope, $interval, $log, $modalInstance, message, modalService, InventoryExecutionService, ExecutionService) {
+
+  'use strict';
+
+  var debug = false;
+
+  if (debug)
+    $log.debug("inventoryDeploymentsExecutionsViewCtrl.message: " + JSON.stringify(message));
+
+  // this object holds all app data and functions
+  $scope.ecdapp = {};
+  // models for controls on screen
+  $scope.ecdapp.label = 'Deployment ' + message.deployment.id + ' Executions';
+  $scope.ecdapp.tableData = [];
+  $scope.ecdapp.logTableData = [];
+  $scope.ecdapp.currentPageNum = 1;
+  $scope.ecdapp.viewPerPage = 10;
+  $scope.ecdapp.currentLogPageNum = 1;
+  $scope.ecdapp.selectedRow = null;
+
+  // other
+  $scope.ecdapp.errMsg = null;
+  $scope.ecdapp.isDataLoading = true;
+  $scope.ecdapp.isEventLogQuery = false;
+  $scope.ecdapp.isRequestFailed = false;
+  $scope.ecdapp.isLastExecution = message.deployment.onlyLatest;
+  $scope.ecdapp.isLogType = true;
+  $scope.ecdapp.refresh_switch = {
+      value: true
+  };
+  $scope.ecdapp.options = {
+      "on":"On",
+      "off":"Off"
+  }   
+  var selTenant = message.deployment.tenant;
+
+  $scope.ecdapp.ui_tenant = selTenant;
+  $scope.ecdapp.tenant = selTenant;
+  $scope.ecdapp.execId = "";
+  $scope.ecdapp.deplRef = message.deployment.deploymentRef;
+  var stop;
+  /**
+   * Loads the table. Interprets the remote controller's response and copies
+   * to scope variables. The response is either a list to be assigned to
+   * tableData, or an error to be shown.
+   */
+  $scope.ecdapp.loadTable = function() {
+    $scope.ecdapp.isDataLoading = true;
+    InventoryExecutionService.getExecutionsByDeployment($scope.ecdapp.deplRef, 
+        $scope.ecdapp.tenant,
+        $scope.ecdapp.currentPageNum,
+        $scope.ecdapp.viewPerPage).then(
+            function(jsonObj) {
+              if (jsonObj.error) {
+                $log.error("deploymentExecutionsViewCtrl.loadTable failed: "
+                    + jsonObj.error);
+                $scope.ecdapp.isRequestFailed = true;
+                if (jsonObj.error.includes("404")) {
+                  $scope.ecdapp.errMsg = "404 - Deployment " + message.deployment.deploymentRef + " Not Found!";
+                }
+                $scope.ecdapp.tableData = [];
+                $scope.ecdapp.stopLoading();
+              } else {
+                $scope.ecdapp.isRequestFailed = false;
+                $scope.ecdapp.errMsg = null;
+                $scope.ecdapp.totalPages = jsonObj.totalPages;
+                var resultLen = jsonObj.items.length;
+                if (resultLen != undefined && resultLen > 0) {
+                  var exec_id = jsonObj.items[resultLen-1].id;
+                      $scope.ecdapp.execId = exec_id;
+                      $scope.ecdapp.selectedRow = resultLen-1;
+                  if ($scope.ecdapp.isLastExecution) {
+                    $scope.ecdapp.tableData = [];
+                    $scope.ecdapp.tableData.push(jsonObj.items[resultLen-1]);
+                  } else {
+                    $scope.ecdapp.tableData = jsonObj.items;
+                  }
+                  $scope.ecdapp.getExecutionLogs($scope.ecdapp.selectedRow, exec_id, $scope.ecdapp.tenant);
+                }
+              }
+              $scope.ecdapp.isDataLoading = false;
+            },
+            function(error) {
+              $log.error("inventoryDeploymentExecutionsViewCtrl.loadTable failed: "
+                  + error);
+              $scope.ecdapp.isRequestFailed = true;
+              $scope.ecdapp.errMsg = error;
+              $scope.ecdapp.tableData = [];
+              $scope.ecdapp.isDataLoading = false;
+              $scope.ecdapp.stopLoading();
+            });
+  };
+  $scope.$watch('ecdapp.refresh_switch["value"]', function(newValue,oldValue,scope) {
+    if (newValue != oldValue) {
+      if (newValue === true) {
+        $scope.ecdapp.loadTable();
+        stop = $interval( function(){ $scope.ecdapp.loadTable(); }, 30000, 100, false);
+      } else {
+        $scope.ecdapp.stopLoading();
+      }
+    }
+  }, true);
+
+  if ($scope.ecdapp.refresh_switch.value === true) {
+    stop = $interval( function(){ $scope.ecdapp.loadTable(); }, 30000, 100, false);
+  }
+
+  $scope.ecdapp.stopLoading = function() {
+    if (angular.isDefined(stop)) {
+      $interval.cancel(stop);
+      stop = undefined;
+    }
+  };
+
+    $scope.ecdapp.copyStringToClipboard = function(str) {
+       // Create new element
+       var el = document.createElement('textarea');
+       // Set value (string to be copied)
+       el.value = str;
+       // Set non-editable to avoid focus and move outside of view
+       el.setAttribute('readonly', '');
+       el.style = {position: 'absolute', left: '-9999px'};
+       document.body.appendChild(el);
+       // Select text inside element
+       el.select();
+       // Copy text to clipboard
+       document.execCommand('copy');
+       // Remove temporary element
+       document.body.removeChild(el);
+    };
+
+  $scope.ecdapp.cancelExecutionModalPopup = function(execution, tenant) {
+    modalService.popupConfirmWin("Confirm", "Cancel execution with ID '"
+        + execution.id + "'?", function() {
+      $scope.ecdapp.isCancelOn = true;
+      // TODO: gather action from user
+      InventoryExecutionService.cancelExecution(execution.id, execution.deployment_id, "force-cancel", tenant).then(
+          function(response) {
+            if (debug)
+              $log.debug("Controller.cancelExecutionModalPopup: " + JSON.stringify(response));
+            if (response && response.error) {
+              // $log.error('cancelExectuion failed: ' + response.error);
+              alert('Failed to cancel execution:\n' + response.error);
+              $scope.ecdapp.isCancelOn = false;
+            }
+            else {
+              // No response body on success.
+              $scope.ecdapp.isCancelOn = false;
+              $scope.ecdapp.loadTable();
+            }
+          },
+          function(error) {
+            $scope.ecdapp.isCancelOn = false;
+            $log.error('ExecutionService.cancelExecution failed: ' + error);
+            alert('Service failed to cancel execution:\n' + error);
+          });
+    })
+  };
+
+  /**
+   * Invoked at first page load AND when
+   * user clicks on the B2B pagination control.
+   */
+  $scope.pageChangeHandler = function(page) {
+    if (debug)
+      console.log('pageChangeHandler: current is ' + $scope.ecdapp.currentPageNum + ' new is ' + page);
+    $scope.ecdapp.currentPageNum = page;
+    $scope.ecdapp.loadTable();
+
+  }
+  $scope.pageChangeHandlerEvent = function(page) {
+    if (debug)
+      console.log('pageChangeHandlerEvent: current is ' + $scope.ecdapp.currentLogPageNum + ' new is ' + page);
+      if (page != $scope.ecdapp.currentLogPageNum ) {
+      $scope.ecdapp.currentLogPageNum = page;
+      $scope.ecdapp.getExecutionLogs($scope.ecdapp.selectedRow, $scope.ecdapp.execId, $scope.ecdapp.tenant);
+    }
+  }
+
+  $scope.ecdapp.setClickedRow = function(index){  //function that sets the value of selectedRow to current index
+     $scope.ecdapp.selectedRow = index;
+  }
+  $scope.ecdapp.selected = false;
+  $scope.ecdapp.toggleStatusDefinitions = function() {
+    $scope.ecdapp.selected = $scope.ecdapp.selected ? false :true;
+  }
+
+  /**
+   * Shows a modal pop-up with the error.
+   */
+  $scope.ecdapp.viewErrorModalPopup = function(row) {
+    $modalInstance.dismiss('cancel');
+    modalService.showFailure('Error Details', row.error, function() { } );
+  };
+
+  $scope.ecdapp.getExecutionLogs = function(rowIdx, id, tenant) {
+    $scope.ecdapp.setClickedRow(rowIdx);
+    $scope.ecdapp.execId = id;
+    $scope.ecdapp.isEventLogQuery = false;
+    InventoryExecutionService.getEventsByExecution(id , $scope.ecdapp.isLogType, tenant,
+        $scope.ecdapp.currentLogPageNum, $scope.ecdapp.viewPerPage ).then(
+            function(jsonObj) {
+              if (jsonObj.error) {
+                $log.error("inventoryDeploymentExecutionsViewCtrl.getExecutionLogs failed: "
+                    + jsonObj.error);
+                $scope.ecdapp.isEventLogQuery = false;
+                $scope.ecdapp.evtErrMsg = jsonObj.error;
+                $scope.ecdapp.logTableData = [];
+              } else {
+                $scope.ecdapp.isEventLogQuery = true;
+                $scope.ecdapp.evtErrMsg = null;
+                $scope.ecdapp.totalLogPages = jsonObj.totalPages;
+                $scope.ecdapp.logTableData = jsonObj.items;
+              }
+              $scope.ecdapp.isDataLoading = false;
+            },
+            function(error) {
+              $log.error("inventoryDeploymentExecutionsViewCtrl.getExecutionLogs failed: "
+                  + error);
+              $scope.ecdapp.evtErrMsg = error;
+              $scope.ecdapp.logTableData = [];
+              $scope.ecdapp.isDataLoading = false;
+            });
+  }
+
+  $scope.$on('$destroy', function() {
+    // Make sure that the interval is destroyed too
+    $scope.ecdapp.stopLoading();
+  });
+});
+
 /*************************************************************************/
 
 appDS2.controller('inventoryBlueprintDeployCtrl', function(
@@ -1254,7 +1490,7 @@ appDS2.controller('inventoryBlueprintDeployCtrl', function(
   $scope.ecdapp.viewDeploymentExecutionsModalPopup = function(deployment) {
     var modalInstance = $modal.open({
       templateUrl : 'inventory_execution_view_popup.html',
-      controller : 'inventoryDeploymentExecutionsViewCtrl',
+      controller : 'inventoryDeploymentExecutionsViewCtrl',   
       windowClass: 'modal-docked',
       sizeClass: 'modal-jumbo',
       resolve : {

@@ -17,8 +17,8 @@
  * limitations under the License.
  * ============LICENSE_END=========================================================
  *
- * ECOMP is a trademark and service mark of AT&T Intellectual Property.
  *******************************************************************************/
+
 package org.onap.ccsdk.dashboard.rest;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -27,6 +27,11 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.contains;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,13 +49,12 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.onap.ccsdk.dashboard.core.MockitoTestSuite;
-import org.onap.ccsdk.dashboard.core.MockitoTestSuite.MockHttpServletRequestWrapper;
 import org.onap.ccsdk.dashboard.model.cloudify.CloudifyBlueprint;
 import org.onap.ccsdk.dashboard.model.cloudify.CloudifyBlueprintList;
 import org.onap.ccsdk.dashboard.model.cloudify.CloudifyDeployedTenant;
@@ -60,6 +64,7 @@ import org.onap.ccsdk.dashboard.model.cloudify.CloudifyDeploymentList;
 import org.onap.ccsdk.dashboard.model.cloudify.CloudifyEvent;
 import org.onap.ccsdk.dashboard.model.cloudify.CloudifyEventList;
 import org.onap.ccsdk.dashboard.model.cloudify.CloudifyEventList.Metadata;
+import org.onap.ccsdk.dashboard.model.consul.ConsulServiceHealth;
 import org.onap.ccsdk.dashboard.model.cloudify.CloudifyExecution;
 import org.onap.ccsdk.dashboard.model.cloudify.CloudifyExecutionList;
 import org.onap.ccsdk.dashboard.model.cloudify.CloudifyExecutionRequest;
@@ -76,6 +81,7 @@ import org.onap.ccsdk.dashboard.model.cloudify.CloudifyTenantList;
 import org.onap.ccsdk.dashboard.util.DashboardProperties;
 import org.onap.portalsdk.core.util.CacheManager;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.ParameterizedTypeReference;
@@ -83,6 +89,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -92,6 +99,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({DashboardProperties.class})
 public class CloudifyRestClientImplTest extends MockitoTestSuite {
 
@@ -99,8 +107,8 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
     RestTemplate mockRest;
 
     @InjectMocks
-    CloudifyRestClientImpl subject = new CloudifyRestClientImpl();
-    
+    CloudifyRestClientImpl subject;
+
     HttpServletRequest mockedRequest;
     HttpServletResponse mockedResponse;
     protected final static ObjectMapper objectMapper = new ObjectMapper();
@@ -113,13 +121,12 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
         when(DashboardProperties.getControllerProperty("site.primary",
             DashboardProperties.SITE_SUBKEY_CLOUDIFY_URL)).thenReturn("https://orcl.com");
         CacheManager testCache = new CacheManager();
-        subject.setCacheManager(testCache); 
+        subject.setCacheManager(testCache);
         this.subject.init();
     }
 
     @Test
-    public final void getEventlogsTest()
-        throws JsonParseException, JsonMappingException, IOException {
+    public final void getEventlogsTest() throws HttpStatusCodeException, Exception {
         String executionId = "123a123a";
         String tenant = "thisTenant";
         List<CloudifyEvent> items = new ArrayList<CloudifyEvent>();
@@ -146,11 +153,8 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
 
         ResponseEntity<CloudifyEventList> response =
             new ResponseEntity<CloudifyEventList>(expected, HttpStatus.OK);
-        Mockito
-            .when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.GET),
-                Matchers.<HttpEntity<?>>any(),
-                Matchers.<ParameterizedTypeReference<CloudifyEventList>>any()))
-            .thenReturn(response);
+        Mockito.when(mockRest.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<CloudifyEventList>() {}))).thenReturn(response);
         CloudifyEventList actual = subject.getEventlogs(executionId, tenant);
         assertTrue(actual.items.size() == 2);
 
@@ -158,7 +162,7 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
 
     @Test
     public final void testGetTenants_GetData() {
-        // define the entity you want the exchange to return
+        // Given
         String tenantsList =
             "{\"items\": [{\"id\": 1, \"dName\": null, \"name\": \"default_tenant\"}, {\"id\": 2, \"dName\": null, \"name\": \"dyh1b1902\"}], \"metadata\": {\"pagination\": {\"total\": 2, \"offset\": 0, \"size\": 0}}}";
         CloudifyTenantList sampleData = null;
@@ -169,12 +173,12 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
 
         ResponseEntity<CloudifyTenantList> response =
             new ResponseEntity<CloudifyTenantList>(sampleData, HttpStatus.OK);
-        Mockito
-            .when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.GET),
-                Matchers.<HttpEntity<?>>any(),
-                Matchers.<ParameterizedTypeReference<CloudifyTenantList>>any()))
-            .thenReturn(response);
 
+        // When
+        when(mockRest.exchange(anyString(), eq(HttpMethod.GET), isNull(),
+            eq(new ParameterizedTypeReference<CloudifyTenantList>() {}))).thenReturn(response);
+
+        // Then
         CloudifyTenantList res = subject.getTenants();
         assertNotNull(res);
         assertThat(res.items.get(1).name, is("dyh1b1902"));
@@ -183,17 +187,17 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
     @SuppressWarnings("unchecked")
     @Test(expected = RestClientException.class)
     public final void testGetTenants_withException() {
-        // define the entity you want the exchange to return
-        Mockito
-            .when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.GET),
-                Matchers.<HttpEntity<?>>any(),
-                Matchers.<ParameterizedTypeReference<CloudifyTenantList>>any()))
-            .thenThrow(RestClientException.class);
+        // When
+        when(mockRest.exchange(anyString(), eq(HttpMethod.GET), isNull(),
+            eq(new ParameterizedTypeReference<CloudifyTenantList>() {})))
+                .thenThrow(RestClientException.class);
+
+        // Then
         subject.getTenants();
     }
 
     @Test
-    public final void testGetNodeInstanceId() {
+    public final void testGetNodeInstanceId() throws HttpStatusCodeException, Exception {
         CloudifyNodeInstanceId cfyNodeInst = new CloudifyNodeInstanceId("node_instance_id1");
         List<CloudifyNodeInstanceId> cfyNodeInstItems = new ArrayList<CloudifyNodeInstanceId>();
         cfyNodeInstItems.add(cfyNodeInst);
@@ -203,9 +207,8 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
         ResponseEntity<CloudifyNodeInstanceIdList> response =
             new ResponseEntity<CloudifyNodeInstanceIdList>(cfyNodeInstList, HttpStatus.OK);
 
-        when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<CloudifyNodeInstanceIdList>>any()))
+        when(mockRest.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<CloudifyNodeInstanceIdList>() {})))
                 .thenReturn(response);
 
         CloudifyNodeInstanceIdList actualResult =
@@ -214,7 +217,7 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
     }
 
     @Test
-    public final void testGetNodeInstanceVersion() {
+    public final void testGetNodeInstanceVersion() throws HttpStatusCodeException, Exception {
         CloudifyNodeInstance cfyNodeInstance = new CloudifyNodeInstance("id1", null);
 
         List<CloudifyNodeInstance> cfyNodeInstanceItems = new ArrayList<CloudifyNodeInstance>();
@@ -225,9 +228,8 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
 
         ResponseEntity<CloudifyNodeInstanceList> response =
             new ResponseEntity<CloudifyNodeInstanceList>(cfyNodeInstList, HttpStatus.OK);
-        when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<CloudifyNodeInstanceList>>any()))
+        when(mockRest.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<CloudifyNodeInstanceList>() {})))
                 .thenReturn(response);
 
         CloudifyNodeInstanceList actualResult =
@@ -236,7 +238,8 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
     }
 
     @Test
-    public final void testGetNodeInstanceVersion_blueprint() {
+    public final void testGetNodeInstanceVersion_blueprint()
+        throws HttpStatusCodeException, Exception {
         CloudifyNodeId cfyNodeId = new CloudifyNodeId("node_id");
         List<CloudifyNodeId> cfyNodeIdItems = new ArrayList<CloudifyNodeId>();
         cfyNodeIdItems.add(cfyNodeId);
@@ -244,10 +247,6 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
 
         ResponseEntity<CloudifyNodeIdList> response1 =
             new ResponseEntity<CloudifyNodeIdList>(cfyNodeIdList, HttpStatus.OK);
-
-        when(mockRest.exchange(Matchers.contains("nodes"), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<CloudifyNodeIdList>>any())).thenReturn(response1);
 
         CloudifyNodeInstance cfyNodeInstance = new CloudifyNodeInstance("id1", null);
 
@@ -259,10 +258,14 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
 
         ResponseEntity<CloudifyNodeInstanceList> response2 =
             new ResponseEntity<CloudifyNodeInstanceList>(cfyNodeInstList, HttpStatus.OK);
-        when(mockRest.exchange(Matchers.contains("node-instances"), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<CloudifyNodeInstanceList>>any()))
-                .thenReturn(response2);
+
+        when(mockRest.exchange(contains("nodes"), eq(HttpMethod.GET), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<CloudifyNodeIdList>() {}))).thenReturn(response1);
+
+        when(
+            mockRest.exchange(contains("node-instances"), eq(HttpMethod.GET), any(HttpEntity.class),
+                eq(new ParameterizedTypeReference<CloudifyNodeInstanceList>() {})))
+                    .thenReturn(response2);
 
         CloudifyNodeInstanceList actualResult =
             subject.getNodeInstanceVersion("blueprintId", "tenant");
@@ -270,7 +273,7 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
     }
 
     @Test
-    public final void testGetNodeInstanceId_blueprint() {
+    public final void testGetNodeInstanceId_blueprint() throws HttpStatusCodeException, Exception {
         CloudifyNodeId cfyNodeId = new CloudifyNodeId("node_id");
         List<CloudifyNodeId> cfyNodeIdItems = new ArrayList<CloudifyNodeId>();
         cfyNodeIdItems.add(cfyNodeId);
@@ -279,9 +282,8 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
         ResponseEntity<CloudifyNodeIdList> response1 =
             new ResponseEntity<CloudifyNodeIdList>(cfyNodeIdList, HttpStatus.OK);
 
-        when(mockRest.exchange(Matchers.contains("nodes"), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<CloudifyNodeIdList>>any())).thenReturn(response1);
+        when(mockRest.exchange(contains("nodes"), eq(HttpMethod.GET), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<CloudifyNodeIdList>() {}))).thenReturn(response1);
 
         CloudifyNodeInstanceId cfyNodeInst = new CloudifyNodeInstanceId("node_instance_id1");
         List<CloudifyNodeInstanceId> cfyNodeInstItems = new ArrayList<CloudifyNodeInstanceId>();
@@ -292,20 +294,19 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
         ResponseEntity<CloudifyNodeInstanceIdList> response =
             new ResponseEntity<CloudifyNodeInstanceIdList>(cfyNodeInstList, HttpStatus.OK);
 
-        when(mockRest.exchange(Matchers.contains("node-instances"), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<CloudifyNodeInstanceIdList>>any()))
-                .thenReturn(response);
+        when(
+            mockRest.exchange(contains("node-instances"), eq(HttpMethod.GET), any(HttpEntity.class),
+                eq(new ParameterizedTypeReference<CloudifyNodeInstanceIdList>() {})))
+                    .thenReturn(response);
 
         CloudifyNodeInstanceIdList actualResult = subject.getNodeInstanceId("bpId", "tenant");
         assertTrue(actualResult.items.get(0).id.equals("node_instance_id1"));
     }
 
     @Test
-    public void testGetExecutions() {
-        CloudifyExecution cldExecution =
-            new CloudifyExecution("successful", "created_at", "ended_at", "install", false, 
-                "bp1", "id1","tenant1", "error", "execution_id1", null);
+    public void testGetExecutions() throws Exception {
+        CloudifyExecution cldExecution = new CloudifyExecution("successful", "created_at",
+            "ended_at", "install", false, "bp1", "id1", "tenant1", "error", "execution_id1", null);
 
         List<CloudifyExecution> cldExecutionList = new ArrayList<CloudifyExecution>();
 
@@ -317,20 +318,17 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
         ResponseEntity<CloudifyExecutionList> response =
             new ResponseEntity<CloudifyExecutionList>(cloudifyExecutionList, HttpStatus.OK);
 
-        when(mockRest.exchange(Matchers.contains("deployment_id"), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<CloudifyExecutionList>>any()))
-                .thenReturn(response);
+        when(mockRest.exchange(contains("deployment_id"), eq(HttpMethod.GET), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<CloudifyExecutionList>() {}))).thenReturn(response);
 
         CloudifyExecutionList actualResult = subject.getExecutions("deploymentId1", "tenant1");
         assertTrue(actualResult.items.get(0).id.contains("id1"));
     }
 
     @Test
-    public void testGetExecutionsSummary() {
-        CloudifyExecution cldExecution =
-            new CloudifyExecution("successful", "created_at", "ended_at", "install", false, "bp1", "id1",
-                "tenant1", "error", "execution_id1", null);
+    public void testGetExecutionsSummary() throws HttpStatusCodeException, Exception {
+        CloudifyExecution cldExecution = new CloudifyExecution("successful", "created_at",
+            "ended_at", "install", false, "bp1", "id1", "tenant1", "error", "execution_id1", null);
 
         List<CloudifyExecution> cldExecutionList = new ArrayList<CloudifyExecution>();
 
@@ -342,10 +340,8 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
         ResponseEntity<CloudifyExecutionList> response =
             new ResponseEntity<CloudifyExecutionList>(cloudifyExecutionList, HttpStatus.OK);
 
-        when(mockRest.exchange(Matchers.contains("include"), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<CloudifyExecutionList>>any()))
-                .thenReturn(response);
+        when(mockRest.exchange(contains("include"), eq(HttpMethod.GET), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<CloudifyExecutionList>() {}))).thenReturn(response);
 
         CloudifyExecutionList actualResult =
             subject.getExecutionsSummary("deploymentId1", "tenant1");
@@ -353,9 +349,9 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
     }
 
     @Test
-    public void testStartExecution() {
-        CloudifyExecution cfyExecObj = new CloudifyExecution("successful", "created_at", "ended-at", "install",
-            false, "bp1", "id1", "tenant1", "error", "execution_id1", null);
+    public void testStartExecution() throws HttpStatusCodeException, Exception {
+        CloudifyExecution cfyExecObj = new CloudifyExecution("successful", "created_at", "ended-at",
+            "install", false, "bp1", "id1", "tenant1", "error", "execution_id1", null);
 
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("key1", "value1");
@@ -363,18 +359,16 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
         CloudifyExecutionRequest cfyExecReq = new CloudifyExecutionRequest("deployment_id",
             "upgrade", false, false, "tenant1", params);
 
-        when(mockRest.postForObject(Matchers.anyString(), Matchers.<HttpEntity<?>>any(),
-            Matchers.<Class<CloudifyExecution>>any())).thenReturn(cfyExecObj);
+        when(mockRest.postForObject(anyString(), any(), any())).thenReturn(cfyExecObj);
 
         CloudifyExecution actualResult = subject.startExecution(cfyExecReq);
         assertTrue(actualResult.status.equals("successful"));
     }
 
     @Test
-    @Ignore
-    public void testCancelExecution() {
-        CloudifyExecution cfyExecObj = new CloudifyExecution("successful", "created_at", "end_at", "install",
-            false, "bp1", "id1", "tenant1", "error", "execution_id1", null);
+    public void testCancelExecution() throws HttpStatusCodeException, Exception {
+        CloudifyExecution cfyExecObj = new CloudifyExecution("successful", "created_at", "end_at",
+            "install", false, "bp1", "id1", "tenant1", "error", "execution_id1", null);
 
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("key1", "value1");
@@ -382,9 +376,8 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
         ResponseEntity<CloudifyExecution> response =
             new ResponseEntity<CloudifyExecution>(cfyExecObj, HttpStatus.OK);
 
-        when(mockRest.exchange(Matchers.contains("executions"), Matchers.eq(HttpMethod.POST),
-            Matchers.<HttpEntity<?>>any(), Matchers.<Class<CloudifyExecution>>any()))
-                .thenReturn(response);
+        when(mockRest.exchange(contains("executions"), eq(HttpMethod.POST), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<CloudifyExecution>() {}))).thenReturn(response);
 
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put("key1", "value1");
@@ -395,7 +388,7 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
     }
 
     @Test
-    public void testGetBlueprint() {
+    public void testGetBlueprint() throws HttpStatusCodeException, Exception {
         CloudifyBlueprint cldBp =
             new CloudifyBlueprint("file1", "description1", "343242", "3423423", "id1", null);
 
@@ -412,9 +405,8 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
         ResponseEntity<CloudifyBlueprintList> response =
             new ResponseEntity<CloudifyBlueprintList>(cldBpList, HttpStatus.OK);
 
-        doReturn(response).when(mockRest).exchange(Matchers.anyString(),
-            Matchers.eq(HttpMethod.GET), Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<CloudifyBlueprintList>>any());
+        doReturn(response).when(mockRest).exchange(anyString(), eq(HttpMethod.GET),
+            any(HttpEntity.class), eq(new ParameterizedTypeReference<CloudifyBlueprintList>() {}));
 
         CloudifyBlueprintList actualResult = subject.getBlueprint("id1", "tenant1");
         assertTrue(actualResult.items.get(0).id.equals("id1"));
@@ -437,14 +429,13 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
         ResponseEntity<CloudifyDeploymentList> response =
             new ResponseEntity<CloudifyDeploymentList>(cldDeployList, HttpStatus.OK);
 
-        when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(), Matchers.<ParameterizedTypeReference<CloudifyDeploymentList>>any()))
-                .thenReturn(response);
-        
+        when(mockRest.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<CloudifyDeploymentList>() {}))).thenReturn(response);
+
         CloudifyDeploymentList actualResult = subject.getDeployments("tenant", 10, 0);
         assertTrue(actualResult.items.get(0).id.equals("id"));
     }
-    
+
     @Test
     public void testGetDeployments_from_cache() {
         CloudifyDeployment cldDeployment = new CloudifyDeployment("description", "blueprint_id",
@@ -462,41 +453,41 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
         ResponseEntity<CloudifyDeploymentList> response =
             new ResponseEntity<CloudifyDeploymentList>(cldDeployList, HttpStatus.OK);
 
-        when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(), Matchers.<ParameterizedTypeReference<CloudifyDeploymentList>>any()))
-                .thenReturn(response);
-        
+        when(mockRest.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<CloudifyDeploymentList>() {}))).thenReturn(response);
+
         List<CloudifyDeployment> actualResult = subject.getDeployments("tenant", 10, 0, true, true);
         assertTrue(actualResult.get(0).id.equals("id"));
     }
-    
+
     @Test
     public void testGetDeploymentForBlueprint() {
-        CloudifyDeployedTenant cfyDepTenant = 
+        CloudifyDeployedTenant cfyDepTenant =
             new CloudifyDeployedTenant("id", "tenant", "created_at", "updated_at");
         List<CloudifyDeployedTenant> cfyDepTenantList = new ArrayList<>();
         cfyDepTenantList.add(cfyDepTenant);
-            
+
         CloudifyDeployedTenantList.Metadata.Pagination pageObj =
             new CloudifyDeployedTenantList.Metadata.Pagination(1, 0, 1);
-        CloudifyDeployedTenantList.Metadata metadata = new CloudifyDeployedTenantList.Metadata(pageObj);
+        CloudifyDeployedTenantList.Metadata metadata =
+            new CloudifyDeployedTenantList.Metadata(pageObj);
 
-        CloudifyDeployedTenantList cldDeployList = new CloudifyDeployedTenantList(cfyDepTenantList, metadata);
+        CloudifyDeployedTenantList cldDeployList =
+            new CloudifyDeployedTenantList(cfyDepTenantList, metadata);
 
         ResponseEntity<CloudifyDeployedTenantList> response =
             new ResponseEntity<CloudifyDeployedTenantList>(cldDeployList, HttpStatus.OK);
 
-        when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<CloudifyDeployedTenantList>>any()))
+        when(mockRest.exchange(anyString(), eq(HttpMethod.GET), isNull(),
+            eq(new ParameterizedTypeReference<CloudifyDeployedTenantList>() {})))
                 .thenReturn(response);
-        
+
         List<CloudifyDeployedTenant> actuals = subject.getDeploymentForBlueprint("bpId");
         assertTrue(actuals.get(0).id.equals("id"));
     }
-    
+
     @Test
-    public void testGetDeploymentResource() {        
+    public void testGetDeploymentResource() {
         CloudifyDeployment cldDeployment = new CloudifyDeployment("description", "blueprint_id",
             "created_at", "updated_at", "id", null, null, null, null, null, null, null, "tenant");
 
@@ -512,16 +503,15 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
         ResponseEntity<CloudifyDeploymentList> response =
             new ResponseEntity<CloudifyDeploymentList>(cldDeployList, HttpStatus.OK);
 
-        when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(), Matchers.<ParameterizedTypeReference<CloudifyDeploymentList>>any()))
-                .thenReturn(response);
+        when(mockRest.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<CloudifyDeploymentList>() {}))).thenReturn(response);
 
-        CloudifyDeployment actualResult = subject.getDeploymentResource("id", "tenant");  
+        CloudifyDeployment actualResult = subject.getDeploymentResource("id", "tenant");
         assertTrue(actualResult.id.equals("id"));
     }
-    
+
     @Test
-    public void testGetNodeInstanceDetails() {
+    public void testGetNodeInstanceDetails() throws HttpStatusCodeException, Exception {
         CloudifyNodeInstance cfyNodeInstance = new CloudifyNodeInstance("id1", null);
 
         List<CloudifyNodeInstance> cfyNodeInstanceItems = new ArrayList<CloudifyNodeInstance>();
@@ -532,18 +522,18 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
 
         ResponseEntity<CloudifyNodeInstanceList> response2 =
             new ResponseEntity<CloudifyNodeInstanceList>(cfyNodeInstList, HttpStatus.OK);
-        when(mockRest.exchange(Matchers.contains("node-instances"), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<CloudifyNodeInstanceList>>any()))
-                .thenReturn(response2);       
-        
-        CloudifyNodeInstanceList actualResult = 
-            subject.getNodeInstanceDetails("id", "tenant");
+
+        when(
+            mockRest.exchange(contains("node-instances"), eq(HttpMethod.GET), any(HttpEntity.class),
+                eq(new ParameterizedTypeReference<CloudifyNodeInstanceList>() {})))
+                    .thenReturn(response2);
+
+        CloudifyNodeInstanceList actualResult = subject.getNodeInstanceDetails("id", "tenant");
         assertTrue(actualResult.items.get(0).id.equals("id1"));
     }
-    
+
     @Test
-    public void testGetNodeInstances() {
+    public void testGetNodeInstances() throws HttpStatusCodeException, Exception {
         CloudifyNodeInstanceId cfyNodeInstance = new CloudifyNodeInstanceId("id1");
 
         List<CloudifyNodeInstanceId> cfyNodeInstanceItems = new ArrayList<CloudifyNodeInstanceId>();
@@ -554,22 +544,20 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
 
         ResponseEntity<CloudifyNodeInstanceIdList> response2 =
             new ResponseEntity<CloudifyNodeInstanceIdList>(cfyNodeInstList, HttpStatus.OK);
-        when(mockRest.exchange(Matchers.contains("node-instances"), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<CloudifyNodeInstanceIdList>>any()))
-                .thenReturn(response2);       
-        
-        CloudifyNodeInstanceIdList actualResult = 
-            subject.getNodeInstances("id", "tenant");
+
+        when(
+            mockRest.exchange(contains("node-instances"), eq(HttpMethod.GET), any(HttpEntity.class),
+                eq(new ParameterizedTypeReference<CloudifyNodeInstanceIdList>() {})))
+                    .thenReturn(response2);
+
+        CloudifyNodeInstanceIdList actualResult = subject.getNodeInstances("id", "tenant");
         assertTrue(actualResult.items.get(0).id.equals("id1"));
     }
-    
-    
-    @Test    
-    public void testGetExecutionsSummaryPerTenant() {
-        CloudifyExecution cldExecution =
-            new CloudifyExecution("successful", "created_at", "ended_at", "install", false, "bp1", "id1",
-                "tenant1", "error", "execution_id1", null);
+
+    @Test
+    public void testGetExecutionsSummaryPerTenant() throws HttpStatusCodeException, Exception {
+        CloudifyExecution cldExecution = new CloudifyExecution("successful", "created_at",
+            "ended_at", "install", false, "bp1", "id1", "tenant1", "error", "execution_id1", null);
 
         List<CloudifyExecution> cldExecutionList = new ArrayList<CloudifyExecution>();
 
@@ -581,36 +569,31 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
         ResponseEntity<CloudifyExecutionList> response =
             new ResponseEntity<CloudifyExecutionList>(cloudifyExecutionList, HttpStatus.OK);
 
-        when(mockRest.exchange(Matchers.contains("include"), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<CloudifyExecutionList>>any()))
-                .thenReturn(response);
+        when(mockRest.exchange(contains("include"), eq(HttpMethod.GET), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<CloudifyExecutionList>() {}))).thenReturn(response);
 
-        CloudifyExecutionList actualResult =
-            subject.getExecutionsSummaryPerTenant("tenant1");
+        CloudifyExecutionList actualResult = subject.getExecutionsSummaryPerTenant("tenant1");
         assertTrue(actualResult.items.get(0).id.contains("id1"));
     }
-    
+
     @Test
-    public void testGetExecutionIdSummary() {
-        CloudifyExecution cldExecution =
-            new CloudifyExecution("successful", "created_at", "ended_at", "install", false, "bp1", "id1",
-                "tenant1", "error", "execution_id1", null);
+    public void testGetExecutionIdSummary() throws HttpStatusCodeException, Exception {
+        CloudifyExecution cldExecution = new CloudifyExecution("successful", "created_at",
+            "ended_at", "install", false, "bp1", "id1", "tenant1", "error", "execution_id1", null);
         ResponseEntity<CloudifyExecution> response =
             new ResponseEntity<CloudifyExecution>(cldExecution, HttpStatus.OK);
-        when(mockRest.exchange(Matchers.contains("include"), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<CloudifyExecution>>any()))
-                .thenReturn(response);
+
+        when(mockRest.exchange(contains("include"), eq(HttpMethod.GET), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<CloudifyExecution>() {}))).thenReturn(response);
+
         CloudifyExecution actuals = subject.getExecutionIdSummary("execution_id1", "tenant");
         assertTrue(actuals.id.contains("execution_id1"));
     }
-    
+
     @Test
     public void testGetInstallExecutionSummary() {
-        CloudifyExecution cldExecution =
-            new CloudifyExecution("successful", "created_at", "ended_at", "install", false, "bp1", "id1",
-                "tenant1", "error", "execution_id1", null);
+        CloudifyExecution cldExecution = new CloudifyExecution("successful", "created_at",
+            "ended_at", "install", false, "bp1", "id1", "tenant1", "error", "execution_id1", null);
 
         List<CloudifyExecution> cldExecutionList = new ArrayList<CloudifyExecution>();
 
@@ -622,43 +605,39 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
         ResponseEntity<CloudifyExecutionList> response =
             new ResponseEntity<CloudifyExecutionList>(cloudifyExecutionList, HttpStatus.OK);
 
-        when(mockRest.exchange(Matchers.contains("include"), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<CloudifyExecutionList>>any()))
-                .thenReturn(response);
+        when(mockRest.exchange(contains("include"), eq(HttpMethod.GET), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<CloudifyExecutionList>() {}))).thenReturn(response);
 
-        CloudifyExecutionList actualResult =
-            subject.getInstallExecutionSummary("id1", "tenant1");
+        CloudifyExecutionList actualResult = subject.getInstallExecutionSummary("id1", "tenant1");
         assertTrue(actualResult.items.get(0).id.contains("id1"));
     }
-    
-    @Test
-    public void testViewBlueprint() {
-        byte[] outArr =  "Any String you want".getBytes();
-        ResponseEntity<byte[]> response = 
-            new ResponseEntity<byte[]>(outArr, HttpStatus.OK);
 
-        doReturn(response).when(mockRest).exchange(Matchers.anyString(),
-            Matchers.eq(HttpMethod.GET), Matchers.<HttpEntity<?>>any(),
-            Matchers.<Class<?>>any());
-        
+    @Test
+    public void testViewBlueprint() throws HttpStatusCodeException, Exception {
+        byte[] outArr = "Any String you want".getBytes();
+        ResponseEntity<byte[]> response = new ResponseEntity<byte[]>(outArr, HttpStatus.OK);
+
+        when(mockRest.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class),
+            ArgumentMatchers.any(Class.class))).thenReturn(response);
+
+        /*
+         * doReturn(response).when(mockRest).exchange(Matchers.anyString(),
+         * Matchers.eq(HttpMethod.GET), Matchers.<HttpEntity<?>>any(),
+         * Matchers.<Class<?>>any());
+         */
+
         subject.viewBlueprint("tenant1", "id1");
     }
-    
+
     @Test
     public void testGetDeploymentNamesWithFilter() throws Exception {
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
-        //mockedRequest.addParameter("filters", filterStr);
-        //mockedRequest.addParameter("sort", "name");
         Set<String> userRoleSet = new HashSet<String>();
         Set<String> userApps = new TreeSet<>();
         userRoleSet.add("Standard User");
         userRoleSet.add("ECOMPC_DCAE_WRITE");
         userApps.add("dcae");
-        
-        Mockito.when(mockedRequest.getAttribute("userRoles")).thenReturn(userRoleSet);
-        Mockito.when(mockedRequest.getAttribute("userApps")).thenReturn(userApps);
-        
+
         String tenantsList =
             "{\"items\": [{\"id\": 1, \"dName\": null, \"name\": \"default_tenant\"}, {\"id\": 2, \"dName\": null, \"name\": \"dyh1b1902\"}], \"metadata\": {\"pagination\": {\"total\": 2, \"offset\": 0, \"size\": 0}}}";
         CloudifyTenantList sampleData = null;
@@ -670,7 +649,6 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
         ResponseEntity<CloudifyTenantList> response1 =
             new ResponseEntity<CloudifyTenantList>(sampleData, HttpStatus.OK);
 
-        
         CloudifyDeployment cldDeployment = new CloudifyDeployment("description", "blueprint_id",
             "created_at", "updated_at", "id", null, null, null, null, null, null, null, "tenant");
 
@@ -686,34 +664,34 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
         ResponseEntity<CloudifyDeploymentList> response2 =
             new ResponseEntity<CloudifyDeploymentList>(cldDeployList, HttpStatus.OK);
 
-        Mockito
-        .when(mockRest.exchange(Matchers.contains("tenants"), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<CloudifyTenantList>>any()))
-        .thenReturn(response1);
+        // When
+        when(mockedRequest.getAttribute("userRoles")).thenReturn(userRoleSet);
+        when(mockedRequest.getAttribute("userApps")).thenReturn(userApps);
 
-        Mockito.when(mockRest.exchange(Matchers.contains("deployments"), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(), Matchers.<ParameterizedTypeReference<CloudifyDeploymentList>>any()))
-                .thenReturn(response2);        
-        
+        when(mockRest.exchange(anyString(), eq(HttpMethod.GET), isNull(),
+            eq(new ParameterizedTypeReference<CloudifyTenantList>() {}))).thenReturn(response1);
+
+        when(mockRest.exchange(contains("deployments"), eq(HttpMethod.GET), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<CloudifyDeploymentList>() {}))).thenReturn(response2);
+
         List<String> actual = subject.getDeploymentNamesWithFilter(mockedRequest);
         assertTrue(actual.size() > 0);
     }
-    
+
     @Test
     public void testGetDeploymentsWithFilter() throws Exception {
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
-        //mockedRequest.addParameter("filters", filterStr);
-        //mockedRequest.addParameter("sort", "name");
+        // mockedRequest.addParameter("filters", filterStr);
+        // mockedRequest.addParameter("sort", "name");
         Set<String> userRoleSet = new HashSet<String>();
         Set<String> userApps = new TreeSet<>();
         userRoleSet.add("Standard User");
         userRoleSet.add("ECOMPC_DCAE_WRITE");
         userApps.add("dcae");
-        
+
         Mockito.when(mockedRequest.getAttribute("userRoles")).thenReturn(userRoleSet);
         Mockito.when(mockedRequest.getAttribute("userApps")).thenReturn(userApps);
-        
+
         String tenantsList =
             "{\"items\": [{\"id\": 1, \"dName\": null, \"name\": \"default_tenant\"}, {\"id\": 2, \"dName\": null, \"name\": \"dyh1b1902\"}], \"metadata\": {\"pagination\": {\"total\": 2, \"offset\": 0, \"size\": 0}}}";
         CloudifyTenantList sampleData = null;
@@ -725,7 +703,6 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
         ResponseEntity<CloudifyTenantList> response1 =
             new ResponseEntity<CloudifyTenantList>(sampleData, HttpStatus.OK);
 
-        
         CloudifyDeployment cldDeployment = new CloudifyDeployment("description", "blueprint_id",
             "created_at", "updated_at", "id", null, null, null, null, null, null, null, "tenant");
 
@@ -741,54 +718,47 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
         ResponseEntity<CloudifyDeploymentList> response2 =
             new ResponseEntity<CloudifyDeploymentList>(cldDeployList, HttpStatus.OK);
 
-        Mockito
-        .when(mockRest.exchange(Matchers.contains("tenants"), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<CloudifyTenantList>>any()))
-        .thenReturn(response1);
+        when(mockRest.exchange(contains("tenants"), eq(HttpMethod.GET), isNull(),
+            eq(new ParameterizedTypeReference<CloudifyTenantList>() {}))).thenReturn(response1);
 
-        Mockito.when(mockRest.exchange(Matchers.contains("deployments"), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(), Matchers.<ParameterizedTypeReference<CloudifyDeploymentList>>any()))
-                .thenReturn(response2);
-        
+        when(mockRest.exchange(contains("deployments"), eq(HttpMethod.GET), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<CloudifyDeploymentList>() {}))).thenReturn(response2);
+
         List<CloudifyDeployment> actuals = subject.getDeploymentsWithFilter(mockedRequest);
         assertTrue(actuals.size() > 0);
     }
-    
+
     @Test
     public void testGetSecret() {
         String secretTokenStr =
-            "{\"created_at\": \"created_ts\", \"key\": \"acl_key\", \"updated_at\": \"updated_ts\", \"value\": \"acl_token_val\", \"visibility\": \"global\", \"is_hidden_value\": \"false\", \"tenant_name\": \"tenant\", \"resource_availability\": \"rsrc\"}";          
+            "{\"created_at\": \"created_ts\", \"key\": \"acl_key\", \"updated_at\": \"updated_ts\", \"value\": \"acl_token_val\", \"visibility\": \"global\", \"is_hidden_value\": \"false\", \"tenant_name\": \"tenant\", \"resource_availability\": \"rsrc\"}";
         CloudifySecret sampleData = null;
         try {
             sampleData = objectMapper.readValue(secretTokenStr, CloudifySecret.class);
         } catch (Exception e) {
-            
+
         }
-        
+
         ResponseEntity<CloudifySecret> response =
             new ResponseEntity<CloudifySecret>(sampleData, HttpStatus.OK);
-        
-        when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<CloudifySecret>>any()))
-                .thenReturn(response);
-        
+
+        when(mockRest.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<CloudifySecret>() {}))).thenReturn(response);
+
         CloudifySecret actuals = subject.getSecret("acl_key", "tenant");
         assertTrue(actuals.getKey().equals("acl_key"));
     }
-    
+
     @Test
-    public void testDeleteBlueprint() {
-        when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.DELETE),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<CloudifyBlueprint>>any())).thenReturn(null);
+    public void testDeleteBlueprint() throws HttpStatusCodeException, Exception {
+        when(mockRest.exchange(anyString(), eq(HttpMethod.DELETE), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<CloudifyBlueprint>() {}))).thenReturn(null);
         subject.deleteBlueprint("bp", "tenant");
     }
-    
+
     @Test
-    public void testGetPlugins() {
-        CloudifyPlugin sampleData = 
+    public void testGetPlugins() throws HttpStatusCodeException, Exception {
+        CloudifyPlugin sampleData =
             new CloudifyPlugin("plugin1", "202001", "linux", "linux_k8s_plugin", "20200801");
 
         List<CloudifyPlugin> cfyPlugins = new ArrayList<CloudifyPlugin>();
@@ -801,18 +771,16 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
         CloudifyPluginList cfyPluginList = new CloudifyPluginList(cfyPlugins, metadata);
         ResponseEntity<CloudifyPluginList> response =
             new ResponseEntity<CloudifyPluginList>(cfyPluginList, HttpStatus.OK);
-        
-        when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<CloudifyPluginList>>any()))
-                .thenReturn(response);
-        
+
+        when(mockRest.exchange(anyString(), eq(HttpMethod.GET), isNull(),
+            eq(new ParameterizedTypeReference<CloudifyPluginList>() {}))).thenReturn(response);
+
         CloudifyPluginList actuals = subject.getPlugins();
         assertTrue(actuals.items.get(0).package_name.equals("plugin1"));
     }
-    
+
     @Test
-    public void testGetDeploymentInputs() {
+    public void testGetDeploymentInputs() throws HttpStatusCodeException, Exception {
         CloudifyDeployment cldDeployment = new CloudifyDeployment("description", "blueprint_id",
             "created_at", "updated_at", "id", null, null, null, null, null, null, null, "tenant");
 
@@ -828,14 +796,64 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
         ResponseEntity<CloudifyDeploymentList> response =
             new ResponseEntity<CloudifyDeploymentList>(cldDeployList, HttpStatus.OK);
 
-        when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(), Matchers.<ParameterizedTypeReference<CloudifyDeploymentList>>any()))
-                .thenReturn(response);
-        
+        when(mockRest.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<CloudifyDeploymentList>() {}))).thenReturn(response);
+
         CloudifyDeploymentList actualResult = subject.getDeploymentInputs("id", "tenant");
         assertTrue(actualResult.items.get(0).id.equals("id"));
     }
-    
 
+    @Test
+    public void testGetDeployment_noTenant() throws HttpStatusCodeException, Exception {
+        // Given
+        CloudifyDeployment cldDeployment = new CloudifyDeployment("description", "blueprint_id",
+            "created_at", "updated_at", "id", null, null, null, null, null, null, null, "tenant");
+
+        List<CloudifyDeployment> cfyDeployItems = new ArrayList<CloudifyDeployment>();
+        cfyDeployItems.add(cldDeployment);
+
+        CloudifyDeploymentList.Metadata.Pagination pageObj =
+            new CloudifyDeploymentList.Metadata.Pagination(1, 0, 1);
+        CloudifyDeploymentList.Metadata metadata = new CloudifyDeploymentList.Metadata(pageObj);
+
+        CloudifyDeploymentList cldDeployList = new CloudifyDeploymentList(cfyDeployItems, metadata);
+
+        ResponseEntity<CloudifyDeploymentList> response =
+            new ResponseEntity<CloudifyDeploymentList>(cldDeployList, HttpStatus.OK);
+
+        // When
+        when(mockRest.exchange(anyString(), eq(HttpMethod.GET), isNull(),
+            eq(new ParameterizedTypeReference<CloudifyDeploymentList>() {}))).thenReturn(response);
+
+        // Then
+        CloudifyDeploymentList actualResult = subject.getDeployment("id");
+        assertTrue(actualResult.items.get(0).id.equals("id"));
+    }
+
+    @Test
+    public void testGetDeployment() throws HttpStatusCodeException, Exception {
+        // Given
+        CloudifyDeployment cldDeployment = new CloudifyDeployment("description", "blueprint_id",
+            "created_at", "updated_at", "id", null, null, null, null, null, null, null, "tenant");
+
+        List<CloudifyDeployment> cfyDeployItems = new ArrayList<CloudifyDeployment>();
+        cfyDeployItems.add(cldDeployment);
+
+        CloudifyDeploymentList.Metadata.Pagination pageObj =
+            new CloudifyDeploymentList.Metadata.Pagination(1, 0, 1);
+        CloudifyDeploymentList.Metadata metadata = new CloudifyDeploymentList.Metadata(pageObj);
+
+        CloudifyDeploymentList cldDeployList = new CloudifyDeploymentList(cfyDeployItems, metadata);
+
+        ResponseEntity<CloudifyDeploymentList> response =
+            new ResponseEntity<CloudifyDeploymentList>(cldDeployList, HttpStatus.OK);
+
+        // When
+        when(mockRest.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class),
+            eq(new ParameterizedTypeReference<CloudifyDeploymentList>() {}))).thenReturn(response);
+
+        // Then
+        CloudifyDeploymentList actualResult = subject.getDeployment("id", "tenant");
+        assertTrue(actualResult.items.get(0).id.equals("id"));
+    }
 }
-

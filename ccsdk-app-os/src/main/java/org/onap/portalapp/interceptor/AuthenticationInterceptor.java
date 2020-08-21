@@ -18,6 +18,7 @@
  * ============LICENSE_END=========================================================
  *
  *******************************************************************************/
+
 package org.onap.portalapp.interceptor;
 
 import java.io.IOException;
@@ -25,7 +26,6 @@ import java.nio.charset.StandardCharsets;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-//import javax.xml.bind.DatatypeConverter;
 import java.util.Base64;
 
 import org.apache.http.HttpStatus;
@@ -33,70 +33,65 @@ import org.onap.portalsdk.core.domain.User;
 import org.onap.portalsdk.core.service.UserProfileService;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
 public class AuthenticationInterceptor implements HandlerInterceptor {
 
-	@Autowired
-	private UserProfileService userSvc;
-	
-	@Override
-	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-		String authString = request.getHeader("Authorization");
-		try {
-		if(authString == null || authString.isEmpty())
-		{
-			response.setStatus(HttpStatus.SC_UNAUTHORIZED);
-			response.sendError(HttpStatus.SC_UNAUTHORIZED, "Authentication information is missing");
-			return false; //Do not continue with request
-		} else {
-			String decodedAuth = "";
-			String[] authParts = authString.split("\\s+");
-			String authInfo = authParts[1];
-			byte[] bytes = null;
-			bytes = Base64.getDecoder().decode(authInfo);
-					//DatatypeConverter.parseBase64Binary(authInfo);
-			decodedAuth = new String(bytes,StandardCharsets.UTF_8);
-			String[] authen = decodedAuth.split(":");
+    @Autowired
+    private UserProfileService userSvc;
 
-			if  (authen.length > 1) {
-			    User user = userSvc.getUserByLoginId(authen[0]);
-			    if (user == null) {
-	                 response.sendError(HttpStatus.SC_UNAUTHORIZED, "Un-authorized to perform this operation");
-	                    return false;
-			    }
-/*				ResponseEntity<String> getResponse = 
-				    userSrvc.checkUserExists(authen[0], authen[1]);
-				if (getResponse.getStatusCode().value() != 200) {	
-					response.sendError(HttpStatus.SC_UNAUTHORIZED, "Un-authorized to perform this operation");
-					return false;
-				}*/
-			} else {
-				return false;
-			}
-		}
-		} catch (Exception e) {
-			try {
-				response.sendError(HttpStatus.SC_UNAUTHORIZED, e.getMessage());
-			} catch (IOException e1) {
-				return false;
-			}
-			return false;
-		}
-		return true; //Continue with request
-	}
-	
-	@Override
-	public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
-			ModelAndView modelAndView) throws Exception {
-		//Ignore
-	}
-	
-	@Override
-	public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
-			throws Exception {
-		//Ignore
-	}
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
+        Object handler) {
+        String authString = request.getHeader("Authorization");
+        try {
+            if (authString == null || authString.isEmpty()) {
+                response.setStatus(HttpStatus.SC_UNAUTHORIZED);
+                response.sendError(HttpStatus.SC_UNAUTHORIZED,
+                    "Authentication information is missing");
+                return false; // Do not continue with request
+            } else {
+                String decodedAuth = "";
+                String[] authParts = authString.split("\\s+");
+                String authInfo = authParts[1];
+                byte[] bytes = null;
+                bytes = Base64.getDecoder().decode(authInfo);
+                // DatatypeConverter.parseBase64Binary(authInfo);
+                decodedAuth = new String(bytes, StandardCharsets.UTF_8);
+                String[] authen = decodedAuth.split(":");
+
+                if (authen.length > 1) {
+                    User user = userSvc.getUserByLoginId(authen[0]);
+                    if (user == null) {
+                        response.sendError(HttpStatus.SC_UNAUTHORIZED,
+                            "Un-authorized to perform this operation");
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            }
+        } catch (Exception e) {
+            try {
+                response.sendError(HttpStatus.SC_UNAUTHORIZED, e.getMessage());
+            } catch (IOException e1) {
+                return false;
+            }
+            return false;
+        }
+        return true; // Continue with request
+    }
+
+    @Override
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
+        ModelAndView modelAndView) throws Exception {
+        // Ignore
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response,
+        Object handler, Exception ex) throws Exception {
+        // Ignore
+    }
 }

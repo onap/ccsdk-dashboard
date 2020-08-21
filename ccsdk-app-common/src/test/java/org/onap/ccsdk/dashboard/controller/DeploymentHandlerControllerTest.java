@@ -58,7 +58,7 @@ public class DeploymentHandlerControllerTest extends MockitoTestSuite {
     DeploymentHandlerClient restClient;
 
     @InjectMocks
-    DeploymentHandlerController subject = new DeploymentHandlerController();
+    DeploymentHandlerController subject;
 
     protected final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -91,14 +91,14 @@ public class DeploymentHandlerControllerTest extends MockitoTestSuite {
     public final void testPutDeployment_create() throws Exception {
         DeploymentRequestObject expectReq =
             new DeploymentRequestObject("dep1", "dep1", "create", null, "tenant1");
-        
+
         DeploymentResponseLinks expectLink = new DeploymentResponseLinks("self", "status");
         DeploymentResponse expectResp = new DeploymentResponse("req1", expectLink);
-        
+
         when(restClient.putDeployment(Matchers.anyString(), Matchers.anyString(),
-            Matchers.<DeploymentRequest>any(), Matchers.<HttpServletRequest>any()) ).thenReturn(expectResp).thenThrow(badReqError)
-                .thenThrow(srvcExistError).thenThrow(serverError).thenThrow(downStrmError)
-                .thenThrow(Exception.class);
+            Matchers.<DeploymentRequest>any(), Matchers.<HttpServletRequest>any()))
+                .thenReturn(expectResp).thenThrow(badReqError).thenThrow(srvcExistError)
+                .thenThrow(serverError).thenThrow(downStrmError).thenThrow(Exception.class);
 
         String actualResp = subject.putDeployment(mockedRequest, expectReq);
         assertTrue(actualResp.contains("req1"));
@@ -123,8 +123,8 @@ public class DeploymentHandlerControllerTest extends MockitoTestSuite {
     public final void testDeleteDeployment() throws Exception {
 
         doNothing().doThrow(badReqError).doThrow(serverError).doThrow(downStrmError)
-            .doThrow(notFoundError).doThrow(Exception.class).when(restClient)
-            .deleteDeployment(Matchers.anyString(), Matchers.anyString(), Matchers.<HttpServletRequest>any());
+            .doThrow(notFoundError).doThrow(Exception.class).when(restClient).deleteDeployment(
+                Matchers.anyString(), Matchers.anyString(), Matchers.<HttpServletRequest>any());
 
         StringBuffer expectedStrBuff = new StringBuffer();
         expectedStrBuff.append("http://oom.s2.com");

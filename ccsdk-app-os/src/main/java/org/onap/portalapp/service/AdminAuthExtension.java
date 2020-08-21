@@ -1,6 +1,6 @@
 /*-
  * ================================================================================
- * ECOMP Portal SDK
+ * DCAE Dashboard
  * ================================================================================
  * Copyright (C) 2017 AT&T Intellectual Property
  * ================================================================================
@@ -17,11 +17,11 @@
  * limitations under the License.
  * ================================================================================
  */
+
 package org.onap.portalapp.service;
 
 import java.util.Set;
 
-import org.onap.portalapp.service.IAdminAuthExtension;
 import org.onap.portalsdk.core.domain.Role;
 import org.onap.portalsdk.core.domain.User;
 import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;

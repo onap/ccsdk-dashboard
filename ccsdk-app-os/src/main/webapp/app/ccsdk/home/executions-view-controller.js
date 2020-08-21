@@ -70,6 +70,7 @@ appDS2.controller('executionsViewController',
   $scope.ecdapp.resetFilters = function() {
     $scope.ecdapp.selectedTenant = '';
     $scope.ecdapp.selectedStatus = '';
+    $scope.ecdapp.execId = '';
   };
   
   $scope.ecdapp.extendedfilterSrch = function() {

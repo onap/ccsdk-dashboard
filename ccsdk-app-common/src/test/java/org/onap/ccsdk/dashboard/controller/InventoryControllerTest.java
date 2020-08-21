@@ -47,36 +47,31 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.onap.ccsdk.dashboard.core.MockUser;
 import org.onap.ccsdk.dashboard.core.MockitoTestSuite;
 import org.onap.ccsdk.dashboard.exceptions.inventory.BlueprintParseException;
-import org.onap.ccsdk.dashboard.exceptions.inventory.ServiceNotFoundException;
 import org.onap.ccsdk.dashboard.exceptions.inventory.ServiceTypeNotFoundException;
 import org.onap.ccsdk.dashboard.model.cloudify.CloudifyDeployedTenant;
-import org.onap.ccsdk.dashboard.model.inventory.Service;
-import org.onap.ccsdk.dashboard.model.inventory.ServiceList;
+import org.onap.ccsdk.dashboard.model.inventory.Blueprint;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceQueryParams;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceRef;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceRefList;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceType;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeList;
-import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeQueryParams;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeRequest;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeSummary;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeSummaryList;
 import org.onap.ccsdk.dashboard.rest.CloudifyClient;
 import org.onap.ccsdk.dashboard.rest.InventoryClient;
-import org.onap.ccsdk.dashboard.util.DashboardProperties;
 import org.onap.portalsdk.core.domain.User;
 import org.onap.portalsdk.core.util.CacheManager;
-import org.onap.portalsdk.core.util.SystemProperties;
 import org.onap.portalsdk.core.web.support.AppUtils;
 import org.onap.portalsdk.core.web.support.UserUtils;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.http.HttpStatus;
@@ -89,6 +84,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
+@PrepareForTest({Blueprint.class})
 public class InventoryControllerTest extends MockitoTestSuite {
 
     @Mock
@@ -98,15 +95,12 @@ public class InventoryControllerTest extends MockitoTestSuite {
     private InventoryClient inventoryClient;
 
     @InjectMocks
-    private InventoryController subject = new InventoryController();
+    private InventoryController subject;
 
     protected final ObjectMapper objectMapper = new ObjectMapper();
 
     private HttpServerErrorException httpException =
         new HttpServerErrorException(HttpStatus.BAD_GATEWAY);
-
-    private ServiceNotFoundException serviceException =
-        new ServiceNotFoundException("Invalid deployment");
 
     private ServiceTypeNotFoundException serviceTypeException =
         new ServiceTypeNotFoundException("Invalid blueprint");
@@ -130,7 +124,7 @@ public class InventoryControllerTest extends MockitoTestSuite {
 
     ServiceType bpItemFull = null;
     ServiceTypeList bpItemFullList = null;
-    
+
     ServiceTypeRequest bpUploadItem = null;
 
     @Before
@@ -142,25 +136,27 @@ public class InventoryControllerTest extends MockitoTestSuite {
         mockedRequest = getMockedRequest();
         mockedResponse = getMockedResponse();
         CacheManager testCache = new CacheManager();
-        Map<String, List<ServiceTypeSummary>> bpPerOwner = new HashMap<String, List<ServiceTypeSummary>>();
-        bpPerOwner.put("xyz1731", (List<ServiceTypeSummary>)bpList2.items);
+        Map<String, List<ServiceTypeSummary>> bpPerOwner =
+            new HashMap<String, List<ServiceTypeSummary>>();
+        bpPerOwner.put("xyz1731", (List<ServiceTypeSummary>) bpList2.items);
         testCache.putObject("owner_bp_map", bpPerOwner);
-        subject.setCacheManager(testCache); 
+        subject.setCacheManager(testCache);
         /*
-        PowerMockito.mockStatic(SystemProperties.class);
-        Mockito
-            .when(SystemProperties.getProperty("cache_switch"))
-            .thenReturn("1");
-        */
+         * PowerMockito.mockStatic(SystemProperties.class);
+         * Mockito
+         * .when(SystemProperties.getProperty("cache_switch"))
+         * .thenReturn("1");
+         */
+        PowerMockito.mockStatic(Blueprint.class);
     }
 
     public void getExpectedBlueprints()
         throws JsonParseException, JsonMappingException, IOException {
-        bpItem = new ServiceTypeSummary.Builder().application("app1").component("comp1").
-        typeName("xyz1731-helm-1906").owner("xyz1731").typeVersion(1906).build();
-        
-        bpItem2 = new ServiceTypeSummary("xyz1731", "xyz1731-helm-1906", 1906, "app1", "comp1", "123-456-789",
-            "342343", true);
+        bpItem = new ServiceTypeSummary.Builder().application("app1").component("comp1")
+            .typeName("xyz1731-helm-1906").owner("xyz1731").typeVersion(1906).build();
+
+        bpItem2 = new ServiceTypeSummary("xyz1731", "xyz1731-helm-1906", 1906, "app1", "comp1",
+            "123-456-789", "342343", true);
         bpItemFull = new ServiceType.Builder("xyz1731", "xyz1731-helm-1906", 1906,
             "tosca_definitions_version: cloudify_dsl_1_3", "", "app1", "comp1").build();
 
@@ -169,7 +165,7 @@ public class InventoryControllerTest extends MockitoTestSuite {
 
         Collection<ServiceTypeSummary> items2 = new ArrayList<ServiceTypeSummary>();
         items2.add(bpItem2);
-        
+
         String pageLinks2 =
             "{\"previousLink\":null,\"nextLink\":{\"rel\":\"next\",\"href\":\"https://invt.com:30123/dcae-services/?offset=25\"}}";
         ServiceTypeSummaryList.PaginationLinks paginationLinks =
@@ -188,7 +184,7 @@ public class InventoryControllerTest extends MockitoTestSuite {
     }
 
     @Test
-    public final void testGetOwnersByPage() {
+    public final void testGetOwnersByPage() throws Exception {
         User user = mockUser.mockUser();
         user.setLoginId("tester");
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
@@ -199,9 +195,9 @@ public class InventoryControllerTest extends MockitoTestSuite {
         String result = subject.getServiceTypesByPage(mockedRequest);
         assertTrue(result.contains("xyz"));
     }
-    
+
     @Test
-    public final void testGetAllServiceTypeNames() {
+    public final void testGetAllServiceTypeNames() throws Exception {
         User user = mockUser.mockUser();
         user.setLoginId("tester");
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
@@ -210,11 +206,11 @@ public class InventoryControllerTest extends MockitoTestSuite {
         Stream<ServiceTypeSummary> sampleStream1 = items.stream();
         Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream1);
         String result = subject.getAllServiceTypeNames(mockedRequest);
-        assertTrue(result.contains("xyz"));        
+        assertTrue(result.contains("xyz"));
     }
-    
+
     @Test
-    public final void testGetAllServiceTypeIds() {
+    public final void testGetAllServiceTypeIds() throws Exception {
         User user = mockUser.mockUser();
         user.setLoginId("tester");
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
@@ -223,15 +219,15 @@ public class InventoryControllerTest extends MockitoTestSuite {
         Stream<ServiceTypeSummary> sampleStream1 = items.stream();
         Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream1);
         String result = subject.getAllServiceTypeIds(mockedRequest);
-        assertTrue(result.contains("xyz"));        
+        assertTrue(result.contains("xyz"));
     }
-    
+
     @Test
-    public final void testGetServiceTypesByPage() {
+    public final void testGetServiceTypesByPage() throws Exception {
         User user = mockUser.mockUser();
         user.setLoginId("tester");
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
-        //mockedRequest.addParameter("searchBy", "xyz");
+        // mockedRequest.addParameter("searchBy", "xyz");
         mockedRequest.addParameter("sortBy", "owner");
 
         // # 1st case
@@ -241,7 +237,7 @@ public class InventoryControllerTest extends MockitoTestSuite {
         Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream1);
         String result = subject.getServiceTypesByPage(mockedRequest);
         assertTrue(result.contains("xyz"));
-        
+
         // # 2nd case
         HttpSession session = mockedRequest.getSession();
         HashMap<String, Boolean> comp_deploy_tab = new HashMap<String, Boolean>();
@@ -253,19 +249,18 @@ public class InventoryControllerTest extends MockitoTestSuite {
         when(session.getAttribute("authComponents")).thenReturn(userApps);
 
         Stream<ServiceTypeSummary> sampleStream2 = items.stream();
-        Mockito.when(inventoryClient.getServiceTypes())
-            .thenReturn(sampleStream2);
+        Mockito.when(inventoryClient.getServiceTypes()).thenReturn(sampleStream2);
         /*
-        Mockito.when(inventoryClient.getServiceTypes(Matchers.<ServiceTypeQueryParams>any()))
-        .thenReturn(sampleStream2);
-        */
+         * Mockito.when(inventoryClient.getServiceTypes(Matchers.<ServiceTypeQueryParams>any()))
+         * .thenReturn(sampleStream2);
+         */
         String result2 = subject.getServiceTypesByPage(mockedRequest);
         assertTrue(result2.contains("xyz"));
 
     }
-    
+
     @Test
-    public final void testGetServiceTypesByPage_appDevUser() {
+    public final void testGetServiceTypesByPage_appDevUser() throws Exception {
         User user = mockUser.mockUser();
         user.setLoginId("tester");
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
@@ -286,9 +281,9 @@ public class InventoryControllerTest extends MockitoTestSuite {
         String result = subject.getServiceTypesByPage(mockedRequest);
         assertTrue(result.contains("xyz"));
     }
-    
+
     @Test
-    public final void testGetServiceTypesByPage_containsFilter() {
+    public final void testGetServiceTypesByPage_containsFilter() throws Exception {
         User user = mockUser.mockUser();
         user.setLoginId("tester");
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
@@ -302,13 +297,14 @@ public class InventoryControllerTest extends MockitoTestSuite {
         String result = subject.getServiceTypesByPage(mockedRequest);
         assertTrue(result.contains("error"));
     }
-    
+
     @Test
-    public final void testGetServiceTypesByPage_AllFilters() {
+    public final void testGetServiceTypesByPage_AllFilters() throws Exception {
         User user = mockUser.mockUser();
         user.setLoginId("tester");
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
-        mockedRequest.addParameter("searchBy", "serviceRef:xyz1731-helm-1906;app:app1;comp:comp1;owner:xyz1731;");
+        mockedRequest.addParameter("searchBy",
+            "serviceRef:xyz1731-helm-1906;app:app1;comp:comp1;owner:xyz1731;");
         Mockito.when(UserUtils.getUserSession(mockedRequest)).thenReturn(user);
 
         Collection<ServiceTypeSummary> items = bpList.items;
@@ -317,13 +313,13 @@ public class InventoryControllerTest extends MockitoTestSuite {
 
         String result = subject.getServiceTypesByPage(mockedRequest);
         assertTrue(result.contains("xyz"));
-        
+
     }
-    
+
     @Test
-    public final void testGetServiceTypesByPage_comp() {
+    public final void testGetServiceTypesByPage_comp() throws Exception {
         User user = mockUser.mockUser();
-        user.setLoginId("tester");      
+        user.setLoginId("tester");
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
         Mockito.when(UserUtils.getUserSession(mockedRequest)).thenReturn(user);
         mockedRequest.addParameter("sortBy", "component");
@@ -338,9 +334,9 @@ public class InventoryControllerTest extends MockitoTestSuite {
     }
 
     @Test
-    public final void testGetServiceTypesByPage_typeId() {
+    public final void testGetServiceTypesByPage_typeId() throws Exception {
         User user = mockUser.mockUser();
-        user.setLoginId("tester");      
+        user.setLoginId("tester");
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
         Mockito.when(UserUtils.getUserSession(mockedRequest)).thenReturn(user);
         mockedRequest.addParameter("sortBy", "typeId");
@@ -353,9 +349,9 @@ public class InventoryControllerTest extends MockitoTestSuite {
     }
 
     @Test
-    public final void testGetServiceTypesByPage_typeName() {
+    public final void testGetServiceTypesByPage_typeName() throws Exception {
         User user = mockUser.mockUser();
-        user.setLoginId("tester");      
+        user.setLoginId("tester");
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
         Mockito.when(UserUtils.getUserSession(mockedRequest)).thenReturn(user);
         mockedRequest.addParameter("sortBy", "typeName");
@@ -367,9 +363,9 @@ public class InventoryControllerTest extends MockitoTestSuite {
     }
 
     @Test
-    public final void testGetServiceTypesByPage_typeVer() {
+    public final void testGetServiceTypesByPage_typeVer() throws Exception {
         User user = mockUser.mockUser();
-        user.setLoginId("tester");      
+        user.setLoginId("tester");
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
         Mockito.when(UserUtils.getUserSession(mockedRequest)).thenReturn(user);
         mockedRequest.addParameter("sortBy", "typeVersion");
@@ -382,9 +378,9 @@ public class InventoryControllerTest extends MockitoTestSuite {
     }
 
     @Test
-    public final void testGetServiceTypesByPage_created() {
+    public final void testGetServiceTypesByPage_created() throws Exception {
         User user = mockUser.mockUser();
-        user.setLoginId("tester");      
+        user.setLoginId("tester");
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
         Mockito.when(UserUtils.getUserSession(mockedRequest)).thenReturn(user);
         mockedRequest.addParameter("sortBy", "created");
@@ -396,10 +392,9 @@ public class InventoryControllerTest extends MockitoTestSuite {
         assertTrue(result.contains("xyz"));
     }
 
-
     @SuppressWarnings("unchecked")
     @Test
-    public final void testGetServiceTypesByPage_Exception() {
+    public final void testGetServiceTypesByPage_Exception() throws Exception {
         when(inventoryClient.getServiceTypes()).thenThrow(RestClientException.class)
             .thenThrow(httpException);
 
@@ -410,19 +405,14 @@ public class InventoryControllerTest extends MockitoTestSuite {
         assertTrue(errResp.contains("error"));
     }
 
-
-
     @SuppressWarnings("unchecked")
     @Test
     public final void testUploadServiceTypeBlueprint() throws Exception {
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
         String expected = "{\"201\": \"OK\"}";
-        when(inventoryClient.addServiceType(Matchers.<ServiceTypeRequest>any()))
-            .thenThrow(BlueprintParseException.class).thenThrow(httpException)
-            .thenThrow(Exception.class).thenReturn(null);
 
-        String actual1 = subject.uploadServiceTypeBlueprint(mockedRequest, bpUploadItem);
-        assertTrue(actual1.contains("error"));
+        when(inventoryClient.addServiceType(Mockito.<ServiceTypeRequest>any()))
+            .thenThrow(httpException).thenThrow(Exception.class).thenReturn(null);
 
         String actual2 = subject.uploadServiceTypeBlueprint(mockedRequest, bpUploadItem);
         assertTrue(actual2.contains("error"));
@@ -437,15 +427,25 @@ public class InventoryControllerTest extends MockitoTestSuite {
 
     @SuppressWarnings("unchecked")
     @Test
+    public final void testUploadServiceTypeBlueprint_badBp() throws Exception {
+        MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
+
+        when(Blueprint.parse(bpUploadItem.getBlueprintTemplate()))
+            .thenThrow(BlueprintParseException.class);
+
+        String actual1 = subject.uploadServiceTypeBlueprint(mockedRequest, bpUploadItem);
+        assertTrue(actual1.contains("error"));
+
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
     public final void testUpdateServiceTypeBlueprint() throws Exception {
         MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
         String expected = "{\"201\": \"OK\"}";
-        Mockito.when(inventoryClient.addServiceType(Matchers.<ServiceType>any()))
-            .thenThrow(BlueprintParseException.class).thenThrow(httpException)
-            .thenThrow(Exception.class).thenReturn(null);
 
-        String actual1 = subject.updateServiceTypeBlueprint(mockedRequest, bpItemFull);
-        assertTrue(actual1.contains("error"));
+        Mockito.when(inventoryClient.addServiceType(Mockito.<ServiceType>any()))
+            .thenThrow(httpException).thenThrow(Exception.class).thenReturn(null);
 
         String actual2 = subject.updateServiceTypeBlueprint(mockedRequest, bpItemFull);
         assertTrue(actual2.contains("error"));
@@ -458,24 +458,36 @@ public class InventoryControllerTest extends MockitoTestSuite {
     }
 
     @Test
+    public final void testUpdateServiceTypeBlueprint_badBp() throws Exception {
+        MockHttpServletRequestWrapper mockedRequest = getMockedRequest();
+
+        when(Blueprint.parse(bpUploadItem.getBlueprintTemplate()))
+            .thenThrow(BlueprintParseException.class);
+
+        String actual1 = subject.updateServiceTypeBlueprint(mockedRequest, bpItemFull);
+        assertTrue(actual1.contains("error"));
+
+    }
+
+    @Test
     public final void testDeleteServiceType() throws Exception {
-        //String expected = "{\"202\": \"OK\"}";
+        // String expected = "{\"202\": \"OK\"}";
         String expected = "{\"204\": \"Blueprint deleted\"}";
         List<CloudifyDeployedTenant> deplForBp = new ArrayList<>();
         deplForBp.clear();
-        Mockito.when(cfyClient.getDeploymentForBlueprint(Matchers.<String>any()))
-        .thenReturn(deplForBp);
-        
+        Mockito.when(cfyClient.getDeploymentForBlueprint(Mockito.anyString()))
+            .thenReturn(deplForBp);
+
         List<ServiceRef> srvcRefList = new ArrayList<>();
         srvcRefList.clear();
         int itemCnt = 0;
         ServiceRefList mockSvcRefList = new ServiceRefList(srvcRefList, itemCnt);
 
-        Mockito.when(inventoryClient.getServicesForType(Matchers.<ServiceQueryParams>any()))
+        Mockito.when(inventoryClient.getServicesForType(Mockito.<ServiceQueryParams>any()))
             .thenReturn(mockSvcRefList);
-        
+
         doNothing().doThrow(serviceTypeException).doThrow(Exception.class).when(inventoryClient)
-            .deleteServiceType(Matchers.anyString());
+            .deleteServiceType(Mockito.anyString());
 
         String actual = subject.deleteServiceType("srvcId", mockedRequest, mockedResponse);
         assertEquals(expected, actual);
@@ -489,23 +501,23 @@ public class InventoryControllerTest extends MockitoTestSuite {
 
     @Test
     public final void testDeleteServiceType_withDepl() throws Exception {
-        CloudifyDeployedTenant mockCfyDeplTen = 
+        CloudifyDeployedTenant mockCfyDeplTen =
             new CloudifyDeployedTenant("id1", "tenant", "45435435", "54543534");
-        
+
         List<CloudifyDeployedTenant> deplForBp = new ArrayList<>();
         deplForBp.add(mockCfyDeplTen);
-        Mockito.when(cfyClient.getDeploymentForBlueprint(Matchers.<String>any()))
-        .thenReturn(deplForBp);
-        
+        Mockito.when(cfyClient.getDeploymentForBlueprint(Mockito.anyString()))
+            .thenReturn(deplForBp);
+
         String actual = subject.deleteServiceType("srvcId", mockedRequest, mockedResponse);
         assertTrue(actual.contains("error"));
     }
-    
+
     @SuppressWarnings("unchecked")
     @Test
     public final void testViewServiceTypeBlueprintContentById() throws Exception {
         Optional<ServiceType> expected = Optional.of(bpItemFull);
-        when(inventoryClient.getServiceType(Matchers.anyString())).thenReturn(expected)
+        when(inventoryClient.getServiceType(Mockito.anyString())).thenReturn(expected)
             .thenThrow(httpException).thenThrow(Exception.class);
 
         String result = subject.viewServiceTypeBlueprintContentById("typeId", mockedRequest);
@@ -526,49 +538,10 @@ public class InventoryControllerTest extends MockitoTestSuite {
         expectedSrvcIds.add(expectedSrvc);
         ServiceRefList expectedSrvcRefList = new ServiceRefList(expectedSrvcIds, 1);
 
-        when(inventoryClient.getServicesForType(Matchers.<ServiceQueryParams>any()))
+        when(inventoryClient.getServicesForType(Mockito.<ServiceQueryParams>any()))
             .thenReturn(expectedSrvcRefList);
         String actual = subject.getServicesForType(mockedRequest, testTypeIds);
         assertTrue(actual.contains(testTypeIds[0]));
     }
 
-    /*
-     * @Test public final void testGetItemListForPageWrapper() {
-     * fail("Not yet implemented"); // TODO }
-     * 
-     * @Test public final void testGetServicesForType() {
-     * fail("Not yet implemented"); // TODO }
-     * 
-     * 
-     * 
-     * @Test public final void testViewServiceTypeBlueprintContentById() {
-     * fail("Not yet implemented"); // TODO }
-     * 
-     * @Test public final void testDeleteServiceType() {
-     * fail("Not yet implemented"); // TODO }
-     * 
-     * @Test public final void testDeleteService() { fail("Not yet implemented"); //
-     * TODO }
-     * 
-     * @Test public final void testUpdateServiceTypeBlueprint() {
-     * fail("Not yet implemented"); // TODO }
-     * 
-     * @Test public final void testUploadServiceTypeBlueprint() {
-     * fail("Not yet implemented"); // TODO }
-     * 
-     * @Test public final void testGetAppProperties() { fail("Not yet implemented");
-     * // TODO }
-     * 
-     * @Test public final void testGetOrSetControllerEndpointSelectionLong() {
-     * fail("Not yet implemented"); // TODO }
-     * 
-     * @Test public final void testGetOrSetControllerEndpointSelection() {
-     * fail("Not yet implemented"); // TODO }
-     * 
-     * @Test public final void testGetInventoryClientHttpServletRequest() {
-     * fail("Not yet implemented"); // TODO }
-     * 
-     * @Test public final void testGetInventoryClientLong() {
-     * fail("Not yet implemented"); // TODO }
-     */
 }

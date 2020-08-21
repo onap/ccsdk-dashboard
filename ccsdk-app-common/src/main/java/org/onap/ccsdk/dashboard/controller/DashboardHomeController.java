@@ -17,8 +17,8 @@
  * limitations under the License.
  * ============LICENSE_END=========================================================
  *
- * ECOMP is a trademark and service mark of AT&T Intellectual Property.
  *******************************************************************************/
+
 package org.onap.ccsdk.dashboard.controller;
 
 import java.util.Date;
@@ -54,9 +54,8 @@ public class DashboardHomeController extends DashboardRestrictedBaseController {
      */
     private final ObjectMapper mapper;
 
-    private static Date begin, end;
     private static final String APP_LABEL = "app-label";
-    
+
     /**
      * Never forget that Spring autowires fields AFTER the constructor is called.
      */
@@ -68,7 +67,7 @@ public class DashboardHomeController extends DashboardRestrictedBaseController {
 
     /**
      * @return View name key, which is resolved to a file using an Apache tiles
-     *         "definitions.xml" file.
+     * "definitions.xml" file.
      */
     @RequestMapping(value = {"/ecd"}, method = RequestMethod.GET)
     public ModelAndView dbcDefaultController() {
@@ -83,7 +82,7 @@ public class DashboardHomeController extends DashboardRestrictedBaseController {
     }
 
     /**
-     * Get the application label - name + environment
+     * Get the application label - name + environment.
      * 
      */
     @RequestMapping(value = {APP_LABEL}, method = RequestMethod.GET, produces = "application/json")
@@ -92,22 +91,22 @@ public class DashboardHomeController extends DashboardRestrictedBaseController {
         return mapper.writeValueAsString(
             DashboardProperties.getPropertyDef(DashboardProperties.CONTROLLER_IN_ENV, "NA"));
     }
-    
+
     public void preLogAudit(HttpServletRequest request) {
-        begin = new Date();
+        Date begin = new Date();
         MDC.put(SystemProperties.AUDITLOG_BEGIN_TIMESTAMP, logDateFormat.format(begin));
         MDC.put(SystemProperties.METRICSLOG_BEGIN_TIMESTAMP, logDateFormat.format(begin));
         MDC.put(SystemProperties.STATUS_CODE, "COMPLETE");
     }
 
     public void postLogAudit(HttpServletRequest request) {
-        end = new Date();
+        Date end = new Date();
         MDC.put("AlertSeverity", "0");
         MDC.put("TargetEntity", "DashboardHomeController");
         MDC.put("TargetServiceName", "DashboardHomeController");
         MDC.put(SystemProperties.AUDITLOG_END_TIMESTAMP, logDateFormat.format(end));
         MDC.put(SystemProperties.METRICSLOG_END_TIMESTAMP, logDateFormat.format(end));
-        MDC.put(SystemProperties.MDC_TIMER, Long.toString((end.getTime() - begin.getTime())));
+        //MDC.put(SystemProperties.MDC_TIMER, Long.toString((end.getTime() - begin.getTime())));
         logger.info(EELFLoggerDelegate.auditLogger, request.getMethod() + request.getRequestURI());
         logger.info(EELFLoggerDelegate.metricsLogger,
             request.getMethod() + request.getRequestURI());

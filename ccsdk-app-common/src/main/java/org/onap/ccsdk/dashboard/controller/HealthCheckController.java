@@ -17,7 +17,6 @@
  * limitations under the License.
  * ============LICENSE_END=========================================================
  *
- * ECOMP is a trademark and service mark of AT&T Intellectual Property.
  *******************************************************************************/
 
 package org.onap.ccsdk.dashboard.controller;
@@ -25,7 +24,6 @@ package org.onap.ccsdk.dashboard.controller;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.http.HttpStatus;
 import org.onap.ccsdk.dashboard.model.HealthStatus;
 import org.onap.ccsdk.dashboard.rest.CloudifyClient;
 import org.onap.ccsdk.dashboard.rest.DeploymentHandlerClient;
@@ -33,8 +31,6 @@ import org.onap.ccsdk.dashboard.rest.InventoryClient;
 import org.onap.portalsdk.core.controller.FusionBaseController;
 import org.onap.portalsdk.core.util.SystemProperties;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -51,25 +47,23 @@ public class HealthCheckController extends FusionBaseController {
 
     @Autowired
     InventoryClient inventoryClient;
-    
+
     @Autowired
     DeploymentHandlerClient deploymentHandlerClient;
-    
+
     @Autowired
     CloudifyClient cfyClient;
-    
+
     /**
-     * Application name
+     * Application name.
      */
     protected static final String APP_NAME = "ecd-app";
 
     private static final String APP_HEALTH_CHECK_PATH = "/health";
-    private static final String APP_SRVC_HEALTH_CHECK_PATH = "/health-info";
-
     protected final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
-     * application health by simply responding with a JSON object indicating status
+     * application health by simply responding with a JSON object indicating status.
      * 
      * @param request HttpServletRequest
      * @return HealthStatus object always

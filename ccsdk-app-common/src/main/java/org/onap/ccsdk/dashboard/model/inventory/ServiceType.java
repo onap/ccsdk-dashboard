@@ -2,22 +2,22 @@
  * =============LICENSE_START=========================================================
  *
  * =================================================================================
- *  Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
+ * Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
  * ================================================================================
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *  
- *      http://www.apache.org/licenses/LICENSE-2.0
- *  
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * ============LICENSE_END=========================================================
  *
- *  ECOMP is a trademark and service mark of AT&T Intellectual Property.
+ * ECOMP is a trademark and service mark of AT&T Intellectual Property.
  *******************************************************************************/
 package org.onap.ccsdk.dashboard.model.inventory;
 
@@ -126,7 +126,7 @@ public class ServiceType {
         private Optional<Boolean> canDeploy = Optional.of(true);
 
         public Builder(String owner, String typeName, Integer typeVersion, String blueprintTemplate,
-                String blueprintDescription, String application, String component) {
+            String blueprintDescription, String application, String component) {
             this.owner = owner;
             this.typeName = typeName;
             this.typeVersion = typeVersion;
@@ -192,17 +192,20 @@ public class ServiceType {
     }
 
     @JsonCreator
-    public ServiceType(@JsonProperty("owner") String owner, @JsonProperty("typeName") String typeName,
-            @JsonProperty("typeVersion") Integer typeVersion,
-            @JsonProperty("blueprintTemplate") String blueprintTemplate,
-            @JsonProperty("application") String application, @JsonProperty("component") String component,
-            @JsonProperty("serviceIds") Collection<String> serviceIds,
-            @JsonProperty("vnfTypes") Collection<String> vnfTypes,
-            @JsonProperty("serviceLocations") Collection<String> serviceLocations,
-            @JsonProperty("asdcServiceId") String asdcServiceId, @JsonProperty("asdcResourceId") String asdcResourceId,
-            @JsonProperty("asdcServiceURL") String asdcServiceURL, @JsonProperty("typeId") String typeId,
-            @JsonProperty("selfLink") Link selfLink, @JsonProperty("created") String created,
-            @JsonProperty("deactivated") String deactivated, @JsonProperty("canDeploy") Boolean canDeploy) {
+    public ServiceType(@JsonProperty("owner") String owner,
+        @JsonProperty("typeName") String typeName, @JsonProperty("typeVersion") Integer typeVersion,
+        @JsonProperty("blueprintTemplate") String blueprintTemplate,
+        @JsonProperty("application") String application,
+        @JsonProperty("component") String component,
+        @JsonProperty("serviceIds") Collection<String> serviceIds,
+        @JsonProperty("vnfTypes") Collection<String> vnfTypes,
+        @JsonProperty("serviceLocations") Collection<String> serviceLocations,
+        @JsonProperty("asdcServiceId") String asdcServiceId,
+        @JsonProperty("asdcResourceId") String asdcResourceId,
+        @JsonProperty("asdcServiceURL") String asdcServiceURL,
+        @JsonProperty("typeId") String typeId, @JsonProperty("selfLink") Link selfLink,
+        @JsonProperty("created") String created, @JsonProperty("deactivated") String deactivated,
+        @JsonProperty("canDeploy") Boolean canDeploy) {
 
         if (owner == null)
             throw new IllegalArgumentException("owner cannot be null");
@@ -222,7 +225,8 @@ public class ServiceType {
 
         this.serviceIds = (serviceIds == null) ? new LinkedList<String>() : serviceIds;
         this.vnfTypes = (vnfTypes == null) ? new LinkedList<String>() : vnfTypes;
-        this.serviceLocations = (serviceLocations == null) ? new LinkedList<String>() : serviceLocations;
+        this.serviceLocations =
+            (serviceLocations == null) ? new LinkedList<String>() : serviceLocations;
 
         this.asdcServiceId = Optional.ofNullable(asdcServiceId);
         this.asdcResourceId = Optional.ofNullable(asdcResourceId);
@@ -237,9 +241,10 @@ public class ServiceType {
             this.blueprintInputs = bpObj.getInputs();
             this.blueprintDescription = bpObj.getDescription();
         } catch (BlueprintParseException e) {
-            //this.blueprintDescription = "";
-            //throw new RuntimeException(
-                    //"Error while parsing blueprint template for " + this.typeName + " " + this.typeVersion, e);
+            // this.blueprintDescription = "";
+            // throw new RuntimeException(
+            // "Error while parsing blueprint template for " + this.typeName + " " +
+            // this.typeVersion, e);
         }
     }
 
@@ -331,32 +336,34 @@ public class ServiceType {
         final ServiceType serviceType = (ServiceType) obj;
 
         return (serviceType.getAsdcResourceId().equals(getAsdcResourceId())
-                && serviceType.getAsdcServiceId().equals(getAsdcServiceId())
-                && serviceType.getAsdcServiceURL().equals(getAsdcServiceURL())
-                && serviceType.getBlueprintTemplate().equals(getBlueprintTemplate())
-                && serviceType.getCreated().equals(getCreated())
-                && serviceType.getDeactivated().equals(getDeactivated()) && serviceType.getOwner().equals(getOwner())
-                && serviceType.getSelfLink().equals(getSelfLink())
-                && serviceType.getServiceIds().equals(getServiceIds())
-                && serviceType.getServiceLocations().equals(getServiceLocations())
-                && serviceType.getTypeId().equals(getTypeId()) && serviceType.getTypeName().equals(getTypeName())
-                && serviceType.getTypeVersion().equals(getTypeVersion())
-                && serviceType.getVnfTypes().equals(getVnfTypes())
-                && serviceType.getApplication().equals(getApplication())
-                && serviceType.getComponent().equals(getComponent()));
+            && serviceType.getAsdcServiceId().equals(getAsdcServiceId())
+            && serviceType.getAsdcServiceURL().equals(getAsdcServiceURL())
+            && serviceType.getBlueprintTemplate().equals(getBlueprintTemplate())
+            && serviceType.getCreated().equals(getCreated())
+            && serviceType.getDeactivated().equals(getDeactivated())
+            && serviceType.getOwner().equals(getOwner())
+            && serviceType.getSelfLink().equals(getSelfLink())
+            && serviceType.getServiceIds().equals(getServiceIds())
+            && serviceType.getServiceLocations().equals(getServiceLocations())
+            && serviceType.getTypeId().equals(getTypeId())
+            && serviceType.getTypeName().equals(getTypeName())
+            && serviceType.getTypeVersion().equals(getTypeVersion())
+            && serviceType.getVnfTypes().equals(getVnfTypes())
+            && serviceType.getApplication().equals(getApplication())
+            && serviceType.getComponent().equals(getComponent()));
     }
 
     // Used for back end search, only searches the fields displayed in the front
     // end.
     public boolean contains(String searchString) {
         if (StringUtils.containsIgnoreCase(this.getOwner(), searchString)
-                || StringUtils.containsIgnoreCase(this.getBlueprintDescription(), searchString)
-                || StringUtils.containsIgnoreCase(this.getTypeId().get(), searchString)
-                || StringUtils.containsIgnoreCase(this.getTypeName(), searchString)
-                || StringUtils.containsIgnoreCase(Integer.toString(this.getTypeVersion()), searchString)
-                || StringUtils.containsIgnoreCase(this.getCreated().get(), searchString)
-                || StringUtils.containsIgnoreCase(this.getComponent(), searchString)
-                || StringUtils.containsIgnoreCase(this.getApplication(), searchString)) {
+            || StringUtils.containsIgnoreCase(this.getBlueprintDescription(), searchString)
+            || StringUtils.containsIgnoreCase(this.getTypeId().get(), searchString)
+            || StringUtils.containsIgnoreCase(this.getTypeName(), searchString)
+            || StringUtils.containsIgnoreCase(Integer.toString(this.getTypeVersion()), searchString)
+            || StringUtils.containsIgnoreCase(this.getCreated().get(), searchString)
+            || StringUtils.containsIgnoreCase(this.getComponent(), searchString)
+            || StringUtils.containsIgnoreCase(this.getApplication(), searchString)) {
             return true;
         }
         return false;

@@ -17,7 +17,6 @@
  * limitations under the License.
  * ============LICENSE_END=========================================================
  *
- * ECOMP is a trademark and service mark of AT&T Intellectual Property.
  *******************************************************************************/
 
 package org.onap.ccsdk.dashboard.rest;
@@ -51,6 +50,7 @@ import org.onap.ccsdk.dashboard.model.deploymenthandler.DeploymentsListResponse;
 import org.onap.ccsdk.dashboard.util.DashboardProperties;
 import org.onap.portalsdk.core.util.CacheManager;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.ParameterizedTypeReference;
@@ -63,6 +63,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({DashboardProperties.class})
 public class DeploymentHandlerClientImplTest {
 
@@ -71,7 +72,7 @@ public class DeploymentHandlerClientImplTest {
 
     @Mock
     CloudifyClient cfyClient;
-    
+
     @InjectMocks
     DeploymentHandlerClientImpl subject;
 
@@ -82,7 +83,7 @@ public class DeploymentHandlerClientImplTest {
         when(DashboardProperties.getControllerProperty("site.primary",
             DashboardProperties.SITE_SUBKEY_DHANDLER_URL)).thenReturn("https://dplh.com");
         CacheManager testCache = new CacheManager();
-        subject.setCacheManager(testCache); 
+        subject.setCacheManager(testCache);
         this.subject.init();
     }
 
@@ -93,14 +94,12 @@ public class DeploymentHandlerClientImplTest {
     @Test
     public final void testCheckHealth() {
         String expectStr = "DH mS health check";
-        ResponseEntity<String> response = 
-            new ResponseEntity<String>(expectStr, HttpStatus.OK);
-        
+        ResponseEntity<String> response = new ResponseEntity<String>(expectStr, HttpStatus.OK);
+
         when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<String>>any())).thenReturn(response)
-                .thenReturn(response);
-        
+            Matchers.<HttpEntity<?>>any(), Matchers.<ParameterizedTypeReference<String>>any()))
+                .thenReturn(response).thenReturn(response);
+
         String actualStr = subject.checkHealth();
         assertTrue(actualStr.equals(expectStr));
     }
@@ -241,11 +240,12 @@ public class DeploymentHandlerClientImplTest {
             Matchers.<HttpEntity<?>>any(),
             Matchers.<ParameterizedTypeReference<DeploymentResponse>>any())).thenReturn(response);
 
-        CloudifyDeployment cfyDepl = 
-            new CloudifyDeployment("description", "blueprint_id", "created_at", "updated_at", 
-                "id", null, null, null, null, null, null, null, "tenant_name");
+        CloudifyDeployment cfyDepl =
+            new CloudifyDeployment("description", "blueprint_id", "created_at", "updated_at", "id",
+                null, null, null, null, null, null, null, "tenant_name");
 
-        when(cfyClient.getDeploymentResource(Matchers.anyString(), Matchers.anyString())).thenReturn(cfyDepl);
+        when(cfyClient.getDeploymentResource(Matchers.anyString(), Matchers.anyString()))
+            .thenReturn(cfyDepl);
 
         subject.deleteDeployment("deploymentId", "tenant");
     }

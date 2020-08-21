@@ -51,7 +51,7 @@ mobile_enable			  	  = false
 
 # Cache config file is needed on the classpath
 cache_config_file_path        = /WEB-INF/classes/cache.ccf
-cache_switch                  = 199
+cache_switch                  = 1
 cache_load_on_startup         = false
 
 user_name					  = fullName

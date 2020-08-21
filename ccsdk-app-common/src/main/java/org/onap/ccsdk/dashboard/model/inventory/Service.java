@@ -2,22 +2,22 @@
  * =============LICENSE_START=========================================================
  *
  * =================================================================================
- *  Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
+ * Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
  * ================================================================================
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *  
- *      http://www.apache.org/licenses/LICENSE-2.0
- *  
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * ============LICENSE_END=========================================================
  *
- *  ECOMP is a trademark and service mark of AT&T Intellectual Property.
+ * ECOMP is a trademark and service mark of AT&T Intellectual Property.
  *******************************************************************************/
 package org.onap.ccsdk.dashboard.model.inventory;
 
@@ -65,14 +65,15 @@ public class Service {
     public Boolean helmStatus;
     /** Consul service health status */
     private String healthStatus;
-    
+
     @JsonCreator
-    public Service(@JsonProperty("serviceId") String serviceId, @JsonProperty("selfLink") Link selfLink,
-            @JsonProperty("created") String created, @JsonProperty("modified") String modified,
-            @JsonProperty("typeLink") Link typeLink, @JsonProperty("vnfId") String vnfId,
-            @JsonProperty("vnfLink") Link vnfLink, @JsonProperty("vnfType") String vnfType,
-            @JsonProperty("vnfLocation") String vnfLocation, @JsonProperty("deploymentRef") String deploymentRef,
-            @JsonProperty("components") Collection<ServiceComponent> components) {
+    public Service(@JsonProperty("serviceId") String serviceId,
+        @JsonProperty("selfLink") Link selfLink, @JsonProperty("created") String created,
+        @JsonProperty("modified") String modified, @JsonProperty("typeLink") Link typeLink,
+        @JsonProperty("vnfId") String vnfId, @JsonProperty("vnfLink") Link vnfLink,
+        @JsonProperty("vnfType") String vnfType, @JsonProperty("vnfLocation") String vnfLocation,
+        @JsonProperty("deploymentRef") String deploymentRef,
+        @JsonProperty("components") Collection<ServiceComponent> components) {
         this.serviceId = serviceId;
         this.selfLink = selfLink;
         this.created = created;
@@ -134,10 +135,10 @@ public class Service {
     // end.
     public boolean contains(String searchString) {
         if (StringUtils.containsIgnoreCase(this.getDeploymentRef(), searchString)
-                || StringUtils.containsIgnoreCase(this.getServiceId(), searchString)
-                || StringUtils.containsIgnoreCase(this.getCreated(), searchString)
-                || StringUtils.containsIgnoreCase(this.getModified(), searchString)
-                || StringUtils.containsIgnoreCase(this.getTenant(), searchString)) {
+            || StringUtils.containsIgnoreCase(this.getServiceId(), searchString)
+            || StringUtils.containsIgnoreCase(this.getCreated(), searchString)
+            || StringUtils.containsIgnoreCase(this.getModified(), searchString)
+            || StringUtils.containsIgnoreCase(this.getTenant(), searchString)) {
             return true;
         }
         return false;
@@ -197,12 +198,12 @@ public class Service {
     public void setHelmStatus(Boolean helmStatus) {
         this.helmStatus = helmStatus;
     }
-    
+
     public String getHealthStatus() {
-    	return this.healthStatus;
+        return this.healthStatus;
     }
-    
+
     public void setHealthStatus(String healthStatus) {
-    	this.healthStatus = healthStatus;
+        this.healthStatus = healthStatus;
     }
 }

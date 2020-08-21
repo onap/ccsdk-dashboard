@@ -17,7 +17,6 @@
  * limitations under the License.
  * ============LICENSE_END=========================================================
  *
- * ECOMP is a trademark and service mark of AT&T Intellectual Property.
  *******************************************************************************/
 
 package org.onap.ccsdk.dashboard.rest;
@@ -26,6 +25,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.eq;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,7 +47,9 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Matchers;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.onap.ccsdk.dashboard.exceptions.inventory.ServiceTypeActiveException;
 import org.onap.ccsdk.dashboard.model.inventory.ApiResponseMessage;
 import org.onap.ccsdk.dashboard.model.inventory.Service;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceList;
@@ -61,6 +66,7 @@ import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeSummaryList;
 import org.onap.ccsdk.dashboard.util.DashboardProperties;
 import org.onap.portalsdk.core.util.CacheManager;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.ParameterizedTypeReference;
@@ -68,6 +74,8 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -76,6 +84,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({DashboardProperties.class})
 public class RestInventoryClientImplTest {
 
@@ -83,7 +92,7 @@ public class RestInventoryClientImplTest {
     RestTemplate mockRest;
 
     @InjectMocks
-    RestInventoryClientImpl subject = new RestInventoryClientImpl();
+    RestInventoryClientImpl subject;
 
     protected final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -96,10 +105,12 @@ public class RestInventoryClientImplTest {
 
     ServiceType bpItemFull = null;
     ServiceTypeList bpItemFullList = null;
-    
+
     ServiceTypeSummaryList bpListNext = null;
 
     ServiceTypeRequest bpUploadItem = null;
+
+    HttpClientErrorException httpException = new HttpClientErrorException(HttpStatus.GONE, "gone");
 
     @Before
     public void setUp() throws Exception {
@@ -111,7 +122,7 @@ public class RestInventoryClientImplTest {
         when(DashboardProperties.getControllerProperty("site.primary",
             DashboardProperties.SITE_SUBKEY_INVENTORY_URL)).thenReturn("https://invt.com");
         CacheManager testCache = new CacheManager();
-        subject.setCacheManager(testCache); 
+        subject.setCacheManager(testCache);
         this.subject.init();
     }
 
@@ -126,12 +137,8 @@ public class RestInventoryClientImplTest {
         Collection<Service> items = new ArrayList<Service>();
         items.add(deplItem);
 
-        String pageLinks =
-            "{\"previousLink\":null,\"nextLink\":{\"rel\":\"next\",\"href\":\"https://invt.com:30123/dcae-services/?offset=25\"}}";
         String pageLinks2 = "{\"previousLink\":null,\"nextLink\":null}";
 
-        ServiceList.PaginationLinks paginationLinks =
-            objectMapper.readValue(pageLinks, ServiceList.PaginationLinks.class);
         ServiceList.PaginationLinks paginationLinks2 =
             objectMapper.readValue(pageLinks2, ServiceList.PaginationLinks.class);
 
@@ -139,23 +146,23 @@ public class RestInventoryClientImplTest {
         deplList = new ServiceList(items, totalCount, paginationLinks2);
         deplListNext = new ServiceList(items, totalCount, paginationLinks2);
     }
-    
+
     public void getExpectedBlueprints()
         throws JsonParseException, JsonMappingException, IOException {
-        
-        bpItem = new ServiceTypeSummary.Builder().application("app1").component("comp1").
-        typeName("xyz1731-helm-1906").owner("xyz1731").typeVersion(1906).build();
-        
-        bpItem2 = new ServiceTypeSummary("xyz1731", "xyz1731-helm-1906", 1906, "app1", "comp1", "123-456-789",
-            "342343", true);
+
+        bpItem = new ServiceTypeSummary.Builder().application("app1").component("comp1")
+            .typeName("xyz1731-helm-1906").owner("xyz1731").typeVersion(1906).build();
+
+        bpItem2 = new ServiceTypeSummary("xyz1731", "xyz1731-helm-1906", 1906, "app1", "comp1",
+            "123-456-789", "342343", true);
         bpItemFull = new ServiceType.Builder("xyz1731", "xyz1731-helm-1906", 1906,
             "tosca_definitions_version: cloudify_dsl_1_3", "", "app1", "comp1").build();
 
         Collection<ServiceTypeSummary> items = new ArrayList<ServiceTypeSummary>();
         items.add(bpItem);
         Collection<ServiceTypeSummary> items2 = new ArrayList<ServiceTypeSummary>();
-        items2.add(bpItem2);        
-        
+        items2.add(bpItem2);
+
         String pageLinks =
             "{\"previousLink\":null,\"nextLink\":{\"rel\":\"next\",\"href\":\"https://invt.com:30123/dcae-service-types/?offset=25\"}}";
         String pageLinks2 = "{\"previousLink\":null,\"nextLink\":null}";
@@ -170,23 +177,21 @@ public class RestInventoryClientImplTest {
         bpListNext = new ServiceTypeSummaryList(items, totalCount, paginationLinks2);
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public final void testCheckHealth() {
         String expectStr = "Inventory mS health check";
-        ResponseEntity<String> response = 
-            new ResponseEntity<String>(expectStr, HttpStatus.OK);
-        
-        when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<String>>any())).thenReturn(response)
-                .thenReturn(response);
-        
+        ResponseEntity<String> response = new ResponseEntity<String>(expectStr, HttpStatus.OK);
+
+        when(mockRest.exchange(anyString(), eq(HttpMethod.GET), isNull(),
+            eq(new ParameterizedTypeReference<String>() {}))).thenReturn(response);
+
         String actualStr = subject.checkHealth();
         assertTrue(actualStr.equals(expectStr));
     }
 
     @Test
-    public final void testGetServiceTypes() {
+    public final void testGetServiceTypes() throws Exception {
         Collection<ServiceTypeSummary> items = bpList.items;
         Stream<ServiceTypeSummary> expectedResult = items.stream();
 
@@ -196,9 +201,8 @@ public class RestInventoryClientImplTest {
         ResponseEntity<ServiceTypeSummaryList> response2 =
             new ResponseEntity<ServiceTypeSummaryList>(bpListNext, HttpStatus.OK);
 
-        when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<ServiceTypeSummaryList>>any())).thenReturn(response)
+        when(mockRest.exchange(anyString(), eq(HttpMethod.GET), isNull(),
+            eq(new ParameterizedTypeReference<ServiceTypeSummaryList>() {}))).thenReturn(response)
                 .thenReturn(response2);
 
         Stream<ServiceTypeSummary> actualResult = subject.getServiceTypes();
@@ -214,14 +218,13 @@ public class RestInventoryClientImplTest {
         ResponseEntity<ServiceTypeSummaryList> response2 =
             new ResponseEntity<ServiceTypeSummaryList>(bpListNext, HttpStatus.OK);
 
-        when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<ServiceTypeSummaryList>>any())).thenReturn(response)
+        when(mockRest.exchange(anyString(), eq(HttpMethod.GET), isNull(),
+            eq(new ParameterizedTypeReference<ServiceTypeSummaryList>() {}))).thenReturn(response)
                 .thenReturn(response2);
-        
+
         subject.cacheServiceTypes();
     }
-    
+
     @Test
     public final void testGetServiceTypesServiceTypeQueryParams() {
         ServiceTypeQueryParams qryParms = new ServiceTypeQueryParams.Builder()
@@ -237,9 +240,8 @@ public class RestInventoryClientImplTest {
         ResponseEntity<ServiceTypeSummaryList> response2 =
             new ResponseEntity<ServiceTypeSummaryList>(bpListNext, HttpStatus.OK);
 
-        when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<ServiceTypeSummaryList>>any())).thenReturn(response)
+        when(mockRest.exchange(anyString(), eq(HttpMethod.GET), isNull(),
+            eq(new ParameterizedTypeReference<ServiceTypeSummaryList>() {}))).thenReturn(response)
                 .thenReturn(response2);
 
         Stream<ServiceTypeSummary> actualResult = subject.getServiceTypes(qryParms);
@@ -248,22 +250,27 @@ public class RestInventoryClientImplTest {
     }
 
     @Test
-    public final void testGetServiceType() {
+    public final void testGetServiceType() throws HttpStatusCodeException, Exception {
+
+        // Given
         Optional<ServiceType> expectedResult = Optional.of(bpItemFull);
 
         ResponseEntity<ServiceType> response =
             new ResponseEntity<ServiceType>(bpItemFull, HttpStatus.OK);
 
-        when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(), Matchers.<ParameterizedTypeReference<ServiceType>>any()))
-                .thenReturn(response);
+        // When
+        when(mockRest.exchange(anyString(), eq(HttpMethod.GET), isNull(),
+            eq(new ParameterizedTypeReference<ServiceType>() {}))).thenReturn(response);
 
+        // Then
         Optional<ServiceType> actualResult = subject.getServiceType("432432423");
         assertTrue(expectedResult.get().getTypeName().equals(actualResult.get().getTypeName()));
     }
 
     @Test
     public final void testGetServicesForType() throws Exception {
+
+        // Given
         String typeId = "44234234";
         ServiceRef expectedSrvc = new ServiceRef("dcae_dtiapi_1902", "432423", "433434");
         Collection<ServiceRef> expectedSrvcIds = new ArrayList<ServiceRef>();
@@ -272,78 +279,80 @@ public class RestInventoryClientImplTest {
         ResponseEntity<ServiceList> response =
             new ResponseEntity<ServiceList>(deplList, HttpStatus.OK);
 
-        when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(), Matchers.<ParameterizedTypeReference<ServiceList>>any()))
-                .thenReturn(response);
-        
+        // When
+        when(mockRest.exchange(anyString(), eq(HttpMethod.GET), isNull(),
+            eq(new ParameterizedTypeReference<ServiceList>() {}))).thenReturn(response);
+
+        // Then
         ServiceQueryParams qryParams = new ServiceQueryParams.Builder().typeId(typeId).build();
         ServiceRefList actualSvcRefList = subject.getServicesForType(qryParams);
-        assertTrue(actualSvcRefList.totalCount == expectedSvcRefList.totalCount);  
+        assertTrue(actualSvcRefList.totalCount == expectedSvcRefList.totalCount);
     }
-    
+
     @Test
-    public final void testAddServiceTypeServiceType() {
-
-        when(mockRest.postForObject(Matchers.anyString(), Matchers.<HttpEntity<?>>any(),
-            Matchers.<Class<ServiceType>>any())).thenReturn(bpItemFull);
-
-        ResponseEntity<ServiceTypeSummaryList> response =
-            new ResponseEntity<ServiceTypeSummaryList>(bpList, HttpStatus.OK);
-
+    public final void testAddServiceType() throws ServiceTypeActiveException, Exception {
+        // Given
         ResponseEntity<ServiceTypeSummaryList> response2 =
             new ResponseEntity<ServiceTypeSummaryList>(bpListNext, HttpStatus.OK);
 
-        when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<ServiceTypeSummaryList>>any())).thenReturn(response)
-                .thenReturn(response2);
-        
+        // When
+        when(mockRest.postForObject(anyString(), any(ServiceTypeRequest.class),
+            eq(ServiceType.class))).thenReturn(bpItemFull);
+
+        when(mockRest.exchange(anyString(), eq(HttpMethod.GET), isNull(),
+            eq(new ParameterizedTypeReference<ServiceTypeSummaryList>() {}))).thenReturn(response2);
+
+        // Then
         ServiceType actualResult = subject.addServiceType(bpItemFull);
         assertTrue(actualResult.getTypeName().contains("xyz"));
     }
 
     @Test
-    public final void testAddServiceTypeServiceTypeRequest() {
+    public final void testAddServiceTypeServiceTypeRequest()
+        throws ServiceTypeActiveException, Exception {
+        // Given
         ServiceTypeRequest srvcReq = ServiceTypeRequest.from(bpItemFull);
 
-        when(mockRest.postForObject(Matchers.anyString(), Matchers.<HttpEntity<?>>any(),
-            Matchers.<Class<ServiceType>>any())).thenReturn(bpItemFull);
-        
         ResponseEntity<ServiceTypeSummaryList> response =
             new ResponseEntity<ServiceTypeSummaryList>(bpList, HttpStatus.OK);
 
         ResponseEntity<ServiceTypeSummaryList> response2 =
             new ResponseEntity<ServiceTypeSummaryList>(bpListNext, HttpStatus.OK);
 
-        when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<ServiceTypeSummaryList>>any())).thenReturn(response)
-                .thenReturn(response2);
+        // When
+        when(mockRest.postForObject(anyString(), any(ServiceTypeRequest.class),
+            eq(ServiceType.class))).thenReturn(bpItemFull);
+
+        when(mockRest.exchange(anyString(), eq(HttpMethod.GET), isNull(),
+            eq(new ParameterizedTypeReference<ServiceTypeSummaryList>() {}))).thenReturn(response2);
+
+        // Then
         ServiceType actualResult = subject.addServiceType(srvcReq);
         assertTrue(actualResult.getTypeName().contains("xyz"));
     }
 
     @Test
     public final void testDeleteServiceType() throws Exception {
+        // Given
         ResponseEntity<ApiResponseMessage> response =
             new ResponseEntity<ApiResponseMessage>(HttpStatus.OK);
-
-        when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.DELETE),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<ApiResponseMessage>>any())).thenReturn(response);
-        
         ResponseEntity<ServiceTypeSummaryList> response1 =
             new ResponseEntity<ServiceTypeSummaryList>(bpList, HttpStatus.OK);
-
         ResponseEntity<ServiceTypeSummaryList> response2 =
             new ResponseEntity<ServiceTypeSummaryList>(bpListNext, HttpStatus.OK);
 
-        when(mockRest.exchange(Matchers.anyString(), Matchers.eq(HttpMethod.GET),
-            Matchers.<HttpEntity<?>>any(),
-            Matchers.<ParameterizedTypeReference<ServiceTypeSummaryList>>any())).thenReturn(response1)
+        // When
+        when(mockRest.exchange(anyString(), eq(HttpMethod.DELETE), isNull(),
+            eq(new ParameterizedTypeReference<ApiResponseMessage>() {}))).thenReturn(response);
+        // .thenThrow(httpException);
+
+        when(mockRest.exchange(anyString(), eq(HttpMethod.GET), isNull(),
+            eq(new ParameterizedTypeReference<ServiceTypeSummaryList>() {}))).thenReturn(response1)
                 .thenReturn(response2);
-        
+
+        // Then
         subject.deleteServiceType("4243234");
+        // subject.deleteServiceType("4243234");
     }
 
 }

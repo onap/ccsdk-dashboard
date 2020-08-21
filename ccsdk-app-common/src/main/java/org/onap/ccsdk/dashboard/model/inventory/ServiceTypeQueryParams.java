@@ -2,22 +2,22 @@
  * =============LICENSE_START=========================================================
  *
  * =================================================================================
- *  Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
+ * Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
  * ================================================================================
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *  
- *      http://www.apache.org/licenses/LICENSE-2.0
- *  
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * ============LICENSE_END=========================================================
  *
- *  ECOMP is a trademark and service mark of AT&T Intellectual Property.
+ * ECOMP is a trademark and service mark of AT&T Intellectual Property.
  *******************************************************************************/
 package org.onap.ccsdk.dashboard.model.inventory;
 
@@ -36,7 +36,8 @@ public class ServiceTypeQueryParams {
     private final String owner;
 
     // Non-instantiable
-    private ServiceTypeQueryParams(org.onap.ccsdk.dashboard.model.inventory.ServiceTypeSummary.Builder builder) {
+    private ServiceTypeQueryParams(
+        org.onap.ccsdk.dashboard.model.inventory.ServiceTypeSummary.Builder builder) {
         this.typeName = null;
         this.onlyLatest = null;
         this.onlyActive = null;
@@ -50,9 +51,9 @@ public class ServiceTypeQueryParams {
         this.owner = null;
     }
 
-    private ServiceTypeQueryParams(String typeName, Boolean onlyLatest, Boolean onlyActive, String vnfType,
-            String serviceId, String serviceLocation, String asdcServiceId, String asdcResourceId, String application,
-            String component, String owner) {
+    private ServiceTypeQueryParams(String typeName, Boolean onlyLatest, Boolean onlyActive,
+        String vnfType, String serviceId, String serviceLocation, String asdcServiceId,
+        String asdcResourceId, String application, String component, String owner) {
         this.typeName = typeName;
         this.onlyLatest = onlyLatest;
         this.onlyActive = onlyActive;
@@ -83,7 +84,7 @@ public class ServiceTypeQueryParams {
             this.owner = owner;
             return this;
         }
-        
+
         public Builder typeName(String typeName) {
             this.typeName = typeName;
             return this;
@@ -128,14 +129,15 @@ public class ServiceTypeQueryParams {
             this.application = application;
             return this;
         }
-        
+
         public Builder component(String component) {
             this.component = component;
             return this;
         }
+
         public ServiceTypeQueryParams build() {
-            return new ServiceTypeQueryParams(typeName, onlyLatest, onlyActive, vnfType, serviceId, serviceLocation,
-                    asdcServiceId, asdcResourceId, application, component, owner);
+            return new ServiceTypeQueryParams(typeName, onlyLatest, onlyActive, vnfType, serviceId,
+                serviceLocation, asdcServiceId, asdcResourceId, application, component, owner);
         }
     }
 
@@ -178,7 +180,7 @@ public class ServiceTypeQueryParams {
     public String getComponent() {
         return this.component;
     }
-    
+
     public String getOwner() {
         return this.owner;
     }

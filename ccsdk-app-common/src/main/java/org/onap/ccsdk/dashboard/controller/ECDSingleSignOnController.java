@@ -2,44 +2,24 @@
  * =============LICENSE_START=========================================================
  *
  * =================================================================================
- *  Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
- * ================================================================================
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *  
- *      http://www.apache.org/licenses/LICENSE-2.0
- *  
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- * ============LICENSE_END=========================================================
- *
- *  ECOMP is a trademark and service mark of AT&T Intellectual Property.
- *******************************************************************************/
-package org.onap.ccsdk.dashboard.controller;
-
-/*-
- * ================================================================================
- * ECOMP Portal SDK
- * ================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property
+ * Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
  * ================================================================================
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * 
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * ================================================================================
- */
+ * ============LICENSE_END=========================================================
+ *
+ *******************************************************************************/
+
+package org.onap.ccsdk.dashboard.controller;
 
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -90,7 +70,8 @@ import org.springframework.web.util.WebUtils;
  */
 public class ECDSingleSignOnController extends UnRestrictedBaseController {
 
-    private EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(ECDSingleSignOnController.class);
+    private EELFLoggerDelegate logger =
+        EELFLoggerDelegate.getLogger(ECDSingleSignOnController.class);
 
     @Autowired
     private LoginService loginService;
@@ -103,25 +84,26 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
 
     @Autowired
     private DataAccessService dataAccessService;
-    
-    private String viewName;
+
+    //private String viewName;
     private String welcomeView;
 
-    @RequestMapping(value = { "signup.htm" }, method = RequestMethod.GET)
+    @RequestMapping(value = {"signup.htm"}, method = RequestMethod.GET)
     public ModelAndView externalLogin() {
         Map<String, Object> model = new HashMap<>();
         return new ModelAndView("signup", "model", model);
     }
-    
+
     /**
-     * User sign up handler 
+     * User sign up handler.
      * 
      * @param request
      * @return
-     * @throws Exception 
+     * @throws Exception
      */
-    @RequestMapping(value = { "/signup" }, method = RequestMethod.POST)
-    public ModelAndView userSignup(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    @RequestMapping(value = {"/signup"}, method = RequestMethod.POST)
+    public ModelAndView userSignup(HttpServletRequest request, HttpServletResponse response)
+        throws Exception {
         LoginBean commandBean = new LoginBean();
         String loginId = request.getParameter("loginId");
         String password = request.getParameter("password");
@@ -130,15 +112,16 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
             Map<String, String> model = new HashMap<>();
             model.put("error", loginErrorMessage);
             return new ModelAndView("signup", "model", model);
-        }   
+        }
         commandBean.setLoginId(loginId);
         commandBean.setLoginPwd(password);
         commandBean.setUserid(loginId);
         commandBean = loginService.findUser(commandBean,
-                (String) request.getAttribute(MenuProperties.MENU_PROPERTIES_FILENAME_KEY), new HashMap());
+            (String) request.getAttribute(MenuProperties.MENU_PROPERTIES_FILENAME_KEY),
+            new HashMap());
 
         if (commandBean.getUser() == null) {
-            // add new user                                  
+            // add new user
             User user = new User();
             user.setLoginId(loginId);
             user.setLoginPwd(password);
@@ -155,41 +138,47 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
             user.setPseudoRoles(new TreeSet<Role>());
             try {
                 dataAccessService.saveDomainObject(user, additionalParams);
-                 role = (Role) dataAccessService.getDomainObject(Role.class,
-                        Long.valueOf(SystemProperties.getProperty(SystemProperties.POST_DEFAULT_ROLE_ID)),
+                role =
+                    (Role) dataAccessService.getDomainObject(Role.class,
+                        Long.valueOf(
+                            SystemProperties.getProperty(SystemProperties.POST_DEFAULT_ROLE_ID)),
                         null);
-                 if(role.getId() == null){
-                        logger.error(EELFLoggerDelegate.errorLogger,
-                                "process failed: No Role Exsists in DB with requested RoleId :"+ Long.valueOf(SystemProperties.getProperty(SystemProperties.POST_DEFAULT_ROLE_ID)));
-                        throw new Exception("user cannot be added");
+                if (role.getId() == null) {
+                    logger.error(EELFLoggerDelegate.errorLogger,
+                        "process failed: No Role Exsists in DB with requested RoleId :"
+                            + Long.valueOf(SystemProperties
+                                .getProperty(SystemProperties.POST_DEFAULT_ROLE_ID)));
+                    throw new Exception("user cannot be added");
                 }
                 user.addRole(role);
-                //saveUserExtension(user);
                 dataAccessService.saveDomainObject(user, additionalParams);
-                } catch (Exception e) {
-                     logger.error(EELFLoggerDelegate.errorLogger, "saveDomainObject failed on user " + user.getLoginId(), e);
-                     String loginErrorMessage = (e.getMessage() != null) ? e.getMessage()
-                         : "login.error.external.invalid - saveDomainObject failed on user " + user.getLoginId();
-                     Map<String, String> model = new HashMap<>();
-                     model.put("error", loginErrorMessage);
-                     return new ModelAndView("signup", "model", model);
+            } catch (Exception e) {
+                logger.error(EELFLoggerDelegate.errorLogger,
+                    "saveDomainObject failed on user " + user.getLoginId(), e);
+                String loginErrorMessage = (e.getMessage() != null) ? e.getMessage()
+                    : "login.error.external.invalid - saveDomainObject failed on user "
+                        + user.getLoginId();
+                Map<String, String> model = new HashMap<>();
+                model.put("error", loginErrorMessage);
+                return new ModelAndView("signup", "model", model);
             }
         }
         Map<String, Object> model = new HashMap<>();
         return new ModelAndView("login_external", "model", model);
     }
-    
+
     /**
      * Handles requests directed to the single sign-on page by the session timeout
      * interceptor.
      * 
-     * @param request  HttpServletRequest
+     * @param request HttpServletRequest
      * @param response HttpServletResponse
      * @return Redirect to an appropriate address
      * @throws Exception On any failure
      */
-    @RequestMapping(value = { "/single_signon.htm" }, method = RequestMethod.GET)
-    public ModelAndView singleSignOnLogin(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    @RequestMapping(value = {"/single_signon.htm"}, method = RequestMethod.GET)
+    public ModelAndView singleSignOnLogin(HttpServletRequest request, HttpServletResponse response)
+        throws Exception {
 
         Map<String, String> model = new HashMap<String, String>();
         HashMap<String, String> additionalParamsMap = new HashMap<String, String>();
@@ -205,45 +194,52 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
             User user = UserUtils.getUserSession(request);
             if (session == null || user == null) {
 
-                final String authMech = SystemProperties.getProperty(SystemProperties.AUTHENTICATION_MECHANISM);
+                final String authMech =
+                    SystemProperties.getProperty(SystemProperties.AUTHENTICATION_MECHANISM);
                 String userId = loginStrategy.getUserId(request);
                 commandBean.setUserid(userId);
                 commandBean = getLoginService().findUser(commandBean,
-                        (String) request.getAttribute(MenuProperties.MENU_PROPERTIES_FILENAME_KEY),
-                        additionalParamsMap);
+                    (String) request.getAttribute(MenuProperties.MENU_PROPERTIES_FILENAME_KEY),
+                    additionalParamsMap);
                 if (commandBean.getUser() == null) {
                     String loginErrorMessage = (commandBean.getLoginErrorMessage() != null)
-                            ? commandBean.getLoginErrorMessage()
-                            : SystemProperties.MESSAGE_KEY_LOGIN_ERROR_USER_NOT_FOUND;
-                    model.put(LoginStrategy.ERROR_MESSAGE_KEY, SystemProperties.getProperty(loginErrorMessage));
-                    final String redirectUrl = PortalApiProperties.getProperty(PortalApiConstants.ECOMP_REDIRECT_URL)
+                        ? commandBean.getLoginErrorMessage()
+                        : SystemProperties.MESSAGE_KEY_LOGIN_ERROR_USER_NOT_FOUND;
+                    model.put(LoginStrategy.ERROR_MESSAGE_KEY,
+                        SystemProperties.getProperty(loginErrorMessage));
+                    final String redirectUrl =
+                        PortalApiProperties.getProperty(PortalApiConstants.ECOMP_REDIRECT_URL)
                             + "?noUserError=Yes";
-                    logger.debug(EELFLoggerDelegate.debugLogger, "singleSignOnLogin: user is null, redirect URL is {}",
-                            redirectUrl);
+                    logger.debug(EELFLoggerDelegate.debugLogger,
+                        "singleSignOnLogin: user is null, redirect URL is {}", redirectUrl);
                     return new ModelAndView("redirect:" + redirectUrl);
                 } else {
                     // store the user's information in the session
                     String loginMethod;
                     if (null == authMech || "".equals(authMech) || "BOTH".equals(authMech)) {
-                        loginMethod = SystemProperties.getProperty(SystemProperties.LOGIN_METHOD_CSP);
+                        loginMethod =
+                            SystemProperties.getProperty(SystemProperties.LOGIN_METHOD_CSP);
                     } else if ("CSP".equals(authMech)) {
-                        loginMethod = SystemProperties.getProperty(SystemProperties.LOGIN_METHOD_CSP);
+                        loginMethod =
+                            SystemProperties.getProperty(SystemProperties.LOGIN_METHOD_CSP);
                     } else {
-                        loginMethod = SystemProperties.getProperty(SystemProperties.LOGIN_METHOD_WEB_JUNCTION);
+                        loginMethod = SystemProperties
+                            .getProperty(SystemProperties.LOGIN_METHOD_WEB_JUNCTION);
                     }
                     UserUtils.setUserSession(request, commandBean.getUser(), commandBean.getMenu(),
-                            commandBean.getBusinessDirectMenu(), loginMethod, roleService.getRoleFunctions(userId));
+                        commandBean.getBusinessDirectMenu(), loginMethod,
+                        roleService.getRoleFunctions(userId));
                     initateSessionMgtHandler(request);
                     logger.debug(EELFLoggerDelegate.debugLogger,
-                            "singleSignOnLogin: create new user session for expired user {}; user {} exists in the system",
-                            userId, commandBean.getUser().getOrgUserId());
+                        "singleSignOnLogin: create new user session for expired user {}; user {} exists in the system",
+                        userId, commandBean.getUser().getOrgUserId());
                     return new ModelAndView("redirect:" + forwardURL);
                 }
             } // user is null or session is null
             else {
                 // both user and session are non-null.
-                logger.info(EELFLoggerDelegate.debugLogger, "singleSignOnLogin: redirecting to the forwardURL {}",
-                        forwardURL);
+                logger.info(EELFLoggerDelegate.debugLogger,
+                    "singleSignOnLogin: redirecting to the forwardURL {}", forwardURL);
                 return new ModelAndView("redirect:" + forwardURL);
             }
         } else {
@@ -267,7 +263,8 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
                     String appUrl = SystemProperties.getProperty(SystemProperties.APP_BASE_URL);
                     returnToAppUrl = appUrl + (appUrl.endsWith("/") ? "" : "/") + forwardURL;
                     logger.debug(EELFLoggerDelegate.debugLogger,
-                            "singleSignOnLogin: using app base URL {} and redirectURL {}", appUrl, returnToAppUrl);
+                        "singleSignOnLogin: using app base URL {} and redirectURL {}", appUrl,
+                        returnToAppUrl);
                 } else {
                     /**
                      * Be backward compatible with applications that don't need this feature. This
@@ -275,20 +272,22 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
                      * always find the specified token.
                      */
                     returnToAppUrl = ((HttpServletRequest) request).getRequestURL().toString()
-                            .replace("single_signon.htm", forwardURL);
-                    logger.debug(EELFLoggerDelegate.debugLogger, "singleSignOnLogin: computed redirectURL {}",
-                            returnToAppUrl);
+                        .replace("single_signon.htm", forwardURL);
+                    logger.debug(EELFLoggerDelegate.debugLogger,
+                        "singleSignOnLogin: computed redirectURL {}", returnToAppUrl);
                 }
                 final String encodedReturnToAppUrl = URLEncoder.encode(returnToAppUrl, "UTF-8");
                 // Also send the application's UEB key so Portal can block URL
                 // reflection attacks.
-                final String uebAppKey = PortalApiProperties.getProperty(PortalApiConstants.UEB_APP_KEY);
-                final String url = PortalApiProperties.getProperty(PortalApiConstants.ECOMP_REDIRECT_URL);
+                final String uebAppKey =
+                    PortalApiProperties.getProperty(PortalApiConstants.UEB_APP_KEY);
+                final String url =
+                    PortalApiProperties.getProperty(PortalApiConstants.ECOMP_REDIRECT_URL);
                 final String portalUrl = url.substring(0, url.lastIndexOf('/')) + "/process_csp";
-                final String redirectUrl = portalUrl + "?uebAppKey=" + uebAppKey + "&redirectUrl="
-                        + encodedReturnToAppUrl;
-                logger.debug(EELFLoggerDelegate.debugLogger, "singleSignOnLogin: portal-bound redirect URL is {}",
-                        redirectUrl);
+                final String redirectUrl =
+                    portalUrl + "?uebAppKey=" + uebAppKey + "&redirectUrl=" + encodedReturnToAppUrl;
+                logger.debug(EELFLoggerDelegate.debugLogger,
+                    "singleSignOnLogin: portal-bound redirect URL is {}", redirectUrl);
                 return new ModelAndView("redirect:" + redirectUrl);
             } // portal is available
 
@@ -303,7 +302,7 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
         }
     }
 
-    @RequestMapping(value = { "logout.htm" }, method = RequestMethod.GET)
+    @RequestMapping(value = {"logout.htm"}, method = RequestMethod.GET)
     public ModelAndView appLogout(HttpServletRequest request) {
         try {
             request.getSession().invalidate();
@@ -320,7 +319,8 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
      * @return True if the portal answers, otherwise false.
      */
     private boolean isPortalAvailable() {
-        HttpComponentsClientHttpRequestFactory httpRequestFactory = new HttpComponentsClientHttpRequestFactory();
+        HttpComponentsClientHttpRequestFactory httpRequestFactory =
+            new HttpComponentsClientHttpRequestFactory();
         final int oneSecond = 1000;
         httpRequestFactory.setConnectionRequestTimeout(oneSecond);
         httpRequestFactory.setConnectTimeout(oneSecond);
@@ -328,7 +328,8 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
         RestTemplate restTemplate = new RestTemplate(httpRequestFactory);
         boolean avail = true;
         try {
-            final String portalUrl = PortalApiProperties.getProperty(PortalApiConstants.ECOMP_REST_URL);
+            final String portalUrl =
+                PortalApiProperties.getProperty(PortalApiConstants.ECOMP_REST_URL);
             String s = restTemplate.getForObject(portalUrl, String.class);
             logger.trace("isPortalAvailable got response {}", s);
         } catch (RestClientException ex) {
@@ -344,7 +345,8 @@ public class ECDSingleSignOnController extends UnRestrictedBaseController {
     protected void initateSessionMgtHandler(HttpServletRequest request) {
         String portalJSessionId = getPortalJSessionId(request);
         String jSessionId = getJessionId(request);
-        PortalTimeoutHandler.sessionCreated(portalJSessionId, jSessionId, AppUtils.getSession(request));
+        PortalTimeoutHandler.sessionCreated(portalJSessionId, jSessionId,
+            AppUtils.getSession(request));
     }
 
     public boolean isLoginCookieExist(HttpServletRequest request) {

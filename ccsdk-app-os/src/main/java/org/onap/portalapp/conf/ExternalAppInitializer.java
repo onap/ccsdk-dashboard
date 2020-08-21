@@ -1,8 +1,8 @@
 /*-
  * ================================================================================
- * ECOMP Portal SDK
+ * DCAE Dashboard
  * ================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property
+ * Copyright (C) 2020 AT&T Intellectual Property
  * ================================================================================
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,31 +19,11 @@
  */
 package org.onap.portalapp.conf;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-
 import org.onap.ccsdk.dashboard.util.DashboardProperties;
 import org.onap.portalsdk.core.conf.AppInitializer;
-import org.onap.portalsdk.core.logging.format.AlarmSeverityEnum;
-import org.onap.portalsdk.core.logging.logic.EELFLoggerDelegate;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.web.context.WebApplicationContext;
 
 public class ExternalAppInitializer extends AppInitializer {
 
-    /*
-    @Override
-    protected WebApplicationContext createServletApplicationContext() {
-        WebApplicationContext context = super.createServletApplicationContext();
-        try {
-            ((ConfigurableEnvironment) context.getEnvironment()).setActiveProfiles("onap");
-        } catch (Exception e) {
-            System.out.println("Unable to set the active profile" + e.getMessage());
-            //throw e;
-        }
-        return context;
-    }
-*/
     @Override
     protected Class<?>[] getRootConfigClasses() {
         return super.getRootConfigClasses();

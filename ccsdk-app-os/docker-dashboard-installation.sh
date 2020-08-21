@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
  #################################################################################
  # =============LICENSE_START=====================================================
  # 
@@ -18,21 +18,14 @@
  #  limitations under the License.
  # ============LICENSE_END========================================================
 
-# run import for ca certs
-if [ -e /usr/local/share/ca-certificates/cacert.pem ]
-then
-    sudo mv /usr/local/share/ca-certificates/cacert.pem /usr/local/share/ca-certificates/cacert.crt
-    sudo -- bash -c 'export JAVA_HOME=/usr/local/openjdk-8; /usr/sbin/update-ca-certificates'
-fi
-
 # Unzip the dashboard war file
-unzip -qq -d /home/deployments/ccsdk-app /home/deployments/ccsdk-app*.war
+unzip -qq -d /tmp/ccsdk-app /tmp/ccsdk-app*.war
 
 # Delete the dashboard war file
-rm -f /home/deployments/ccsdk-app*.war
+rm -f /tmp/ccsdk-app*.war
 
 # Update dashboard.properties
-cat /home/deployments/ccsdk-app/WEB-INF/conf/dashboard.properties | \
+cat /tmp/ccsdk-app/WEB-INF/conf/dashboard.properties | \
 sed "s~^site.primary.cloudify.url.*$~site.primary.cloudify.url = ${cfy_url}~" | \
 sed "s~^site.primary.consul.url.*$~site.primary.consul.url = ${consul_url}~" | \
 sed "s~^site.primary.inventory.url.*$~site.primary.inventory.url = ${inventory_url}~" | \
@@ -40,42 +33,43 @@ sed "s~^site.primary.dhandler.url.*$~site.primary.dhandler.url = ${dhandler_url}
 sed "s/^site.primary.cloudify.username.*$/site.primary.cloudify.username = ${cloudify_user}/" | \
 sed "s~^site.primary.cloudify.password.*$~site.primary.cloudify.password = ${cloudify_password}~" | \
 sed "s/^controller.env.*$/controller.env = ${app_env}/" > /tmp/dash.prop
-mv /tmp/dash.prop /home/deployments/ccsdk-app/WEB-INF/conf/dashboard.properties
+mv /tmp/dash.prop /tmp/ccsdk-app/WEB-INF/conf/dashboard.properties
 
 # Update system.properties
-cp /home/deployments/ccsdk-app/WEB-INF/conf/system.properties.template \
-/home/deployments/ccsdk-app/WEB-INF/conf/system.properties
-cat /home/deployments/ccsdk-app/WEB-INF/conf/system.properties | \
+cp /tmp/ccsdk-app/WEB-INF/conf/system.properties.template \
+/tmp/ccsdk-app/WEB-INF/conf/system.properties
+cat /tmp/ccsdk-app/WEB-INF/conf/system.properties | \
 sed "s/^db.encrypt_flag.*$/db.encrypt_flag=false/g" | \
 sed "s/postgresql:\/\/.*$/postgresql:\/\/${postgres_ip}:${postgres_port}\/${postgres_db_name}/g" | \
 sed "s/^db.userName.*$/db.userName=${postgres_user_dashboard}/g" | \
 sed "s/^db.password.*$/db.password=${postgres_password_dashboard}/g"  > /tmp/sys.prop
-mv /tmp/sys.prop /home/deployments/ccsdk-app/WEB-INF/conf/system.properties
+mv /tmp/sys.prop /tmp/ccsdk-app/WEB-INF/conf/system.properties
 
 # Repackage the war file
-cd /home/deployments/ccsdk-app && zip -rqq ../ccsdk-app.war * && cd -
+cd /tmp/ccsdk-app && zip -rqq ../ccsdk-app.war * && cd -
 
 # Move the war file to Tomcat webapps directory
-mv /home/deployments/ccsdk-app.war $CATALINA_HOME/webapps
-rm -Rf /home/deployments/ccsdk-app
+mv /tmp/ccsdk-app.war $CATALINA_HOME/webapps
+rm -Rf /tmp/ccsdk-app
 
 # create the database tables
 export PGPASSWORD=$postgres_password_dashboard
 psql -h $postgres_ip -U $postgres_user_dashboard $postgres_db_name -f /tmp/create_table.sql
-psql -h $postgres_ip -U $postgres_user_dashboard $postgres_db_name -c "update FN_APP set app_username='${aaf_app_user}' where app_id=1"
 
 # Update tomcat server.xml to enable HTTPS protocol
-if [[ -f /usr/local/share/ca-certificates/cert.jks && $CATALINA_HOME/conf/server.xml ]]
+if [[ -f /opt/app/osaaf/cert.jks && $CATALINA_HOME/conf/server.xml ]]
 then
     echo "<Connector
     protocol=\"org.apache.coyote.http11.Http11NioProtocol\"
     port=\"8443\" maxThreads=\"200\"
     scheme=\"https\" secure=\"true\" SSLEnabled=\"true\"
-    keystoreFile=\"/usr/local/share/ca-certificates/cert.jks\" keystorePass=\"`sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -e 's/"/\&quot;/g' -e "s/'/\&apos;/g" < /usr/local/share/ca-certificates/jks.pass`\"
+    keystoreFile=\"/opt/app/osaaf/cert.jks\" keystorePass=\"`cat /opt/app/osaaf/jks.pass`\"
     clientAuth=\"false\" sslProtocol=\"TLS\"/>" >> enablehttps.txt
     sed '/Service name=\"Catalina\">/r enablehttps.txt' $CATALINA_HOME/conf/server.xml > $CATALINA_HOME/conf/server-https.xml
     mv $CATALINA_HOME/conf/server-https.xml $CATALINA_HOME/conf/server.xml
 fi
+
+echo 'CATALINA_OPTS="-Djavax.net.ssl.trustStore=/opt/app/osaaf/truststore.jks --illegal-access=permit"' > $CATALINA_HOME/bin/setenv.sh
 
 # Start the tomcat server
 catalina.sh run

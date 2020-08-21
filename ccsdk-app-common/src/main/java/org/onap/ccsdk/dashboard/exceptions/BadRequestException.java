@@ -17,16 +17,13 @@
  *  limitations under the License.
  * ============LICENSE_END=========================================================
  *
- *  ECOMP is a trademark and service mark of AT&T Intellectual Property.
  *******************************************************************************/
 
 package org.onap.ccsdk.dashboard.exceptions;
 
 public class BadRequestException extends Exception {
 
-    /**
-     * 
-     */
+
     private static final long serialVersionUID = -8654510668910559419L;
 
     public BadRequestException(String message) {

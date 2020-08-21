@@ -2,23 +2,23 @@
  * =============LICENSE_START=========================================================
  *
  * =================================================================================
- *  Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
+ * Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
  * ================================================================================
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *  
- *      http://www.apache.org/licenses/LICENSE-2.0
- *  
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * ============LICENSE_END=========================================================
  *
- *  ECOMP is a trademark and service mark of AT&T Intellectual Property.
  *******************************************************************************/
+
 package org.onap.ccsdk.dashboard.rest;
 
 import java.util.stream.Stream;
@@ -41,6 +41,7 @@ public interface DeploymentHandlerClient {
      * 
      */
     public String checkHealth();
+
     /**
      * Gets a list of all service deployments known to the orchestrator.
      * 
@@ -53,7 +54,7 @@ public interface DeploymentHandlerClient {
      * to a single service type.
      * 
      * @param serviceTypeId Service type identifier for the type whose deployments
-     *                      are to be listed.
+     * are to be listed.
      * 
      * @return Stream<String>
      */
@@ -62,35 +63,35 @@ public interface DeploymentHandlerClient {
     /**
      * Request deployment of a DCAE Service.
      * 
-     * @param deploymentId      Unique deployment identifier assigned by the API
-     *                          client.
+     * @param deploymentId Unique deployment identifier assigned by the API
+     * client.
      * 
      * @param deploymentRequest Deployment request object that contains the
-     *                          necessary fields for service deployment.
+     * necessary fields for service deployment.
      * 
      * @return DeploymentResponse Response body for a PUT or DELETE to
-     *         /dcae-deployments/{deploymentId}
+     * /dcae-deployments/{deploymentId}
      *
      */
-    public DeploymentResponse putDeployment(String deploymentId, String tenant, DeploymentRequest deploymentRequest,
-        HttpServletRequest request)
-            throws BadRequestException, ServiceAlreadyExistsException, ServerErrorException, DownstreamException;
+    public DeploymentResponse putDeployment(String deploymentId, String tenant,
+        DeploymentRequest deploymentRequest, HttpServletRequest request) throws Exception;
 
     /**
      * For API use, Request deployment of a DCAE Service.
+     * s
      * 
-     * @param deploymentId      Unique deployment identifier assigned by the API
-     *                          client.
+     * @param deploymentId Unique deployment identifier assigned by the API
+     * client.
      * 
      * @param deploymentRequest Deployment request object that contains the
-     *                          necessary fields for service deployment.
+     * necessary fields for service deployment.
      * 
      * @return DeploymentResponse Response body for a PUT or DELETE to
-     *         /dcae-deployments/{deploymentId}
+     * /dcae-deployments/{deploymentId}
      *
      */
-    public DeploymentResponse putDeployment(String deploymentId, String tenant, DeploymentRequest deploymentRequest)
-            throws BadRequestException, ServiceAlreadyExistsException, ServerErrorException, DownstreamException;
+    public DeploymentResponse putDeployment(String deploymentId, String tenant,
+        DeploymentRequest deploymentRequest) throws Exception;
 
     /**
      * Uninstall the DCAE service and remove all associated data from the
@@ -100,8 +101,8 @@ public interface DeploymentHandlerClient {
      * 
      */
     public void deleteDeployment(String deploymentId, String tenant, HttpServletRequest request)
-            throws BadRequestException, ServerErrorException, DownstreamException, DeploymentNotFoundException;
-    
+        throws Exception;
+
     /**
      * For API use, Uninstall the DCAE service and remove all associated data from the
      * orchestrator.
@@ -109,6 +110,5 @@ public interface DeploymentHandlerClient {
      * @param deploymentId Unique deployment identifier assigned by the API client.
      * 
      */
-    public void deleteDeployment(String deploymentId, String tenant)
-            throws BadRequestException, ServerErrorException, DownstreamException, DeploymentNotFoundException;
+    public void deleteDeployment(String deploymentId, String tenant) throws Exception;
 }

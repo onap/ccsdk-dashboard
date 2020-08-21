@@ -1505,6 +1505,11 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
           </li>
         
           <li>
+            <a href="#authentication" class="toc-h1 toc-link" data-title="Authentication">Authentication</a>
+            
+          </li>
+        
+          <li>
             <a href="#dcae-dashboard-api-blueprints" class="toc-h1 toc-link" data-title="Blueprints">Blueprints</a>
             
               <ul class="toc-list-h2">
@@ -1607,11 +1612,6 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
                   </li>
                 
                   <li>
-                    <a href="#tocscomponentinput" class="toc-h2 toc-link" data-title="">ComponentInput</a>
-                    
-                  </li>
-                
-                  <li>
                     <a href="#tocsinlineresponse200" class="toc-h2 toc-link" data-title="">InlineResponse200</a>
                     
                   </li>
@@ -1627,7 +1627,7 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
                   </li>
                 
                   <li>
-                    <a href="#tocsdcaeservice" class="toc-h2 toc-link" data-title="">DCAEService</a>
+                    <a href="#tocsdeployment" class="toc-h2 toc-link" data-title="">Deployment</a>
                     
                   </li>
                 
@@ -1658,6 +1658,11 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
                 
                   <li>
                     <a href="#tocsdcaeservicetype" class="toc-h2 toc-link" data-title="">DCAEServiceType</a>
+                    
+                  </li>
+                
+                  <li>
+                    <a href="#tocsdcaeservicetypesummary" class="toc-h2 toc-link" data-title="">DCAEServiceTypeSummary</a>
                     
                   </li>
                 
@@ -1717,7 +1722,7 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
 <blockquote>
 <p>Scroll down for code samples, example requests and responses. Select a language for code samples from the tabs above or the mobile navigation menu.</p>
 </blockquote>
-<p>API to manage deployment of microservices using blueprints.</p>
+<p>API to manage deployment of microservices using blueprints. HTTP Basic authorization schema is required to authenticate users for all the resource endpoints. The client sends HTTP requests with an Authorization header  containing base64-encoded username:password string.</p>
 <p>Base URLs:</p>
 <ul>
 <li>
@@ -1728,6 +1733,10 @@ var n=this.pipeline.run(e.tokenizer(t)),r=new e.Vector,i=[],o=this._fields.reduc
 </li>
 </ul>
 <p>Email: <a href="mailto:rp5662@att.com">Support</a></p>
+<h1 id="authentication">Authentication</h1>
+<ul>
+<li>HTTP Authentication, scheme: basic</li>
+</ul>
 <h1 id="dcae-dashboard-api-blueprints">Blueprints</h1>
 <p>Query blueprint information</p>
 <h2 id="list-blueprints">List Blueprints</h2>
@@ -1741,14 +1750,14 @@ headers = {
 }
 
 r = requests.get(<span class="hljs-string">'https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/blueprints'</span>, params={
-  <span class="hljs-string">'pageNum'</span>: <span class="hljs-string">'string'</span>,  <span class="hljs-string">'viewPerPage'</span>: <span class="hljs-string">'string'</span>
+
 }, headers = headers)
 
 <span class="hljs-keyword">print</span> r.json()
 
 </code></pre>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X GET https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/blueprints?pageNum=string&amp;viewPerPage=string \
+curl -X GET https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/blueprints \
   -H <span class="hljs-string">'Accept: application/json'</span>
 
 </code></pre>
@@ -1768,48 +1777,25 @@ curl -X GET https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/blueprints?pageNum=s
 </thead>
 <tbody>
 <tr>
-<td>pageNum</td>
+<td>page</td>
 <td>query</td>
 <td>string</td>
-<td>true</td>
-<td>pagination control - page number</td>
-</tr>
-<tr>
-<td>viewPerPage</td>
-<td>query</td>
-<td>string</td>
-<td>true</td>
-<td>pagination control - page size</td>
-</tr>
-<tr>
-<td>_include</td>
-<td>query</td>
-<td>array[string]</td>
 <td>false</td>
-<td>blueprint object properties need to be considered for filter</td>
-</tr>
-</tbody>
-</table>
-<h4 id="enumerated-values">Enumerated Values</h4>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Value</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>_include</td>
-<td>typeName</td>
+<td>page number</td>
 </tr>
 <tr>
-<td>_include</td>
-<td>typeId</td>
+<td>size</td>
+<td>query</td>
+<td>string</td>
+<td>false</td>
+<td>page size</td>
 </tr>
 <tr>
-<td>_include</td>
-<td>typeVersion</td>
+<td>filters</td>
+<td>query</td>
+<td>string</td>
+<td>false</td>
+<td>search filters, {&quot;owner&quot;:&quot;user1&quot;, &quot;name&quot;:&quot;user1-bp1&quot;,&quot;id&quot;:&quot;2334-343&quot;}</td>
 </tr>
 </tbody>
 </table>
@@ -1820,72 +1806,17 @@ curl -X GET https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/blueprints?pageNum=s
 <p>200 Response</p>
 </blockquote>
 <pre class="highlight tab tab-json"><code>{
-  <span class="hljs-attr">"links"</span>: {
-    <span class="hljs-attr">"previousLink"</span>: {
-      <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"uri"</span>: <span class="hljs-string">"http://example.com"</span>,
-      <span class="hljs-attr">"uriBuilder"</span>: {},
-      <span class="hljs-attr">"rels"</span>: [
-        <span class="hljs-string">"string"</span>
-      ],
-      <span class="hljs-attr">"params"</span>: {
-        <span class="hljs-attr">"property1"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"property2"</span>: <span class="hljs-string">"string"</span>
-      },
-      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
-    },
-    <span class="hljs-attr">"nextLink"</span>: {
-      <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"uri"</span>: <span class="hljs-string">"http://example.com"</span>,
-      <span class="hljs-attr">"uriBuilder"</span>: {},
-      <span class="hljs-attr">"rels"</span>: [
-        <span class="hljs-string">"string"</span>
-      ],
-      <span class="hljs-attr">"params"</span>: {
-        <span class="hljs-attr">"property1"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"property2"</span>: <span class="hljs-string">"string"</span>
-      },
-      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
-    }
-  },
-  <span class="hljs-attr">"totalCount"</span>: <span class="hljs-number">0</span>,
+  <span class="hljs-attr">"totalItems"</span>: <span class="hljs-number">0</span>,
+  <span class="hljs-attr">"totalPages"</span>: <span class="hljs-number">0</span>,
   <span class="hljs-attr">"items"</span>: [
     {
       <span class="hljs-attr">"owner"</span>: <span class="hljs-string">"string"</span>,
       <span class="hljs-attr">"typeName"</span>: <span class="hljs-string">"string"</span>,
+      <span class="hljs-attr">"application"</span>: <span class="hljs-string">"string"</span>,
+      <span class="hljs-attr">"component"</span>: <span class="hljs-string">"string"</span>,
       <span class="hljs-attr">"typeVersion"</span>: <span class="hljs-number">0</span>,
-      <span class="hljs-attr">"blueprintTemplate"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"serviceIds"</span>: [
-        <span class="hljs-string">"string"</span>
-      ],
-      <span class="hljs-attr">"vnfTypes"</span>: [
-        <span class="hljs-string">"string"</span>
-      ],
-      <span class="hljs-attr">"serviceLocations"</span>: [
-        <span class="hljs-string">"string"</span>
-      ],
-      <span class="hljs-attr">"asdcServiceId"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"asdcResourceId"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"asdcServiceURL"</span>: <span class="hljs-string">"string"</span>,
       <span class="hljs-attr">"typeId"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"selfLink"</span>: {
-        <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"uri"</span>: <span class="hljs-string">"http://example.com"</span>,
-        <span class="hljs-attr">"uriBuilder"</span>: {},
-        <span class="hljs-attr">"rels"</span>: [
-          <span class="hljs-string">"string"</span>
-        ],
-        <span class="hljs-attr">"params"</span>: {
-          <span class="hljs-attr">"property1"</span>: <span class="hljs-string">"string"</span>,
-          <span class="hljs-attr">"property2"</span>: <span class="hljs-string">"string"</span>
-        },
-        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
-      },
-      <span class="hljs-attr">"created"</span>: <span class="hljs-string">"2020-08-12T15:08:29Z"</span>,
-      <span class="hljs-attr">"deactivated"</span>: <span class="hljs-string">"2020-08-12T15:08:29Z"</span>
+      <span class="hljs-attr">"created"</span>: <span class="hljs-string">"2020-08-20T00:20:10Z"</span>
     }
   ]
 }
@@ -1913,10 +1844,45 @@ curl -X GET https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/blueprints?pageNum=s
 <td>Invalid tag value</td>
 <td>None</td>
 </tr>
+<tr>
+<td>401</td>
+<td><a href="https://tools.ietf.org/html/rfc7235#section-3.1">Unauthorized</a></td>
+<td>Authentication information is missing or invalid</td>
+<td>None</td>
+</tr>
 </tbody>
 </table>
-<aside class="success">
-This operation does not require authentication
+<h3 id="response-headers">Response Headers</h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Header</th>
+<th>Type</th>
+<th>Format</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200</td>
+<td>Link</td>
+<td>string</td>
+<td></td>
+<td>pagination header</td>
+</tr>
+<tr>
+<td>401</td>
+<td>WWW_Authenticate</td>
+<td>string</td>
+<td></td>
+<td>none</td>
+</tr>
+</tbody>
+</table>
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+basicAuth
 </aside>
 <h2 id="create-blueprint">Create Blueprint</h2>
 <p><a id="opIdCreate Blueprint"></a></p>
@@ -1982,75 +1948,20 @@ curl -X POST https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/blueprints \
 <p>Example responses</p>
 </blockquote>
 <blockquote>
-<p>200 Response</p>
+<p>201 Response</p>
 </blockquote>
 <pre class="highlight tab tab-json"><code>{
-  <span class="hljs-attr">"links"</span>: {
-    <span class="hljs-attr">"previousLink"</span>: {
-      <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"uri"</span>: <span class="hljs-string">"http://example.com"</span>,
-      <span class="hljs-attr">"uriBuilder"</span>: {},
-      <span class="hljs-attr">"rels"</span>: [
-        <span class="hljs-string">"string"</span>
-      ],
-      <span class="hljs-attr">"params"</span>: {
-        <span class="hljs-attr">"property1"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"property2"</span>: <span class="hljs-string">"string"</span>
-      },
-      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
-    },
-    <span class="hljs-attr">"nextLink"</span>: {
-      <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"uri"</span>: <span class="hljs-string">"http://example.com"</span>,
-      <span class="hljs-attr">"uriBuilder"</span>: {},
-      <span class="hljs-attr">"rels"</span>: [
-        <span class="hljs-string">"string"</span>
-      ],
-      <span class="hljs-attr">"params"</span>: {
-        <span class="hljs-attr">"property1"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"property2"</span>: <span class="hljs-string">"string"</span>
-      },
-      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
-    }
-  },
-  <span class="hljs-attr">"totalCount"</span>: <span class="hljs-number">0</span>,
+  <span class="hljs-attr">"totalItems"</span>: <span class="hljs-number">0</span>,
+  <span class="hljs-attr">"totalPages"</span>: <span class="hljs-number">0</span>,
   <span class="hljs-attr">"items"</span>: [
     {
       <span class="hljs-attr">"owner"</span>: <span class="hljs-string">"string"</span>,
       <span class="hljs-attr">"typeName"</span>: <span class="hljs-string">"string"</span>,
+      <span class="hljs-attr">"application"</span>: <span class="hljs-string">"string"</span>,
+      <span class="hljs-attr">"component"</span>: <span class="hljs-string">"string"</span>,
       <span class="hljs-attr">"typeVersion"</span>: <span class="hljs-number">0</span>,
-      <span class="hljs-attr">"blueprintTemplate"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"serviceIds"</span>: [
-        <span class="hljs-string">"string"</span>
-      ],
-      <span class="hljs-attr">"vnfTypes"</span>: [
-        <span class="hljs-string">"string"</span>
-      ],
-      <span class="hljs-attr">"serviceLocations"</span>: [
-        <span class="hljs-string">"string"</span>
-      ],
-      <span class="hljs-attr">"asdcServiceId"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"asdcResourceId"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"asdcServiceURL"</span>: <span class="hljs-string">"string"</span>,
       <span class="hljs-attr">"typeId"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"selfLink"</span>: {
-        <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"uri"</span>: <span class="hljs-string">"http://example.com"</span>,
-        <span class="hljs-attr">"uriBuilder"</span>: {},
-        <span class="hljs-attr">"rels"</span>: [
-          <span class="hljs-string">"string"</span>
-        ],
-        <span class="hljs-attr">"params"</span>: {
-          <span class="hljs-attr">"property1"</span>: <span class="hljs-string">"string"</span>,
-          <span class="hljs-attr">"property2"</span>: <span class="hljs-string">"string"</span>
-        },
-        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
-      },
-      <span class="hljs-attr">"created"</span>: <span class="hljs-string">"2020-08-12T15:08:29Z"</span>,
-      <span class="hljs-attr">"deactivated"</span>: <span class="hljs-string">"2020-08-12T15:08:29Z"</span>
+      <span class="hljs-attr">"created"</span>: <span class="hljs-string">"2020-08-20T00:20:10Z"</span>
     }
   ]
 }
@@ -2067,8 +1978,8 @@ curl -X POST https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/blueprints \
 </thead>
 <tbody>
 <tr>
-<td>200</td>
-<td><a href="https://tools.ietf.org/html/rfc7231#section-6.3.1">OK</a></td>
+<td>201</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.3.2">Created</a></td>
 <td>A <code>DCAEServiceType</code> object</td>
 <td><a href="#schemainlineresponse200">InlineResponse200</a></td>
 </tr>
@@ -2078,10 +1989,38 @@ curl -X POST https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/blueprints \
 <td>Invalid tag value</td>
 <td>None</td>
 </tr>
+<tr>
+<td>401</td>
+<td><a href="https://tools.ietf.org/html/rfc7235#section-3.1">Unauthorized</a></td>
+<td>Authentication information is missing or invalid</td>
+<td>None</td>
+</tr>
 </tbody>
 </table>
-<aside class="success">
-This operation does not require authentication
+<h3 id="response-headers">Response Headers</h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Header</th>
+<th>Type</th>
+<th>Format</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>401</td>
+<td>WWW_Authenticate</td>
+<td>string</td>
+<td></td>
+<td>none</td>
+</tr>
+</tbody>
+</table>
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+basicAuth
 </aside>
 <h2 id="delete-blueprint">Delete Blueprint</h2>
 <p><a id="opIdDelete Blueprint"></a></p>
@@ -2137,15 +2076,43 @@ curl -X DELETE https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/blueprints/{typeI
 </thead>
 <tbody>
 <tr>
-<td>200</td>
-<td><a href="https://tools.ietf.org/html/rfc7231#section-6.3.1">OK</a></td>
+<td>204</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.3.5">No Content</a></td>
 <td>successful operation</td>
+<td>None</td>
+</tr>
+<tr>
+<td>401</td>
+<td><a href="https://tools.ietf.org/html/rfc7235#section-3.1">Unauthorized</a></td>
+<td>Authentication information is missing or invalid</td>
 <td>None</td>
 </tr>
 </tbody>
 </table>
-<aside class="success">
-This operation does not require authentication
+<h3 id="response-headers">Response Headers</h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Header</th>
+<th>Type</th>
+<th>Format</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>401</td>
+<td>WWW_Authenticate</td>
+<td>string</td>
+<td></td>
+<td>none</td>
+</tr>
+</tbody>
+</table>
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+basicAuth
 </aside>
 <h2 id="get-deployments-for-a-blueprint">Get Deployments for a blueprint</h2>
 <p><a id="opIdGet Deployments for a blueprint"></a></p>
@@ -2206,10 +2173,38 @@ curl -X GET https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/blueprints/{typeId}/
 <td>successful operation</td>
 <td>None</td>
 </tr>
+<tr>
+<td>401</td>
+<td><a href="https://tools.ietf.org/html/rfc7235#section-3.1">Unauthorized</a></td>
+<td>Authentication information is missing or invalid</td>
+<td>None</td>
+</tr>
 </tbody>
 </table>
-<aside class="success">
-This operation does not require authentication
+<h3 id="response-headers">Response Headers</h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Header</th>
+<th>Type</th>
+<th>Format</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>401</td>
+<td>WWW_Authenticate</td>
+<td>string</td>
+<td></td>
+<td>none</td>
+</tr>
+</tbody>
+</table>
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+basicAuth
 </aside>
 <h1 id="dcae-dashboard-api-deployments">Deployments</h1>
 <p>Manage deployments</p>
@@ -2224,14 +2219,14 @@ headers = {
 }
 
 r = requests.get(<span class="hljs-string">'https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/deployments'</span>, params={
-  <span class="hljs-string">'pageNum'</span>: <span class="hljs-string">'string'</span>,  <span class="hljs-string">'viewPerPage'</span>: <span class="hljs-string">'string'</span>
+  <span class="hljs-string">'page'</span>: <span class="hljs-string">'0'</span>,  <span class="hljs-string">'size'</span>: <span class="hljs-string">'0'</span>
 }, headers = headers)
 
 <span class="hljs-keyword">print</span> r.json()
 
 </code></pre>
 <pre class="highlight tab tab-shell"><code><span class="hljs-comment"># You can also use wget</span>
-curl -X GET https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/deployments?pageNum=string&amp;viewPerPage=string \
+curl -X GET https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/deployments?page=0&amp;size=0 \
   -H <span class="hljs-string">'Accept: application/json'</span>
 
 </code></pre>
@@ -2251,18 +2246,25 @@ curl -X GET https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/deployments?pageNum=
 </thead>
 <tbody>
 <tr>
-<td>pageNum</td>
+<td>page</td>
 <td>query</td>
-<td>string</td>
+<td>integer</td>
 <td>true</td>
 <td>pagination control - page number</td>
 </tr>
 <tr>
-<td>viewPerPage</td>
+<td>size</td>
 <td>query</td>
-<td>string</td>
+<td>integer</td>
 <td>true</td>
 <td>pagination control - page size</td>
+</tr>
+<tr>
+<td>filters</td>
+<td>query</td>
+<td>string</td>
+<td>false</td>
+<td>search filters, {&quot;_include&quot;:&quot;id&quot;, &quot;tenant&quot;:&quot;onap-tenant-1&quot;,&quot;serviceId&quot;:&quot;dcae&quot;}</td>
 </tr>
 </tbody>
 </table>
@@ -2274,82 +2276,11 @@ curl -X GET https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/deployments?pageNum=
 </blockquote>
 <pre class="highlight tab tab-json"><code>[
   {
-    <span class="hljs-attr">"serviceId"</span>: <span class="hljs-string">"string"</span>,
-    <span class="hljs-attr">"selfLink"</span>: {
-      <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"uri"</span>: <span class="hljs-string">"http://example.com"</span>,
-      <span class="hljs-attr">"uriBuilder"</span>: {},
-      <span class="hljs-attr">"rels"</span>: [
-        <span class="hljs-string">"string"</span>
-      ],
-      <span class="hljs-attr">"params"</span>: {
-        <span class="hljs-attr">"property1"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"property2"</span>: <span class="hljs-string">"string"</span>
-      },
-      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
-    },
-    <span class="hljs-attr">"created"</span>: <span class="hljs-string">"2020-08-12T15:08:29Z"</span>,
-    <span class="hljs-attr">"modified"</span>: <span class="hljs-string">"2020-08-12T15:08:29Z"</span>,
-    <span class="hljs-attr">"typeLink"</span>: {
-      <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"uri"</span>: <span class="hljs-string">"http://example.com"</span>,
-      <span class="hljs-attr">"uriBuilder"</span>: {},
-      <span class="hljs-attr">"rels"</span>: [
-        <span class="hljs-string">"string"</span>
-      ],
-      <span class="hljs-attr">"params"</span>: {
-        <span class="hljs-attr">"property1"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"property2"</span>: <span class="hljs-string">"string"</span>
-      },
-      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
-    },
-    <span class="hljs-attr">"vnfId"</span>: <span class="hljs-string">"string"</span>,
-    <span class="hljs-attr">"vnfLink"</span>: {
-      <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"uri"</span>: <span class="hljs-string">"http://example.com"</span>,
-      <span class="hljs-attr">"uriBuilder"</span>: {},
-      <span class="hljs-attr">"rels"</span>: [
-        <span class="hljs-string">"string"</span>
-      ],
-      <span class="hljs-attr">"params"</span>: {
-        <span class="hljs-attr">"property1"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"property2"</span>: <span class="hljs-string">"string"</span>
-      },
-      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
-    },
-    <span class="hljs-attr">"vnfType"</span>: <span class="hljs-string">"string"</span>,
-    <span class="hljs-attr">"vnfLocation"</span>: <span class="hljs-string">"string"</span>,
-    <span class="hljs-attr">"deploymentRef"</span>: <span class="hljs-string">"string"</span>,
-    <span class="hljs-attr">"components"</span>: [
-      {
-        <span class="hljs-attr">"componentId"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"componentLink"</span>: {
-          <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
-          <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"string"</span>,
-          <span class="hljs-attr">"uri"</span>: <span class="hljs-string">"http://example.com"</span>,
-          <span class="hljs-attr">"uriBuilder"</span>: {},
-          <span class="hljs-attr">"rels"</span>: [
-            <span class="hljs-string">"string"</span>
-          ],
-          <span class="hljs-attr">"params"</span>: {
-            <span class="hljs-attr">"property1"</span>: <span class="hljs-string">"string"</span>,
-            <span class="hljs-attr">"property2"</span>: <span class="hljs-string">"string"</span>
-          },
-          <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
-        },
-        <span class="hljs-attr">"created"</span>: <span class="hljs-string">"2020-08-12T15:08:29Z"</span>,
-        <span class="hljs-attr">"modified"</span>: <span class="hljs-string">"2020-08-12T15:08:29Z"</span>,
-        <span class="hljs-attr">"componentType"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"componentSource"</span>: <span class="hljs-string">"DCAEController"</span>,
-        <span class="hljs-attr">"status"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"location"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"shareable"</span>: <span class="hljs-number">0</span>
-      }
-    ],
-    <span class="hljs-attr">"tenant"</span>: <span class="hljs-string">"string"</span>
+    <span class="hljs-attr">"id"</span>: <span class="hljs-string">"string"</span>,
+    <span class="hljs-attr">"blueprint_id"</span>: <span class="hljs-string">"string"</span>,
+    <span class="hljs-attr">"created_at"</span>: <span class="hljs-string">"2020-08-20T00:20:10Z"</span>,
+    <span class="hljs-attr">"updated_at"</span>: <span class="hljs-string">"2020-08-20T00:20:10Z"</span>,
+    <span class="hljs-attr">"tenant_name"</span>: <span class="hljs-string">"string"</span>
   }
 ]
 </code></pre>
@@ -2376,6 +2307,12 @@ curl -X GET https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/deployments?pageNum=
 <td>Invalid status value</td>
 <td>None</td>
 </tr>
+<tr>
+<td>401</td>
+<td><a href="https://tools.ietf.org/html/rfc7235#section-3.1">Unauthorized</a></td>
+<td>Authentication information is missing or invalid</td>
+<td>None</td>
+</tr>
 </tbody>
 </table>
 <h3 id="list-deployments-responseschema">Response Schema</h3>
@@ -2393,209 +2330,41 @@ curl -X GET https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/deployments?pageNum=
 <tbody>
 <tr>
 <td><em>anonymous</em></td>
-<td>[<a href="#schemadcaeservice">DCAEService</a>]</td>
+<td>[<a href="#schemadeployment">Deployment</a>]</td>
 <td>false</td>
 <td>none</td>
 <td>none</td>
 </tr>
 <tr>
-<td>» serviceId</td>
+<td>» id</td>
 <td>string</td>
 <td>false</td>
 <td>none</td>
-<td>none</td>
+<td>cloudify deployment name</td>
 </tr>
 <tr>
-<td>» selfLink</td>
-<td><a href="#schemalink">Link</a></td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>»» title</td>
+<td>» blueprint_id</td>
 <td>string</td>
 <td>false</td>
 <td>none</td>
-<td>none</td>
+<td>cloudify blueprint name</td>
 </tr>
 <tr>
-<td>»» rel</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>»» uri</td>
-<td>string(uri)</td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>»» uriBuilder</td>
-<td><a href="#schemauribuilder">UriBuilder</a></td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>»» rels</td>
-<td>[string]</td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>»» params</td>
-<td>object</td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>»»» <strong>additionalProperties</strong></td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>»» type</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>» created</td>
+<td>» created_at</td>
 <td>string(date-time)</td>
 <td>false</td>
 <td>none</td>
 <td>none</td>
 </tr>
 <tr>
-<td>» modified</td>
+<td>» updated_at</td>
 <td>string(date-time)</td>
 <td>false</td>
 <td>none</td>
 <td>none</td>
 </tr>
 <tr>
-<td>» typeLink</td>
-<td><a href="#schemalink">Link</a></td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>» vnfId</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>» vnfLink</td>
-<td><a href="#schemalink">Link</a></td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>» vnfType</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>» vnfLocation</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>Location information of the associated VNF</td>
-</tr>
-<tr>
-<td>» deploymentRef</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>Reference to a Cloudify deployment</td>
-</tr>
-<tr>
-<td>» components</td>
-<td>[<a href="#schemadcaeservicecomponent">DCAEServiceComponent</a>]</td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>»» componentId</td>
-<td>string</td>
-<td>true</td>
-<td>none</td>
-<td>The id format is unique to the source</td>
-</tr>
-<tr>
-<td>»» componentLink</td>
-<td><a href="#schemalink">Link</a></td>
-<td>true</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>»» created</td>
-<td>string(date-time)</td>
-<td>true</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>»» modified</td>
-<td>string(date-time)</td>
-<td>true</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>»» componentType</td>
-<td>string</td>
-<td>true</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>»» componentSource</td>
-<td>string</td>
-<td>true</td>
-<td>none</td>
-<td>Specifies the name of the underying source service that is responsible for this components</td>
-</tr>
-<tr>
-<td>»» status</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>»» location</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>Location information of the component</td>
-</tr>
-<tr>
-<td>»» shareable</td>
-<td>integer(int32)</td>
-<td>true</td>
-<td>none</td>
-<td>Used to determine if this component can be shared amongst different DCAE services</td>
-</tr>
-<tr>
-<td>» tenant</td>
+<td>» tenant_name</td>
 <td>string</td>
 <td>false</td>
 <td>none</td>
@@ -2603,27 +2372,37 @@ curl -X GET https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/deployments?pageNum=
 </tr>
 </tbody>
 </table>
-<h4 id="enumerated-values">Enumerated Values</h4>
+<h3 id="response-headers">Response Headers</h3>
 <table>
 <thead>
 <tr>
-<th>Property</th>
-<th>Value</th>
+<th>Status</th>
+<th>Header</th>
+<th>Type</th>
+<th>Format</th>
+<th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>componentSource</td>
-<td>DCAEController</td>
+<td>200</td>
+<td>Link</td>
+<td>string</td>
+<td></td>
+<td>pagination header</td>
 </tr>
 <tr>
-<td>componentSource</td>
-<td>DMaaPController</td>
+<td>401</td>
+<td>WWW_Authenticate</td>
+<td>string</td>
+<td></td>
+<td>none</td>
 </tr>
 </tbody>
 </table>
-<aside class="success">
-This operation does not require authentication
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+basicAuth
 </aside>
 <h2 id="create-deployment">Create Deployment</h2>
 <p><a id="opIdCreate Deployment"></a></p>
@@ -2690,7 +2469,7 @@ curl -X POST https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/deployments \
 <p>Example responses</p>
 </blockquote>
 <blockquote>
-<p>200 Response</p>
+<p>201 Response</p>
 </blockquote>
 <pre class="highlight tab tab-json"><code>{
   <span class="hljs-attr">"deployment_id"</span>: <span class="hljs-string">"string"</span>,
@@ -2713,10 +2492,16 @@ curl -X POST https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/deployments \
 </thead>
 <tbody>
 <tr>
-<td>200</td>
-<td><a href="https://tools.ietf.org/html/rfc7231#section-6.3.1">OK</a></td>
+<td>201</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.3.2">Created</a></td>
 <td>successful operation</td>
 <td><a href="#schemadeploymentresource">DeploymentResource</a></td>
+</tr>
+<tr>
+<td>401</td>
+<td><a href="https://tools.ietf.org/html/rfc7235#section-3.1">Unauthorized</a></td>
+<td>Authentication information is missing or invalid</td>
+<td>None</td>
 </tr>
 <tr>
 <td>405</td>
@@ -2726,8 +2511,30 @@ curl -X POST https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/deployments \
 </tr>
 </tbody>
 </table>
-<aside class="success">
-This operation does not require authentication
+<h3 id="response-headers">Response Headers</h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Header</th>
+<th>Type</th>
+<th>Format</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>401</td>
+<td>WWW_Authenticate</td>
+<td>string</td>
+<td></td>
+<td>none</td>
+</tr>
+</tbody>
+</table>
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+basicAuth
 </aside>
 <h2 id="delete-deployment">Delete Deployment</h2>
 <p><a id="opIdDelete Deployment"></a></p>
@@ -2786,7 +2593,7 @@ curl -X DELETE https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/deployments/{depl
 <p>Example responses</p>
 </blockquote>
 <blockquote>
-<p>200 Response</p>
+<p>204 Response</p>
 </blockquote>
 <pre class="highlight tab tab-json"><code><span class="hljs-string">"string"</span>
 </code></pre>
@@ -2802,8 +2609,8 @@ curl -X DELETE https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/deployments/{depl
 </thead>
 <tbody>
 <tr>
-<td>200</td>
-<td><a href="https://tools.ietf.org/html/rfc7231#section-6.3.1">OK</a></td>
+<td>204</td>
+<td><a href="https://tools.ietf.org/html/rfc7231#section-6.3.5">No Content</a></td>
 <td>successful operation</td>
 <td>string</td>
 </tr>
@@ -2813,10 +2620,38 @@ curl -X DELETE https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/deployments/{depl
 <td>Invalid status value</td>
 <td>None</td>
 </tr>
+<tr>
+<td>401</td>
+<td><a href="https://tools.ietf.org/html/rfc7235#section-3.1">Unauthorized</a></td>
+<td>Authentication information is missing or invalid</td>
+<td>None</td>
+</tr>
 </tbody>
 </table>
-<aside class="success">
-This operation does not require authentication
+<h3 id="response-headers">Response Headers</h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Header</th>
+<th>Type</th>
+<th>Format</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>401</td>
+<td>WWW_Authenticate</td>
+<td>string</td>
+<td></td>
+<td>none</td>
+</tr>
+</tbody>
+</table>
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+basicAuth
 </aside>
 <h2 id="upgrade_rollback-deployment">Upgrade_Rollback Deployment</h2>
 <p><a id="opIdUpgrade/Rollback Deployment"></a></p>
@@ -2901,6 +2736,12 @@ curl -X PUT https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/deployments/{deploym
 <td>None</td>
 </tr>
 <tr>
+<td>401</td>
+<td><a href="https://tools.ietf.org/html/rfc7235#section-3.1">Unauthorized</a></td>
+<td>Authentication information is missing or invalid</td>
+<td>None</td>
+</tr>
+<tr>
 <td>404</td>
 <td><a href="https://tools.ietf.org/html/rfc7231#section-6.5.4">Not Found</a></td>
 <td>Deployment not found</td>
@@ -2914,8 +2755,30 @@ curl -X PUT https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/deployments/{deploym
 </tr>
 </tbody>
 </table>
-<aside class="success">
-This operation does not require authentication
+<h3 id="response-headers">Response Headers</h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Header</th>
+<th>Type</th>
+<th>Format</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>401</td>
+<td>WWW_Authenticate</td>
+<td>string</td>
+<td></td>
+<td>none</td>
+</tr>
+</tbody>
+</table>
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+basicAuth
 </aside>
 <h2 id="get-deployment">Get Deployment</h2>
 <p><a id="opIdGet Deployment"></a></p>
@@ -2971,82 +2834,11 @@ curl -X GET https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/deployments/{deploym
 </blockquote>
 <pre class="highlight tab tab-json"><code>[
   {
-    <span class="hljs-attr">"serviceId"</span>: <span class="hljs-string">"string"</span>,
-    <span class="hljs-attr">"selfLink"</span>: {
-      <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"uri"</span>: <span class="hljs-string">"http://example.com"</span>,
-      <span class="hljs-attr">"uriBuilder"</span>: {},
-      <span class="hljs-attr">"rels"</span>: [
-        <span class="hljs-string">"string"</span>
-      ],
-      <span class="hljs-attr">"params"</span>: {
-        <span class="hljs-attr">"property1"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"property2"</span>: <span class="hljs-string">"string"</span>
-      },
-      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
-    },
-    <span class="hljs-attr">"created"</span>: <span class="hljs-string">"2020-08-12T15:08:29Z"</span>,
-    <span class="hljs-attr">"modified"</span>: <span class="hljs-string">"2020-08-12T15:08:29Z"</span>,
-    <span class="hljs-attr">"typeLink"</span>: {
-      <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"uri"</span>: <span class="hljs-string">"http://example.com"</span>,
-      <span class="hljs-attr">"uriBuilder"</span>: {},
-      <span class="hljs-attr">"rels"</span>: [
-        <span class="hljs-string">"string"</span>
-      ],
-      <span class="hljs-attr">"params"</span>: {
-        <span class="hljs-attr">"property1"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"property2"</span>: <span class="hljs-string">"string"</span>
-      },
-      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
-    },
-    <span class="hljs-attr">"vnfId"</span>: <span class="hljs-string">"string"</span>,
-    <span class="hljs-attr">"vnfLink"</span>: {
-      <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"uri"</span>: <span class="hljs-string">"http://example.com"</span>,
-      <span class="hljs-attr">"uriBuilder"</span>: {},
-      <span class="hljs-attr">"rels"</span>: [
-        <span class="hljs-string">"string"</span>
-      ],
-      <span class="hljs-attr">"params"</span>: {
-        <span class="hljs-attr">"property1"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"property2"</span>: <span class="hljs-string">"string"</span>
-      },
-      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
-    },
-    <span class="hljs-attr">"vnfType"</span>: <span class="hljs-string">"string"</span>,
-    <span class="hljs-attr">"vnfLocation"</span>: <span class="hljs-string">"string"</span>,
-    <span class="hljs-attr">"deploymentRef"</span>: <span class="hljs-string">"string"</span>,
-    <span class="hljs-attr">"components"</span>: [
-      {
-        <span class="hljs-attr">"componentId"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"componentLink"</span>: {
-          <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
-          <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"string"</span>,
-          <span class="hljs-attr">"uri"</span>: <span class="hljs-string">"http://example.com"</span>,
-          <span class="hljs-attr">"uriBuilder"</span>: {},
-          <span class="hljs-attr">"rels"</span>: [
-            <span class="hljs-string">"string"</span>
-          ],
-          <span class="hljs-attr">"params"</span>: {
-            <span class="hljs-attr">"property1"</span>: <span class="hljs-string">"string"</span>,
-            <span class="hljs-attr">"property2"</span>: <span class="hljs-string">"string"</span>
-          },
-          <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
-        },
-        <span class="hljs-attr">"created"</span>: <span class="hljs-string">"2020-08-12T15:08:29Z"</span>,
-        <span class="hljs-attr">"modified"</span>: <span class="hljs-string">"2020-08-12T15:08:29Z"</span>,
-        <span class="hljs-attr">"componentType"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"componentSource"</span>: <span class="hljs-string">"DCAEController"</span>,
-        <span class="hljs-attr">"status"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"location"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"shareable"</span>: <span class="hljs-number">0</span>
-      }
-    ],
-    <span class="hljs-attr">"tenant"</span>: <span class="hljs-string">"string"</span>
+    <span class="hljs-attr">"id"</span>: <span class="hljs-string">"string"</span>,
+    <span class="hljs-attr">"blueprint_id"</span>: <span class="hljs-string">"string"</span>,
+    <span class="hljs-attr">"created_at"</span>: <span class="hljs-string">"2020-08-20T00:20:10Z"</span>,
+    <span class="hljs-attr">"updated_at"</span>: <span class="hljs-string">"2020-08-20T00:20:10Z"</span>,
+    <span class="hljs-attr">"tenant_name"</span>: <span class="hljs-string">"string"</span>
   }
 ]
 </code></pre>
@@ -3073,6 +2865,12 @@ curl -X GET https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/deployments/{deploym
 <td>Invalid status value</td>
 <td>None</td>
 </tr>
+<tr>
+<td>401</td>
+<td><a href="https://tools.ietf.org/html/rfc7235#section-3.1">Unauthorized</a></td>
+<td>Authentication information is missing or invalid</td>
+<td>None</td>
+</tr>
 </tbody>
 </table>
 <h3 id="get-deployment-responseschema">Response Schema</h3>
@@ -3090,209 +2888,41 @@ curl -X GET https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/deployments/{deploym
 <tbody>
 <tr>
 <td><em>anonymous</em></td>
-<td>[<a href="#schemadcaeservice">DCAEService</a>]</td>
+<td>[<a href="#schemadeployment">Deployment</a>]</td>
 <td>false</td>
 <td>none</td>
 <td>none</td>
 </tr>
 <tr>
-<td>» serviceId</td>
+<td>» id</td>
 <td>string</td>
 <td>false</td>
 <td>none</td>
-<td>none</td>
+<td>cloudify deployment name</td>
 </tr>
 <tr>
-<td>» selfLink</td>
-<td><a href="#schemalink">Link</a></td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>»» title</td>
+<td>» blueprint_id</td>
 <td>string</td>
 <td>false</td>
 <td>none</td>
-<td>none</td>
+<td>cloudify blueprint name</td>
 </tr>
 <tr>
-<td>»» rel</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>»» uri</td>
-<td>string(uri)</td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>»» uriBuilder</td>
-<td><a href="#schemauribuilder">UriBuilder</a></td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>»» rels</td>
-<td>[string]</td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>»» params</td>
-<td>object</td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>»»» <strong>additionalProperties</strong></td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>»» type</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>» created</td>
+<td>» created_at</td>
 <td>string(date-time)</td>
 <td>false</td>
 <td>none</td>
 <td>none</td>
 </tr>
 <tr>
-<td>» modified</td>
+<td>» updated_at</td>
 <td>string(date-time)</td>
 <td>false</td>
 <td>none</td>
 <td>none</td>
 </tr>
 <tr>
-<td>» typeLink</td>
-<td><a href="#schemalink">Link</a></td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>» vnfId</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>» vnfLink</td>
-<td><a href="#schemalink">Link</a></td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>» vnfType</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>» vnfLocation</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>Location information of the associated VNF</td>
-</tr>
-<tr>
-<td>» deploymentRef</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>Reference to a Cloudify deployment</td>
-</tr>
-<tr>
-<td>» components</td>
-<td>[<a href="#schemadcaeservicecomponent">DCAEServiceComponent</a>]</td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>»» componentId</td>
-<td>string</td>
-<td>true</td>
-<td>none</td>
-<td>The id format is unique to the source</td>
-</tr>
-<tr>
-<td>»» componentLink</td>
-<td><a href="#schemalink">Link</a></td>
-<td>true</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>»» created</td>
-<td>string(date-time)</td>
-<td>true</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>»» modified</td>
-<td>string(date-time)</td>
-<td>true</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>»» componentType</td>
-<td>string</td>
-<td>true</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>»» componentSource</td>
-<td>string</td>
-<td>true</td>
-<td>none</td>
-<td>Specifies the name of the underying source service that is responsible for this components</td>
-</tr>
-<tr>
-<td>»» status</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>»» location</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>Location information of the component</td>
-</tr>
-<tr>
-<td>»» shareable</td>
-<td>integer(int32)</td>
-<td>true</td>
-<td>none</td>
-<td>Used to determine if this component can be shared amongst different DCAE services</td>
-</tr>
-<tr>
-<td>» tenant</td>
+<td>» tenant_name</td>
 <td>string</td>
 <td>false</td>
 <td>none</td>
@@ -3300,27 +2930,30 @@ curl -X GET https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/deployments/{deploym
 </tr>
 </tbody>
 </table>
-<h4 id="enumerated-values">Enumerated Values</h4>
+<h3 id="response-headers">Response Headers</h3>
 <table>
 <thead>
 <tr>
-<th>Property</th>
-<th>Value</th>
+<th>Status</th>
+<th>Header</th>
+<th>Type</th>
+<th>Format</th>
+<th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>componentSource</td>
-<td>DCAEController</td>
-</tr>
-<tr>
-<td>componentSource</td>
-<td>DMaaPController</td>
+<td>401</td>
+<td>WWW_Authenticate</td>
+<td>string</td>
+<td></td>
+<td>none</td>
 </tr>
 </tbody>
 </table>
-<aside class="success">
-This operation does not require authentication
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+basicAuth
 </aside>
 <h2 id="deployment-status">Deployment Status</h2>
 <p><a id="opIdDeployment Status"></a></p>
@@ -3415,6 +3048,12 @@ curl -X GET https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/deployments/{deploym
 <td>Invalid status value</td>
 <td>None</td>
 </tr>
+<tr>
+<td>401</td>
+<td><a href="https://tools.ietf.org/html/rfc7235#section-3.1">Unauthorized</a></td>
+<td>Authentication information is missing or invalid</td>
+<td>None</td>
+</tr>
 </tbody>
 </table>
 <h3 id="deployment-status-responseschema">Response Schema</h3>
@@ -3481,8 +3120,30 @@ curl -X GET https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/deployments/{deploym
 </tr>
 </tbody>
 </table>
-<aside class="success">
-This operation does not require authentication
+<h3 id="response-headers">Response Headers</h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Header</th>
+<th>Type</th>
+<th>Format</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>401</td>
+<td>WWW_Authenticate</td>
+<td>string</td>
+<td></td>
+<td>none</td>
+</tr>
+</tbody>
+</table>
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+basicAuth
 </aside>
 <h2 id="deployment-health">Deployment health</h2>
 <p><a id="opIdDeployment health"></a></p>
@@ -3562,10 +3223,38 @@ curl -X GET https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/deployments/{deploym
 <td>successful operation</td>
 <td><a href="#schemaservicehealth">serviceHealth</a></td>
 </tr>
+<tr>
+<td>401</td>
+<td><a href="https://tools.ietf.org/html/rfc7235#section-3.1">Unauthorized</a></td>
+<td>Authentication information is missing or invalid</td>
+<td>None</td>
+</tr>
 </tbody>
 </table>
-<aside class="success">
-This operation does not require authentication
+<h3 id="response-headers">Response Headers</h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Header</th>
+<th>Type</th>
+<th>Format</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>401</td>
+<td>WWW_Authenticate</td>
+<td>string</td>
+<td></td>
+<td>none</td>
+</tr>
+</tbody>
+</table>
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+basicAuth
 </aside>
 <h2 id="deployment-inputs">Deployment Inputs</h2>
 <p><a id="opIdDeployment Inputs"></a></p>
@@ -3651,11 +3340,39 @@ curl -X GET https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/deployments/{deploym
 <td>Invalid status value</td>
 <td>None</td>
 </tr>
+<tr>
+<td>401</td>
+<td><a href="https://tools.ietf.org/html/rfc7235#section-3.1">Unauthorized</a></td>
+<td>Authentication information is missing or invalid</td>
+<td>None</td>
+</tr>
 </tbody>
 </table>
 <h3 id="deployment-inputs-responseschema">Response Schema</h3>
-<aside class="success">
-This operation does not require authentication
+<h3 id="response-headers">Response Headers</h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Header</th>
+<th>Type</th>
+<th>Format</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>401</td>
+<td>WWW_Authenticate</td>
+<td>string</td>
+<td></td>
+<td>none</td>
+</tr>
+</tbody>
+</table>
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+basicAuth
 </aside>
 <h1 id="dcae-dashboard-api-tenants">Tenants</h1>
 <p>Query Cloudify Tenants</p>
@@ -3719,6 +3436,12 @@ curl -X GET https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/tenants \
 <td>Invalid status value</td>
 <td>None</td>
 </tr>
+<tr>
+<td>401</td>
+<td><a href="https://tools.ietf.org/html/rfc7235#section-3.1">Unauthorized</a></td>
+<td>Authentication information is missing or invalid</td>
+<td>None</td>
+</tr>
 </tbody>
 </table>
 <h3 id="list-tenants-responseschema">Response Schema</h3>
@@ -3750,8 +3473,30 @@ curl -X GET https://dcae-dashboard:8080/ccsdk-app/nb-api/v2/tenants \
 </tr>
 </tbody>
 </table>
-<aside class="success">
-This operation does not require authentication
+<h3 id="response-headers">Response Headers</h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Header</th>
+<th>Type</th>
+<th>Format</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>401</td>
+<td>WWW_Authenticate</td>
+<td>string</td>
+<td></td>
+<td>none</td>
+</tr>
+</tbody>
+</table>
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+basicAuth
 </aside>
 <h1 id="schemas">Schemas</h1>
 <h2 id="tocstenant">Tenant</h2>
@@ -3782,111 +3527,20 @@ This operation does not require authentication
 </tr>
 </tbody>
 </table>
-<h2 id="tocscomponentinput">ComponentInput</h2>
-<p><a id="schemacomponentinput"></a></p>
-<pre class="highlight tab tab-json"><code>{
-  <span class="hljs-attr">"cname"</span>: <span class="hljs-string">"string"</span>,
-  <span class="hljs-attr">"dname"</span>: <span class="hljs-string">"string"</span>
-}
-
-</code></pre>
-<h3 id="properties">Properties</h3>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Required</th>
-<th>Restrictions</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>cname</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>component namespace name</td>
-</tr>
-<tr>
-<td>dname</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>component display name</td>
-</tr>
-</tbody>
-</table>
 <h2 id="tocsinlineresponse200">InlineResponse200</h2>
 <p><a id="schemainlineresponse200"></a></p>
 <pre class="highlight tab tab-json"><code>{
-  <span class="hljs-attr">"links"</span>: {
-    <span class="hljs-attr">"previousLink"</span>: {
-      <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"uri"</span>: <span class="hljs-string">"http://example.com"</span>,
-      <span class="hljs-attr">"uriBuilder"</span>: {},
-      <span class="hljs-attr">"rels"</span>: [
-        <span class="hljs-string">"string"</span>
-      ],
-      <span class="hljs-attr">"params"</span>: {
-        <span class="hljs-attr">"property1"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"property2"</span>: <span class="hljs-string">"string"</span>
-      },
-      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
-    },
-    <span class="hljs-attr">"nextLink"</span>: {
-      <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"uri"</span>: <span class="hljs-string">"http://example.com"</span>,
-      <span class="hljs-attr">"uriBuilder"</span>: {},
-      <span class="hljs-attr">"rels"</span>: [
-        <span class="hljs-string">"string"</span>
-      ],
-      <span class="hljs-attr">"params"</span>: {
-        <span class="hljs-attr">"property1"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"property2"</span>: <span class="hljs-string">"string"</span>
-      },
-      <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
-    }
-  },
-  <span class="hljs-attr">"totalCount"</span>: <span class="hljs-number">0</span>,
+  <span class="hljs-attr">"totalItems"</span>: <span class="hljs-number">0</span>,
+  <span class="hljs-attr">"totalPages"</span>: <span class="hljs-number">0</span>,
   <span class="hljs-attr">"items"</span>: [
     {
       <span class="hljs-attr">"owner"</span>: <span class="hljs-string">"string"</span>,
       <span class="hljs-attr">"typeName"</span>: <span class="hljs-string">"string"</span>,
+      <span class="hljs-attr">"application"</span>: <span class="hljs-string">"string"</span>,
+      <span class="hljs-attr">"component"</span>: <span class="hljs-string">"string"</span>,
       <span class="hljs-attr">"typeVersion"</span>: <span class="hljs-number">0</span>,
-      <span class="hljs-attr">"blueprintTemplate"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"serviceIds"</span>: [
-        <span class="hljs-string">"string"</span>
-      ],
-      <span class="hljs-attr">"vnfTypes"</span>: [
-        <span class="hljs-string">"string"</span>
-      ],
-      <span class="hljs-attr">"serviceLocations"</span>: [
-        <span class="hljs-string">"string"</span>
-      ],
-      <span class="hljs-attr">"asdcServiceId"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"asdcResourceId"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"asdcServiceURL"</span>: <span class="hljs-string">"string"</span>,
       <span class="hljs-attr">"typeId"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"selfLink"</span>: {
-        <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"uri"</span>: <span class="hljs-string">"http://example.com"</span>,
-        <span class="hljs-attr">"uriBuilder"</span>: {},
-        <span class="hljs-attr">"rels"</span>: [
-          <span class="hljs-string">"string"</span>
-        ],
-        <span class="hljs-attr">"params"</span>: {
-          <span class="hljs-attr">"property1"</span>: <span class="hljs-string">"string"</span>,
-          <span class="hljs-attr">"property2"</span>: <span class="hljs-string">"string"</span>
-        },
-        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
-      },
-      <span class="hljs-attr">"created"</span>: <span class="hljs-string">"2020-08-12T15:08:29Z"</span>,
-      <span class="hljs-attr">"deactivated"</span>: <span class="hljs-string">"2020-08-12T15:08:29Z"</span>
+      <span class="hljs-attr">"created"</span>: <span class="hljs-string">"2020-08-20T00:20:10Z"</span>
     }
   ]
 }
@@ -3905,14 +3559,14 @@ This operation does not require authentication
 </thead>
 <tbody>
 <tr>
-<td>links</td>
-<td><a href="#schemainlineresponse200links">InlineResponse200Links</a></td>
+<td>totalItems</td>
+<td>integer(int32)</td>
 <td>false</td>
 <td>none</td>
-<td>Pagination links</td>
+<td>none</td>
 </tr>
 <tr>
-<td>totalCount</td>
+<td>totalPages</td>
 <td>integer(int32)</td>
 <td>false</td>
 <td>none</td>
@@ -3920,7 +3574,7 @@ This operation does not require authentication
 </tr>
 <tr>
 <td>items</td>
-<td>[<a href="#schemadcaeservicetype">DCAEServiceType</a>]</td>
+<td>[<a href="#schemadcaeservicetypesummary">DCAEServiceTypeSummary</a>]</td>
 <td>false</td>
 <td>none</td>
 <td>none</td>
@@ -4034,85 +3688,14 @@ This operation does not require authentication
 </tr>
 </tbody>
 </table>
-<h2 id="tocsdcaeservice">DCAEService</h2>
-<p><a id="schemadcaeservice"></a></p>
+<h2 id="tocsdeployment">Deployment</h2>
+<p><a id="schemadeployment"></a></p>
 <pre class="highlight tab tab-json"><code>{
-  <span class="hljs-attr">"serviceId"</span>: <span class="hljs-string">"string"</span>,
-  <span class="hljs-attr">"selfLink"</span>: {
-    <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
-    <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"string"</span>,
-    <span class="hljs-attr">"uri"</span>: <span class="hljs-string">"http://example.com"</span>,
-    <span class="hljs-attr">"uriBuilder"</span>: {},
-    <span class="hljs-attr">"rels"</span>: [
-      <span class="hljs-string">"string"</span>
-    ],
-    <span class="hljs-attr">"params"</span>: {
-      <span class="hljs-attr">"property1"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"property2"</span>: <span class="hljs-string">"string"</span>
-    },
-    <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
-  },
-  <span class="hljs-attr">"created"</span>: <span class="hljs-string">"2020-08-12T15:08:29Z"</span>,
-  <span class="hljs-attr">"modified"</span>: <span class="hljs-string">"2020-08-12T15:08:29Z"</span>,
-  <span class="hljs-attr">"typeLink"</span>: {
-    <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
-    <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"string"</span>,
-    <span class="hljs-attr">"uri"</span>: <span class="hljs-string">"http://example.com"</span>,
-    <span class="hljs-attr">"uriBuilder"</span>: {},
-    <span class="hljs-attr">"rels"</span>: [
-      <span class="hljs-string">"string"</span>
-    ],
-    <span class="hljs-attr">"params"</span>: {
-      <span class="hljs-attr">"property1"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"property2"</span>: <span class="hljs-string">"string"</span>
-    },
-    <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
-  },
-  <span class="hljs-attr">"vnfId"</span>: <span class="hljs-string">"string"</span>,
-  <span class="hljs-attr">"vnfLink"</span>: {
-    <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
-    <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"string"</span>,
-    <span class="hljs-attr">"uri"</span>: <span class="hljs-string">"http://example.com"</span>,
-    <span class="hljs-attr">"uriBuilder"</span>: {},
-    <span class="hljs-attr">"rels"</span>: [
-      <span class="hljs-string">"string"</span>
-    ],
-    <span class="hljs-attr">"params"</span>: {
-      <span class="hljs-attr">"property1"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"property2"</span>: <span class="hljs-string">"string"</span>
-    },
-    <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
-  },
-  <span class="hljs-attr">"vnfType"</span>: <span class="hljs-string">"string"</span>,
-  <span class="hljs-attr">"vnfLocation"</span>: <span class="hljs-string">"string"</span>,
-  <span class="hljs-attr">"deploymentRef"</span>: <span class="hljs-string">"string"</span>,
-  <span class="hljs-attr">"components"</span>: [
-    {
-      <span class="hljs-attr">"componentId"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"componentLink"</span>: {
-        <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"uri"</span>: <span class="hljs-string">"http://example.com"</span>,
-        <span class="hljs-attr">"uriBuilder"</span>: {},
-        <span class="hljs-attr">"rels"</span>: [
-          <span class="hljs-string">"string"</span>
-        ],
-        <span class="hljs-attr">"params"</span>: {
-          <span class="hljs-attr">"property1"</span>: <span class="hljs-string">"string"</span>,
-          <span class="hljs-attr">"property2"</span>: <span class="hljs-string">"string"</span>
-        },
-        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
-      },
-      <span class="hljs-attr">"created"</span>: <span class="hljs-string">"2020-08-12T15:08:29Z"</span>,
-      <span class="hljs-attr">"modified"</span>: <span class="hljs-string">"2020-08-12T15:08:29Z"</span>,
-      <span class="hljs-attr">"componentType"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"componentSource"</span>: <span class="hljs-string">"DCAEController"</span>,
-      <span class="hljs-attr">"status"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"location"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"shareable"</span>: <span class="hljs-number">0</span>
-    }
-  ],
-  <span class="hljs-attr">"tenant"</span>: <span class="hljs-string">"string"</span>
+  <span class="hljs-attr">"id"</span>: <span class="hljs-string">"string"</span>,
+  <span class="hljs-attr">"blueprint_id"</span>: <span class="hljs-string">"string"</span>,
+  <span class="hljs-attr">"created_at"</span>: <span class="hljs-string">"2020-08-20T00:20:10Z"</span>,
+  <span class="hljs-attr">"updated_at"</span>: <span class="hljs-string">"2020-08-20T00:20:10Z"</span>,
+  <span class="hljs-attr">"tenant_name"</span>: <span class="hljs-string">"string"</span>
 }
 
 </code></pre>
@@ -4129,84 +3712,35 @@ This operation does not require authentication
 </thead>
 <tbody>
 <tr>
-<td>serviceId</td>
+<td>id</td>
 <td>string</td>
 <td>false</td>
 <td>none</td>
-<td>none</td>
+<td>cloudify deployment name</td>
 </tr>
 <tr>
-<td>selfLink</td>
-<td><a href="#schemalink">Link</a></td>
+<td>blueprint_id</td>
+<td>string</td>
 <td>false</td>
 <td>none</td>
-<td>Link.title is serviceId</td>
+<td>cloudify blueprint name</td>
 </tr>
 <tr>
-<td>created</td>
+<td>created_at</td>
 <td>string(date-time)</td>
 <td>false</td>
 <td>none</td>
 <td>none</td>
 </tr>
 <tr>
-<td>modified</td>
+<td>updated_at</td>
 <td>string(date-time)</td>
 <td>false</td>
 <td>none</td>
 <td>none</td>
 </tr>
 <tr>
-<td>typeLink</td>
-<td><a href="#schemalink">Link</a></td>
-<td>false</td>
-<td>none</td>
-<td>Link.title is typeId</td>
-</tr>
-<tr>
-<td>vnfId</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>vnfLink</td>
-<td><a href="#schemalink">Link</a></td>
-<td>false</td>
-<td>none</td>
-<td>Link.title is vnfId</td>
-</tr>
-<tr>
-<td>vnfType</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>vnfLocation</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>Location information of the associated VNF</td>
-</tr>
-<tr>
-<td>deploymentRef</td>
-<td>string</td>
-<td>false</td>
-<td>none</td>
-<td>Reference to a Cloudify deployment</td>
-</tr>
-<tr>
-<td>components</td>
-<td>[<a href="#schemadcaeservicecomponent">DCAEServiceComponent</a>]</td>
-<td>false</td>
-<td>none</td>
-<td>none</td>
-</tr>
-<tr>
-<td>tenant</td>
+<td>tenant_name</td>
 <td>string</td>
 <td>false</td>
 <td>none</td>
@@ -4250,82 +3784,11 @@ This operation does not require authentication
   <span class="hljs-attr">"totalCount"</span>: <span class="hljs-number">0</span>,
   <span class="hljs-attr">"items"</span>: [
     {
-      <span class="hljs-attr">"serviceId"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"selfLink"</span>: {
-        <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"uri"</span>: <span class="hljs-string">"http://example.com"</span>,
-        <span class="hljs-attr">"uriBuilder"</span>: {},
-        <span class="hljs-attr">"rels"</span>: [
-          <span class="hljs-string">"string"</span>
-        ],
-        <span class="hljs-attr">"params"</span>: {
-          <span class="hljs-attr">"property1"</span>: <span class="hljs-string">"string"</span>,
-          <span class="hljs-attr">"property2"</span>: <span class="hljs-string">"string"</span>
-        },
-        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
-      },
-      <span class="hljs-attr">"created"</span>: <span class="hljs-string">"2020-08-12T15:08:29Z"</span>,
-      <span class="hljs-attr">"modified"</span>: <span class="hljs-string">"2020-08-12T15:08:29Z"</span>,
-      <span class="hljs-attr">"typeLink"</span>: {
-        <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"uri"</span>: <span class="hljs-string">"http://example.com"</span>,
-        <span class="hljs-attr">"uriBuilder"</span>: {},
-        <span class="hljs-attr">"rels"</span>: [
-          <span class="hljs-string">"string"</span>
-        ],
-        <span class="hljs-attr">"params"</span>: {
-          <span class="hljs-attr">"property1"</span>: <span class="hljs-string">"string"</span>,
-          <span class="hljs-attr">"property2"</span>: <span class="hljs-string">"string"</span>
-        },
-        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
-      },
-      <span class="hljs-attr">"vnfId"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"vnfLink"</span>: {
-        <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"string"</span>,
-        <span class="hljs-attr">"uri"</span>: <span class="hljs-string">"http://example.com"</span>,
-        <span class="hljs-attr">"uriBuilder"</span>: {},
-        <span class="hljs-attr">"rels"</span>: [
-          <span class="hljs-string">"string"</span>
-        ],
-        <span class="hljs-attr">"params"</span>: {
-          <span class="hljs-attr">"property1"</span>: <span class="hljs-string">"string"</span>,
-          <span class="hljs-attr">"property2"</span>: <span class="hljs-string">"string"</span>
-        },
-        <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
-      },
-      <span class="hljs-attr">"vnfType"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"vnfLocation"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"deploymentRef"</span>: <span class="hljs-string">"string"</span>,
-      <span class="hljs-attr">"components"</span>: [
-        {
-          <span class="hljs-attr">"componentId"</span>: <span class="hljs-string">"string"</span>,
-          <span class="hljs-attr">"componentLink"</span>: {
-            <span class="hljs-attr">"title"</span>: <span class="hljs-string">"string"</span>,
-            <span class="hljs-attr">"rel"</span>: <span class="hljs-string">"string"</span>,
-            <span class="hljs-attr">"uri"</span>: <span class="hljs-string">"http://example.com"</span>,
-            <span class="hljs-attr">"uriBuilder"</span>: {},
-            <span class="hljs-attr">"rels"</span>: [
-              <span class="hljs-string">"string"</span>
-            ],
-            <span class="hljs-attr">"params"</span>: {
-              <span class="hljs-attr">"property1"</span>: <span class="hljs-string">"string"</span>,
-              <span class="hljs-attr">"property2"</span>: <span class="hljs-string">"string"</span>
-            },
-            <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
-          },
-          <span class="hljs-attr">"created"</span>: <span class="hljs-string">"2020-08-12T15:08:29Z"</span>,
-          <span class="hljs-attr">"modified"</span>: <span class="hljs-string">"2020-08-12T15:08:29Z"</span>,
-          <span class="hljs-attr">"componentType"</span>: <span class="hljs-string">"string"</span>,
-          <span class="hljs-attr">"componentSource"</span>: <span class="hljs-string">"DCAEController"</span>,
-          <span class="hljs-attr">"status"</span>: <span class="hljs-string">"string"</span>,
-          <span class="hljs-attr">"location"</span>: <span class="hljs-string">"string"</span>,
-          <span class="hljs-attr">"shareable"</span>: <span class="hljs-number">0</span>
-        }
-      ],
-      <span class="hljs-attr">"tenant"</span>: <span class="hljs-string">"string"</span>
+      <span class="hljs-attr">"id"</span>: <span class="hljs-string">"string"</span>,
+      <span class="hljs-attr">"blueprint_id"</span>: <span class="hljs-string">"string"</span>,
+      <span class="hljs-attr">"created_at"</span>: <span class="hljs-string">"2020-08-20T00:20:10Z"</span>,
+      <span class="hljs-attr">"updated_at"</span>: <span class="hljs-string">"2020-08-20T00:20:10Z"</span>,
+      <span class="hljs-attr">"tenant_name"</span>: <span class="hljs-string">"string"</span>
     }
   ]
 }
@@ -4359,7 +3822,7 @@ This operation does not require authentication
 </tr>
 <tr>
 <td>items</td>
-<td>[<a href="#schemadcaeservice">DCAEService</a>]</td>
+<td>[<a href="#schemadeployment">Deployment</a>]</td>
 <td>false</td>
 <td>none</td>
 <td>none</td>
@@ -4479,8 +3942,8 @@ This operation does not require authentication
     },
     <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
   },
-  <span class="hljs-attr">"created"</span>: <span class="hljs-string">"2020-08-12T15:08:29Z"</span>,
-  <span class="hljs-attr">"modified"</span>: <span class="hljs-string">"2020-08-12T15:08:29Z"</span>,
+  <span class="hljs-attr">"created"</span>: <span class="hljs-string">"2020-08-20T00:20:10Z"</span>,
+  <span class="hljs-attr">"modified"</span>: <span class="hljs-string">"2020-08-20T00:20:10Z"</span>,
   <span class="hljs-attr">"componentType"</span>: <span class="hljs-string">"string"</span>,
   <span class="hljs-attr">"componentSource"</span>: <span class="hljs-string">"DCAEController"</span>,
   <span class="hljs-attr">"status"</span>: <span class="hljs-string">"string"</span>,
@@ -4640,7 +4103,7 @@ This operation does not require authentication
 <tr>
 <td>application</td>
 <td>string</td>
-<td>true</td>
+<td>false</td>
 <td>none</td>
 <td>controller application name</td>
 </tr>
@@ -4649,7 +4112,7 @@ This operation does not require authentication
 <td>string</td>
 <td>true</td>
 <td>none</td>
-<td>onboarding component name</td>
+<td>onboarding component name  e.g. dcae</td>
 </tr>
 </tbody>
 </table>
@@ -4687,8 +4150,8 @@ This operation does not require authentication
     },
     <span class="hljs-attr">"type"</span>: <span class="hljs-string">"string"</span>
   },
-  <span class="hljs-attr">"created"</span>: <span class="hljs-string">"2020-08-12T15:08:29Z"</span>,
-  <span class="hljs-attr">"deactivated"</span>: <span class="hljs-string">"2020-08-12T15:08:29Z"</span>
+  <span class="hljs-attr">"created"</span>: <span class="hljs-string">"2020-08-20T00:20:10Z"</span>,
+  <span class="hljs-attr">"deactivated"</span>: <span class="hljs-string">"2020-08-20T00:20:10Z"</span>
 }
 
 </code></pre>
@@ -4804,6 +4267,82 @@ This operation does not require authentication
 </tr>
 </tbody>
 </table>
+<h2 id="tocsdcaeservicetypesummary">DCAEServiceTypeSummary</h2>
+<p><a id="schemadcaeservicetypesummary"></a></p>
+<pre class="highlight tab tab-json"><code>{
+  <span class="hljs-attr">"owner"</span>: <span class="hljs-string">"string"</span>,
+  <span class="hljs-attr">"typeName"</span>: <span class="hljs-string">"string"</span>,
+  <span class="hljs-attr">"application"</span>: <span class="hljs-string">"string"</span>,
+  <span class="hljs-attr">"component"</span>: <span class="hljs-string">"string"</span>,
+  <span class="hljs-attr">"typeVersion"</span>: <span class="hljs-number">0</span>,
+  <span class="hljs-attr">"typeId"</span>: <span class="hljs-string">"string"</span>,
+  <span class="hljs-attr">"created"</span>: <span class="hljs-string">"2020-08-20T00:20:10Z"</span>
+}
+
+</code></pre>
+<h3 id="properties">Properties</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Required</th>
+<th>Restrictions</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>owner</td>
+<td>string</td>
+<td>true</td>
+<td>none</td>
+<td>none</td>
+</tr>
+<tr>
+<td>typeName</td>
+<td>string</td>
+<td>true</td>
+<td>none</td>
+<td>Descriptive name for this DCAE service type</td>
+</tr>
+<tr>
+<td>application</td>
+<td>string</td>
+<td>true</td>
+<td>none</td>
+<td>application name</td>
+</tr>
+<tr>
+<td>component</td>
+<td>string</td>
+<td>true</td>
+<td>none</td>
+<td>component name</td>
+</tr>
+<tr>
+<td>typeVersion</td>
+<td>integer(int32)</td>
+<td>true</td>
+<td>none</td>
+<td>Version number for this DCAE service type</td>
+</tr>
+<tr>
+<td>typeId</td>
+<td>string</td>
+<td>true</td>
+<td>none</td>
+<td>Unique identifier for this DCAE service type</td>
+</tr>
+<tr>
+<td>created</td>
+<td>string(date-time)</td>
+<td>true</td>
+<td>none</td>
+<td>Created timestamp for this DCAE service type in epoch time</td>
+</tr>
+</tbody>
+</table>
 <h2 id="tocscloudifydeploymentupgraderequest">CloudifyDeploymentUpgradeRequest</h2>
 <p><a id="schemacloudifydeploymentupgraderequest"></a></p>
 <pre class="highlight tab tab-json"><code>{
@@ -4909,19 +4448,19 @@ This operation does not require authentication
 <td>string</td>
 <td>true</td>
 <td>none</td>
-<td>tag to identify the deployment</td>
+<td>unique tag to identify the deployment. A non-unique value results in name conflict error</td>
 </tr>
 <tr>
 <td>blueprintId</td>
 <td>string</td>
-<td>false</td>
+<td>true</td>
 <td>none</td>
-<td>typeId from inventory, a unique Id for the blueprint</td>
+<td>typeId from inventory, a unique Id for the blueprint, this can be replaced with blueprintName and blueprintVersion</td>
 </tr>
 <tr>
 <td>blueprintName</td>
 <td>string</td>
-<td>true</td>
+<td>false</td>
 <td>none</td>
 <td>Descriptive name for this DCAE service type</td>
 </tr>
@@ -4930,7 +4469,7 @@ This operation does not require authentication
 <td>integer(int32)</td>
 <td>false</td>
 <td>none</td>
-<td>Version number for this DCAE service type, optional. Defaults to latest version.</td>
+<td>Version number for this DCAE service type, optional. Defaults to 1.</td>
 </tr>
 <tr>
 <td>tenant</td>

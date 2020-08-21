@@ -54,7 +54,7 @@
         </div>
         <div class="menu-filters" ng-show="ecdapp.showingMoreFilters">
           <div class="group">
-            <label class="col-sm-3 control-label">Service IDs: </label>
+            <label class="col-sm-3 control-label">Deployment IDs: </label>
             <ui-select multiple ng-model="ecdapp.selectedServices"
               ng-disabled="ecdapp.usingAafFilter || ecdapp.usingDcaeTargetTypeFilter"
               theme="bootstrap" close-on-select="false" title="Service ID">
@@ -269,6 +269,7 @@
                         href="">View executions</a>
                     </div>
                   </li>
+                  <!--  
                   <li>
                     <div
                       ng-show="rowData.canDeploy && rowData.lastExecution.status === 'terminated'"
@@ -277,6 +278,7 @@
                         href="">Update deployment</a>
                     </div>
                   </li>
+                  -->
                   <li>
                     <div
                       ng-show="rowData.canDeploy && rowData.lastExecution.status != ''"
@@ -310,14 +312,6 @@
                         class="icon-controls-up ecd-icon-action"></i><a
                         href="">Helm Rollback</a>
                     </div>
-                  </li>
-                  <li>
-                      <div                      
-                        ng-click="ecdapp.reconfigDeploymentModalPopup(rowData);">
-                        <i
-                          class="icon-datanetwork-contentdelivery ecd-icon-action"></i><a
-                          href="">Reconfigure</a>
-                      </div>
                   </li>
                 </ul>
               </div> <!-- .btn-group -->

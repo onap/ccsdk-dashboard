@@ -2,22 +2,22 @@
  * =============LICENSE_START=========================================================
  *
  * =================================================================================
- *  Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
+ * Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
  * ================================================================================
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *  
- *      http://www.apache.org/licenses/LICENSE-2.0
- *  
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * ============LICENSE_END=========================================================
  *
- *  ECOMP is a trademark and service mark of AT&T Intellectual Property.
+ * ECOMP is a trademark and service mark of AT&T Intellectual Property.
  *******************************************************************************/
 package org.onap.ccsdk.dashboard.model.inventory;
 
@@ -69,24 +69,27 @@ public class ServiceTypeRequest {
     public Optional<String> asdcServiceURL;
 
     @JsonCreator
-    public ServiceTypeRequest(@JsonProperty("owner") String owner, @JsonProperty("typeName") String typeName,
-            @JsonProperty("typeVersion") Integer typeVersion,
-            @JsonProperty("blueprintTemplate") String blueprintTemplate,
-            @JsonProperty("application") String application, @JsonProperty("component") String component,
-            @JsonProperty("serviceIds") Collection<String> serviceIds,
-            @JsonProperty("vnfTypes") Collection<String> vnfTypes,
-            @JsonProperty("serviceLocations") Collection<String> serviceLocations,
-            @JsonProperty("asdcServiceId") String asdcServiceId, @JsonProperty("asdcResourceId") String asdcResourceId,
-            @JsonProperty("asdcServiceURL") String asdcServiceURL) {
-        this(owner, typeName, typeVersion, blueprintTemplate, application, component, serviceIds, vnfTypes,
-                serviceLocations, Optional.ofNullable(asdcServiceId), Optional.ofNullable(asdcResourceId),
-                Optional.ofNullable(asdcServiceURL));
+    public ServiceTypeRequest(@JsonProperty("owner") String owner,
+        @JsonProperty("typeName") String typeName, @JsonProperty("typeVersion") Integer typeVersion,
+        @JsonProperty("blueprintTemplate") String blueprintTemplate,
+        @JsonProperty("application") String application,
+        @JsonProperty("component") String component,
+        @JsonProperty("serviceIds") Collection<String> serviceIds,
+        @JsonProperty("vnfTypes") Collection<String> vnfTypes,
+        @JsonProperty("serviceLocations") Collection<String> serviceLocations,
+        @JsonProperty("asdcServiceId") String asdcServiceId,
+        @JsonProperty("asdcResourceId") String asdcResourceId,
+        @JsonProperty("asdcServiceURL") String asdcServiceURL) {
+        this(owner, typeName, typeVersion, blueprintTemplate, application, component, serviceIds,
+            vnfTypes, serviceLocations, Optional.ofNullable(asdcServiceId),
+            Optional.ofNullable(asdcResourceId), Optional.ofNullable(asdcServiceURL));
     }
 
-    public ServiceTypeRequest(String owner, String typeName, Integer typeVersion, String blueprintTemplate,
-            String application, String component, Collection<String> serviceIds, Collection<String> vnfTypes,
-            Collection<String> serviceLocations, Optional<String> asdcServiceId, Optional<String> asdcResourceId,
-            Optional<String> asdcServiceURL) {
+    public ServiceTypeRequest(String owner, String typeName, Integer typeVersion,
+        String blueprintTemplate, String application, String component,
+        Collection<String> serviceIds, Collection<String> vnfTypes,
+        Collection<String> serviceLocations, Optional<String> asdcServiceId,
+        Optional<String> asdcResourceId, Optional<String> asdcServiceURL) {
         this.owner = owner;
         this.typeName = typeName;
         this.typeVersion = typeVersion;
@@ -100,9 +103,9 @@ public class ServiceTypeRequest {
         this.asdcResourceId = asdcResourceId;
         this.asdcServiceURL = asdcServiceURL;
     }
-    
-    public ServiceTypeRequest(String owner, String typeName, Integer typeVersion, String blueprintTemplate,
-        String application, String component) {
+
+    public ServiceTypeRequest(String owner, String typeName, Integer typeVersion,
+        String blueprintTemplate, String application, String component) {
         this.owner = owner;
         this.typeName = typeName;
         this.typeVersion = typeVersion;
@@ -112,17 +115,22 @@ public class ServiceTypeRequest {
     }
 
     public static ServiceTypeRequest from(ServiceType serviceType) {
-        return new ServiceTypeRequest(serviceType.getOwner(), serviceType.getTypeName(), serviceType.getTypeVersion(),
-                serviceType.getBlueprintTemplate(), serviceType.getApplication(), serviceType.getComponent(),
-                serviceType.getServiceIds(), serviceType.getVnfTypes(), serviceType.getServiceLocations(),
-                serviceType.getAsdcServiceId(), serviceType.getAsdcResourceId(), serviceType.getAsdcServiceURL());
+        return new ServiceTypeRequest(serviceType.getOwner(), serviceType.getTypeName(),
+            serviceType.getTypeVersion(), serviceType.getBlueprintTemplate(),
+            serviceType.getApplication(), serviceType.getComponent(), serviceType.getServiceIds(),
+            serviceType.getVnfTypes(), serviceType.getServiceLocations(),
+            serviceType.getAsdcServiceId(), serviceType.getAsdcResourceId(),
+            serviceType.getAsdcServiceURL());
     }
-/*
-    public static ServiceTypeRequest from(ServiceType serviceType) {
-        return new ServiceTypeRequest(serviceType.getOwner(), serviceType.getTypeName(), serviceType.getTypeVersion(),
-                serviceType.getBlueprintTemplate(), serviceType.getApplication(), serviceType.getComponent());
-    }
-*/  
+
+    /*
+     * public static ServiceTypeRequest from(ServiceType serviceType) {
+     * return new ServiceTypeRequest(serviceType.getOwner(), serviceType.getTypeName(),
+     * serviceType.getTypeVersion(),
+     * serviceType.getBlueprintTemplate(), serviceType.getApplication(),
+     * serviceType.getComponent());
+     * }
+     */
     public String getBlueprintTemplate() {
         return this.blueprintTemplate;
     }

@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
@@ -13,7 +14,7 @@
 	<artifactId>ccsdk-app-os</artifactId>
 	<version>1.4.0-SNAPSHOT</version>
 	<packaging>war</packaging>
-	<name>ONAP Operations Manager Dashboard app</name>
+	<name>DCAE Dashboard</name>
 	<description>CCSDK Dashboard Web Application for external release</description>
 
 	<properties>
@@ -31,7 +32,6 @@
 		<!-- Tests usually require some setup that maven cannot do, so skip. -->
 		<skiptests>true</skiptests>
 		<enforcer.skip>true</enforcer.skip>
-		
 		<image.name>onap/${project.groupId}.${project.artifactId}</image.name>
 		<ccsdk.project.version>${project.version}</ccsdk.project.version>
 		<ccsdk.build.timestamp>${maven.build.timestamp}</ccsdk.build.timestamp>
@@ -40,7 +40,6 @@
 		<docker.verbose>true</docker.verbose>
 		<docker.buildArg.WAR_FILE>${project.build.finalName}.war</docker.buildArg.WAR_FILE>
 	</properties>
-
 
 	<repositories>
 		<repository>
@@ -62,36 +61,45 @@
 			<url>${nexusproxy}${stagingNexusPath}</url>
 		</repository>
 	</repositories>
+	
 	<build>
-
 		<!-- War files are labeled with build information, not POM version -->
 		<finalName>${project.artifactId}-${build.version}</finalName>
-
 		<plugins>
-			<!-- Compile to Java 1.8 class output format --> 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
+				<version>3.8.0</version>
 				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
+					<release>11</release>
 				</configuration>
 			</plugin>
 			<plugin>
-				<groupId>org.codehaus.groovy.maven</groupId>
-				<artifactId>gmaven-plugin</artifactId>
+				<groupId>org.codehaus.gmavenplus</groupId>
+				<artifactId>gmavenplus-plugin</artifactId>
+				<version>1.9.1</version>
 				<executions>
 					<execution>
 						<phase>validate</phase>
 						<goals>
 							<goal>execute</goal>
 						</goals>
-						<configuration>
-							<source>${basedir}/../TagVersion.groovy</source>
-						</configuration>
 					</execution>
 				</executions>
+				<configuration>
+					<scripts>
+						<script>file:///${basedir}/../TagVersion.groovy</script>
+					</scripts>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>org.codehaus.groovy</groupId>
+						<artifactId>groovy-all</artifactId>
+						<version>3.0.5</version>
+						<!-- <scope>runtime</scope> -->
+						<type>pom</type>
+					</dependency>
+				</dependencies>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -151,7 +159,7 @@
 			</plugin>
 		</plugins>
 	</build>
-	
+
 	<profiles>
 		<profile>
 			<id>docker</id>
@@ -160,7 +168,7 @@
 					<plugin>
 						<groupId>io.fabric8</groupId>
 						<artifactId>docker-maven-plugin</artifactId>
-						<version>0.28.0</version>
+						<version>0.33.0</version>
 						<inherited>false</inherited>
 						<configuration>
 							<images>
@@ -260,7 +268,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-				<!--  overrides for spring libs -->
+		<!-- overrides for spring libs -->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>

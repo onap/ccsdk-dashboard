@@ -1,30 +1,37 @@
-# Use an official Tomcat base image
-FROM tomcat:8
+FROM adoptopenjdk/openjdk11:jre-11.0.8_10-alpine
+#FROM tomcat:jdk11-adoptopenjdk-openj9
 
-ENV APPDIR /usr/local/tomcat
-ENV APPUSER dash
+USER root
+ENV CATALINA_HOME /usr/local/tomcat
+ENV PATH $CATALINA_HOME/bin:$PATH
 
 COPY docker-dashboard-installation.sh /tmp/docker-dashboard-installation.sh
 COPY create_table.sql /tmp/create_table.sql
+COPY target/ccsdk*.war /tmp/ccsdk-app.war
 
-RUN mkdir /home/deployments \
+ARG user=onap
+ARG group=onap
+
+RUN apk update \
+ && apk add wget zip dos2unix postgresql \
+ && wget -q http://archive.apache.org/dist/tomcat/tomcat-9/v9.0.37/bin/apache-tomcat-9.0.37.tar.gz \
+ && tar -xzf apache-tomcat-9.0.37.tar.gz \
+ && rm -f apache-tomcat-9.0.37.tar.gz \
+ && rm -fr apache-tomcat-9.0.37/webapps/[a-z]* \
+ && mkdir -p ${CATALINA_HOME} \
+ && mv apache-tomcat-9.0.37/* ${CATALINA_HOME} \
  && mkdir -p /opt/logs/dcae/dashboard \
- && useradd -u 1000 -M -U ${APPUSER} \
- && chown -R 1000:1000 ${APPDIR} \
- && chown -R 1000:1000 /home/deployments \
- && chown -R 1000:1000 /opt/logs/dcae/dashboard \
- && apt-get update \
- && apt-get install -y sudo zip vim dos2unix postgresql \
- && echo "dash ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/dash_update_cert_store \
  && dos2unix /tmp/create_table.sql \
  && dos2unix /tmp/docker-dashboard-installation.sh \
  && chmod +x /tmp/create_table.sql \
- && chmod +x /tmp/docker-dashboard-installation.sh
+ && chmod +x /tmp/docker-dashboard-installation.sh \
+ && addgroup -S $group && adduser -G $group -D $user \
+ && chown -R $user:$group ${CATALINA_HOME} \
+ && chown -R $user:$group /tmp \
+ && chown -R $user:$group /opt/logs/dcae/dashboard
 
-ARG WAR_FILE
-COPY target/${WAR_FILE} /home/deployments/ccsdk-app.war
+USER ${user}
+WORKDIR $CATALINA_HOME
 
-WORKDIR ${APPDIR}
-USER ${APPUSER}
-
-CMD ["/tmp/docker-dashboard-installation.sh"]
+ENTRYPOINT /tmp/docker-dashboard-installation.sh
+#CMD ["/tmp/docker-dashboard-installation.sh"]

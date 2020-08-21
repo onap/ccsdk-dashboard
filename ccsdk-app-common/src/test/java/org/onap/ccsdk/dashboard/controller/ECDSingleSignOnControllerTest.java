@@ -34,7 +34,7 @@ import org.springframework.web.servlet.ModelAndView;
 public class ECDSingleSignOnControllerTest extends MockitoTestSuite {
 
     @InjectMocks
-    ECDSingleSignOnController subject = new ECDSingleSignOnController();
+    ECDSingleSignOnController subject;
 
     @Before
     public void setUp() throws Exception {

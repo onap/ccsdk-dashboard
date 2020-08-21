@@ -35,15 +35,17 @@ import org.onap.ccsdk.dashboard.core.MockitoTestSuite;
 import org.onap.ccsdk.dashboard.model.HealthStatus;
 import org.onap.portalsdk.core.util.SystemProperties;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({SystemProperties.class})
 public class HealthCheckControllerTest extends MockitoTestSuite {
 
     @InjectMocks
-    HealthCheckController subject = new HealthCheckController();
+    HealthCheckController subject;
 
     @Before
     public void setUp() throws Exception {

@@ -233,8 +233,10 @@
         </thead>
         <tbody b2b-table-row type="body"
           row-repeat="rowData in ecdapp.logTableData">
-          <tr id="tr-rowData" ng-style="{'background-color':rowData.event_type === 'task_failed' 
-			|| rowData.event_type === 'workflow_failed' ? '#fbbbbb' : '#ffffff'}">
+          <tr id="tr-rowData" ng-style="{
+			'color':rowData.event_type === 'task_failed' || rowData.event_type === 'workflow_failed' ? '#ff0000' : '#000000',
+			'font-weight':rowData.event_type === 'task_failed' || rowData.event_type === 'workflow_failed' ? 'bolder' : 'normal'
+			}">
             <td b2b-table-body ng-bind="rowData.reported_timestamp" />
             <td b2b-table-body ng-bind="rowData.type" />
             <td b2b-table-body ng-bind="rowData.event_type" />

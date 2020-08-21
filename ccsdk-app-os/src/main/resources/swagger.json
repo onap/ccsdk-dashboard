@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "description": "API to manage deployment of microservices using blueprints.",
+    "description": "API to manage deployment of microservices using blueprints. HTTP Basic authorization schema is required to authenticate users for all the resource endpoints. The client sends HTTP requests with an Authorization header  containing base64-encoded username:password string.",
     "version": "1.4.0",
     "title": "DCAE Dashboard API",
     "contact": {
@@ -53,6 +53,9 @@
           },
           "400": {
             "description": "Invalid status value"
+          },
+          "401": {
+            "$ref": "#/responses/UnauthorizedError"
           }
         }
       }
@@ -70,17 +73,24 @@
         ],
         "parameters": [
           {
-            "name": "pageNum",
+            "name": "page",
             "in": "query",
             "description": "pagination control - page number",
             "required": true,
-            "type": "string"
+            "type": "integer"
           },
           {
-            "name": "viewPerPage",
+            "name": "size",
             "in": "query",
             "description": "pagination control - page size",
             "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "filters",
+            "in": "query",
+            "description": "search filters, {\"_include\":\"id\", \"tenant\":\"onap-tenant-1\",\"serviceId\":\"dcae\"}",
+            "required": false,
             "type": "string"
           }
         ],
@@ -90,12 +100,21 @@
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/DCAEService"
+                "$ref": "#/definitions/Deployment"
+              }
+            },
+            "headers": {
+              "Link": {
+                "type": "string",
+                "description": "pagination header"
               }
             }
           },
           "400": {
             "description": "Invalid status value"
+          },
+          "401": {
+            "$ref": "#/responses/UnauthorizedError"
           }
         }
       },
@@ -124,11 +143,14 @@
           }
         ],
         "responses": {
-          "200": {
+          "201": {
             "description": "successful operation",
             "schema": {
               "$ref": "#/definitions/DeploymentResource"
             }
+          },
+          "401": {
+            "$ref": "#/responses/UnauthorizedError"
           },
           "405": {
             "description": "Invalid input"
@@ -164,7 +186,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "204": {
             "description": "successful operation",
             "schema": {
               "type": "string"
@@ -172,6 +194,9 @@
           },
           "400": {
             "description": "Invalid status value"
+          },
+          "401": {
+            "$ref": "#/responses/UnauthorizedError"
           }
         }
       },
@@ -210,6 +235,9 @@
           "400": {
             "description": "Invalid ID supplied"
           },
+          "401": {
+            "$ref": "#/responses/UnauthorizedError"
+          },
           "404": {
             "description": "Deployment not found"
           },
@@ -243,12 +271,15 @@
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/DCAEService"
+                "$ref": "#/definitions/Deployment"
               }
             }
           },
           "400": {
             "description": "Invalid status value"
+          },
+          "401": {
+            "$ref": "#/responses/UnauthorizedError"
           }
         }
       }
@@ -292,6 +323,9 @@
           },
           "400": {
             "description": "Invalid status value"
+          },
+          "401": {
+            "$ref": "#/responses/UnauthorizedError"
           }
         }
       }
@@ -322,6 +356,9 @@
             "schema": {
               "$ref": "#/definitions/serviceHealth"
             }
+          },
+          "401": {
+            "$ref": "#/responses/UnauthorizedError"
           }
         }
       }
@@ -365,6 +402,9 @@
           },
           "400": {
             "description": "Invalid status value"
+          },
+          "401": {
+            "$ref": "#/responses/UnauthorizedError"
           }
         }
       }
@@ -382,35 +422,25 @@
         ],
         "parameters": [
           {
-            "name": "pageNum",
+            "name": "page",
             "in": "query",
-            "description": "pagination control - page number",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "viewPerPage",
-            "in": "query",
-            "description": "pagination control - page size",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "_include",
-            "in": "query",
-            "description": "blueprint object properties need to be considered for filter",
+            "description": "page number",
             "required": false,
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "typeName",
-                "typeId",
-                "typeVersion"
-              ],
-              "default": "typeName"
-            },
-            "collectionFormat": "multi"
+            "type": "string"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "page size",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filters",
+            "in": "query",
+            "description": "search filters, {\"owner\":\"user1\", \"name\":\"user1-bp1\",\"id\":\"2334-343\"}",
+            "required": false,
+            "type": "string"
           }
         ],
         "responses": {
@@ -418,10 +448,19 @@
             "description": "List of `DCAEServiceType` objects",
             "schema": {
               "$ref": "#/definitions/InlineResponse200"
+            },
+            "headers": {
+              "Link": {
+                "type": "string",
+                "description": "pagination header"
+              }
             }
           },
           "400": {
             "description": "Invalid tag value"
+          },
+          "401": {
+            "$ref": "#/responses/UnauthorizedError"
           }
         }
       },
@@ -447,7 +486,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "201": {
             "description": "A `DCAEServiceType` object",
             "schema": {
               "$ref": "#/definitions/InlineResponse200"
@@ -455,6 +494,9 @@
           },
           "400": {
             "description": "Invalid tag value"
+          },
+          "401": {
+            "$ref": "#/responses/UnauthorizedError"
           }
         }
       }
@@ -480,8 +522,11 @@
           }
         ],
         "responses": {
-          "200": {
+          "204": {
             "description": "successful operation"
+          },
+          "401": {
+            "$ref": "#/responses/UnauthorizedError"
           }
         }
       }
@@ -509,11 +554,24 @@
         "responses": {
           "200": {
             "description": "successful operation"
+          },
+          "401": {
+            "$ref": "#/responses/UnauthorizedError"
           }
         }
       }
     }
   },
+  "securityDefinitions": {
+    "basicAuth": {
+      "type": "basic"
+    }
+  },
+  "security": [
+    {
+      "basicAuth": []
+    }
+  ],
   "responses": {
     "UnauthorizedError": {
       "description": "Authentication information is missing or invalid",
@@ -534,33 +592,21 @@
         }
       }
     },
-    "ComponentInput": {
-      "type": "object",
-      "properties": {
-        "cname": {
-          "type": "string",
-          "description": "component namespace name"
-        },
-        "dname": {
-          "type": "string",
-          "description": "component display name"
-        }
-      }
-    },
     "InlineResponse200": {
       "type": "object",
       "properties": {
-        "links": {
-          "$ref": "#/definitions/InlineResponse200Links"
+        "totalItems": {
+          "type": "integer",
+          "format": "int32"
         },
-        "totalCount": {
+        "totalPages": {
           "type": "integer",
           "format": "int32"
         },
         "items": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/DCAEServiceType"
+            "$ref": "#/definitions/DCAEServiceTypeSummary"
           }
         }
       }
@@ -592,53 +638,26 @@
         }
       }
     },
-    "DCAEService": {
+    "Deployment": {
       "type": "object",
       "properties": {
-        "serviceId": {
+        "id": {
+          "description": "cloudify deployment name",
           "type": "string"
         },
-        "selfLink": {
-          "description": "Link.title is serviceId",
-          "$ref": "#/definitions/Link"
+        "blueprint_id": {
+          "description": "cloudify blueprint name",
+          "type": "string"
         },
-        "created": {
+        "created_at": {
           "type": "string",
           "format": "date-time"
         },
-        "modified": {
+        "updated_at": {
           "type": "string",
           "format": "date-time"
         },
-        "typeLink": {
-          "description": "Link.title is typeId",
-          "$ref": "#/definitions/Link"
-        },
-        "vnfId": {
-          "type": "string"
-        },
-        "vnfLink": {
-          "description": "Link.title is vnfId",
-          "$ref": "#/definitions/Link"
-        },
-        "vnfType": {
-          "type": "string"
-        },
-        "vnfLocation": {
-          "type": "string",
-          "description": "Location information of the associated VNF"
-        },
-        "deploymentRef": {
-          "type": "string",
-          "description": "Reference to a Cloudify deployment"
-        },
-        "components": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/DCAEServiceComponent"
-          }
-        },
-        "tenant": {
+        "tenant_name": {
           "type": "string",
           "description": "cloudify tenant name"
         }
@@ -657,7 +676,7 @@
         "items": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/DCAEService"
+            "$ref": "#/definitions/Deployment"
           }
         }
       }
@@ -758,7 +777,6 @@
         "owner",
         "typeName",
         "typeVersion",
-        "application",
         "component"
       ],
       "properties": {
@@ -784,7 +802,7 @@
         },
         "component": {
           "type": "string",
-          "description": "onboarding component name"
+          "description": "onboarding component name  e.g. dcae"
         }
       }
     },
@@ -868,6 +886,50 @@
         }
       }
     },
+    "DCAEServiceTypeSummary": {
+      "type": "object",
+      "required": [
+        "created",
+        "owner",
+        "selfLink",
+        "typeId",
+        "typeName",
+        "typeVersion",
+        "application",
+        "component"
+      ],
+      "properties": {
+        "owner": {
+          "type": "string"
+        },
+        "typeName": {
+          "type": "string",
+          "description": "Descriptive name for this DCAE service type"
+        },
+        "application": {
+          "type": "string",
+          "description": "application name"
+        },
+        "component": {
+          "type": "string",
+          "description": "component name"
+        },
+        "typeVersion": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Version number for this DCAE service type"
+        },
+        "typeId": {
+          "type": "string",
+          "description": "Unique identifier for this DCAE service type"
+        },
+        "created": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Created timestamp for this DCAE service type in epoch time"
+        }
+      }
+    },
     "CloudifyDeploymentUpgradeRequest": {
       "type": "object",
       "required": [
@@ -910,7 +972,7 @@
       "required": [
         "component",
         "tag",
-        "blueprintName",
+        "blueprintId",
         "tenant",
         "inputs"
       ],
@@ -921,11 +983,11 @@
         },
         "tag": {
           "type": "string",
-          "description": "tag to identify the deployment"
+          "description": "unique tag to identify the deployment. A non-unique value results in name conflict error"
         },
         "blueprintId": {
           "type": "string",
-          "description": "typeId from inventory, a unique Id for the blueprint"
+          "description": "typeId from inventory, a unique Id for the blueprint, this can be replaced with blueprintName and blueprintVersion"
         },
         "blueprintName": {
           "type": "string",
@@ -934,7 +996,7 @@
         "blueprintVersion": {
           "type": "integer",
           "format": "int32",
-          "description": "Version number for this DCAE service type, optional. Defaults to latest version."
+          "description": "Version number for this DCAE service type, optional. Defaults to 1."
         },
         "tenant": {
           "type": "string",

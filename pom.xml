@@ -21,6 +21,8 @@
     <properties>
         <enforcer.skip>true</enforcer.skip>
         <sonar.exclusions>**/external/**</sonar.exclusions>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
     </properties>
 
     <modules>
@@ -47,6 +49,14 @@
 		    <configuration>
 		        <generateBackupPoms>false</generateBackupPoms>
 		    </configuration>
+			</plugin>
+			<plugin>
+			    <groupId>org.apache.maven.plugins</groupId>
+			    <artifactId>maven-compiler-plugin</artifactId>
+			    <version>3.8.0</version>
+			    <configuration>
+			        <release>11</release>
+			    </configuration>
 			</plugin>
 		</plugins>
     </build>

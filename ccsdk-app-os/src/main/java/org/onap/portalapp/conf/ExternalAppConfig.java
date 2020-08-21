@@ -1,8 +1,8 @@
 /*-
  * ================================================================================
- * ECOMP Portal SDK
+ * DCAE Dashboard
  * ================================================================================
- * Copyright (C) 2017 AT&T Intellectual Property
+ * Copyright (C) 2020 AT&T Intellectual Property
  * ================================================================================
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
  * limitations under the License.
  * ================================================================================
  */
+
 package org.onap.portalapp.conf;
 
 import java.util.ArrayList;
@@ -52,7 +53,6 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 
-
 /**
  * ECOMP Portal SDK sample application. ECOMP Portal SDK core AppConfig class to
  * reuse interceptors, view resolvers and other features defined there.
@@ -75,7 +75,7 @@ public class ExternalAppConfig extends AppConfig implements Configurable {
     private EELFLoggerDelegate logger = EELFLoggerDelegate.getLogger(ExternalAppConfig.class);
 
     private static final String HEALTH = "/health*";
-    
+
     @Configuration
     @Import(SystemProperties.class)
     static class InnerConfiguration {
@@ -136,14 +136,14 @@ public class ExternalAppConfig extends AppConfig implements Configurable {
 
     @Bean
     public AuthenticationInterceptor authenticationInterceptor() {
-         return new AuthenticationInterceptor();
-     }
-    
+        return new AuthenticationInterceptor();
+    }
+
     @Bean
     public AuthorizationInterceptor authorizationInterceptor() {
-         return new AuthorizationInterceptor();
-     }
-    
+        return new AuthorizationInterceptor();
+    }
+
     /**
      * Adds request interceptors to the specified registry by calling
      * {@link AppConfig#addInterceptors(InterceptorRegistry)}, but excludes

@@ -28,7 +28,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -58,6 +57,7 @@ import org.onap.ccsdk.dashboard.model.cloudify.CloudifyDeployment;
 import org.onap.ccsdk.dashboard.model.cloudify.CloudifyDeploymentList;
 import org.onap.ccsdk.dashboard.model.cloudify.CloudifyExecutionRequest;
 import org.onap.ccsdk.dashboard.model.cloudify.CloudifyNodeInstanceIdList;
+import org.onap.ccsdk.dashboard.model.cloudify.CloudifyTenant;
 import org.onap.ccsdk.dashboard.model.deploymenthandler.DeploymentInput;
 import org.onap.ccsdk.dashboard.model.deploymenthandler.DeploymentRequest;
 import org.onap.ccsdk.dashboard.model.deploymenthandler.DeploymentResource;
@@ -70,10 +70,10 @@ import org.onap.ccsdk.dashboard.model.inventory.ServiceQueryParams;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceRef;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceRefList;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceType;
-import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeSummary;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeQueryParams;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeRequest;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeServiceMap;
+import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeSummary;
 import org.onap.ccsdk.dashboard.model.inventory.ServiceTypeUploadRequest;
 import org.onap.ccsdk.dashboard.rest.CloudifyClient;
 import org.onap.ccsdk.dashboard.rest.ConsulClient;
@@ -86,7 +86,11 @@ import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -110,6 +114,21 @@ public class NbApiController extends ApiBaseController {
     private static final String EXECUTIONS_PATH = "executions";
     private static final String TENANTS_PATH = "tenants";
     private static final String SERVICE_HEALTH_PATH = "health";
+    private static final String TARGET_ENTITY_KEY = "TargetEntity";
+    private static final String TARGET_SERVICE_KEY = "TargetServiceName";
+    private static final String INV_BP_ENTITY = "DCAE Blueprint";
+    private static final String INV_TARGET_SERVICE = "DCAE Inventory";
+    private static final String CFY_DEP_ENTITY = "DCAE Deployment";
+    private static final String CFY_TARGET_SERVICE = "DCAE Cloudify";
+    private static final String CFY_EXEC_ENTITY = "Executions";
+    private static final String CNSL_SVC_ENTITY = "Consul Service";
+    private static final String CNSL_TARGET_SERVICE = "Consul API";
+    private static final String ERROR_RESPONSE = "ERROR";
+    private static final String ERROR_CODE_KEY = "ErrorCode";
+    private static final String ERROR_CODE = "300";
+    private static final String ERROR_CATEGORY_KEY = "ErrorCategory";
+    private static final String ERROR_CATEGORY = "ERROR";
+    private static final String ERROR_DESCRIPTION_KEY = "ErrorDescription";
 
     @Autowired
     InventoryClient inventoryClient;
@@ -144,48 +163,81 @@ public class NbApiController extends ApiBaseController {
         DEPLOYMENTS, BLUEPRINTS, SERVICES_GROUPBY;
     }
 
-    private static Date begin, end;
-
     /**
-     * get the tenants list
+     * get the tenants list.
      * 
      * @param request HttpServletRequest
      * @return List of CloudifyDeployment objects
      */
-    @SuppressWarnings("rawtypes")
-    @RequestMapping(
-        value = {TENANTS_PATH},
-        method = RequestMethod.GET,
-        produces = "application/json")
-    @ResponseBody
+    @SuppressWarnings({"unchecked"})
+    @GetMapping(value = TENANTS_PATH, produces = "application/json")
     public String getTenants(HttpServletRequest request) throws Exception {
         preLogAudit(request);
-        List itemList = cloudifyClient.getTenants().items;
+        List<CloudifyTenant> itemList = cloudifyClient.getTenants().items;
         final int totalItems = itemList.size();
         final int pageSize = 20;
         final int pageNum = 1;
         final int pageCount = (int) Math.ceil((double) totalItems / pageSize);
-        if (totalItems > pageSize)
+        if (totalItems > pageSize) {
             itemList = getPageOfList(pageNum, pageSize, itemList);
-        RestResponsePage<List> model = new RestResponsePage<>(totalItems, pageCount, itemList);
-        String outboundJson = objectMapper.writeValueAsString(model);
-        return outboundJson;
+        }
+        RestResponsePage<List<CloudifyTenant>> model =
+            new RestResponsePage<>(totalItems, pageCount, itemList);
+        return objectMapper.writeValueAsString(model);
     }
 
-    private boolean isAuthorized(HttpServletRequest request, String component) {
-        boolean auth = true;
-        return auth;
+    private boolean isAuthorized() {
+        return true;
     }
 
-    @RequestMapping(
-        value = {SERVICE_TYPES_PATH},
-        method = RequestMethod.POST,
-        produces = "application/json")
+    private String getSelfLink(String uriSelf) {
+        StringBuffer selfSb = new StringBuffer();
+        selfSb.append("<").append(uriSelf).append(">; rel=\"self\"");
+        return selfSb.toString();
+    }
+
+    private String getAllLink(String uriAll) {
+        StringBuffer allSb = new StringBuffer();
+        allSb.append("<").append(uriAll).append(">; rel=\"current\"");
+        return allSb.toString();
+    }
+
+    private void publishResponseHeader(ServletUriComponentsBuilder uriBuilder,
+        HttpServletResponse response, int page, int pageCount, int size) {
+        try {
+            uriBuilder = ServletUriComponentsBuilder.fromCurrentRequest();
+            eventPub.publishEvent(new PaginatedResultsRetrievedEvent<String>(String.class,
+                uriBuilder, response, page, pageCount, size));
+        } catch (Exception e) {
+            // skip exception
+        }
+    }
+
+    private String getJsonErr(String errStr) {
+        final String errJsonStr = "{ \"error\" : \"";
+        StringBuffer errJson = new StringBuffer();
+        errJson.append(errJsonStr).append(errStr).append("\"}");
+        return errJson.toString();
+    }
+
+    /**
+     * Upload new blueprint to inventory.
+     * 
+     * @param request
+     * @param response
+     * @param serviceTypeUplReq
+     * @param uriBuilder
+     * @return
+     * @throws Exception
+     */
+    @PostMapping(value = {SERVICE_TYPES_PATH}, produces = "application/json")
     public String createBlueprint(HttpServletRequest request, HttpServletResponse response,
         @RequestBody ServiceTypeUploadRequest serviceTypeUplReq,
         ServletUriComponentsBuilder uriBuilder) throws Exception {
         preLogAudit(request);
         String json = null;
+        final String errDescrStr = "Uploading service type failed!";
+        final String errLogStr = "Uploading service type caught exception";
         try {
             Blueprint.parse(serviceTypeUplReq.getBlueprintTemplate());
 
@@ -196,17 +248,9 @@ public class NbApiController extends ApiBaseController {
                     "Component name missing in blueprint request body");
                 return json;
             }
-
-            if (!isAuthorized(request, serviceTypeUplReq.component)) {
-                response.setStatus(HttpStatus.SC_FORBIDDEN);
-                json = objectMapper.writeValueAsString(
-                    new RestResponseError("Un-authorized to perform this operation"));
-                return json;
-            }
-
-            Collection<String> serviceIds = new ArrayList<String>();
-            Collection<String> vnfTypes = new ArrayList<String>();
-            Collection<String> serviceLocations = new ArrayList<String>();
+            Collection<String> serviceIds = new ArrayList<>();
+            Collection<String> vnfTypes = new ArrayList<>();
+            Collection<String> serviceLocations = new ArrayList<>();
             Optional<String> asdcServiceId = null;
             Optional<String> asdcResourceId = null;
             Optional<String> asdcServiceURL = null;
@@ -220,53 +264,48 @@ public class NbApiController extends ApiBaseController {
             json = objectMapper.writeValueAsString(apiResponse);
             String uri = request.getRequestURI();
             if (uri != null) {
-            String uri_all = uriBuilder.replacePath(uri).build().toUriString();
-            String uri_self =
-                uriBuilder.path("/" + apiResponse.getTypeId().get()).build().toUriString();
-            StringBuffer linkHeader = new StringBuffer();
-            String linkStr_all = "<" + uri_all + ">; rel=\"" + "current" + "\"";
-            String linkStr_self = "<" + uri_self + ">; rel=\"" + "self" + "\"";
-            linkHeader.append(linkStr_self);
-            if (linkHeader.length() > 0) {
-                linkHeader.append(", ");
-            }
-            linkHeader.append(linkStr_all);
-            response.addHeader("Link", linkHeader.toString());
+                String uriAll = uriBuilder.replacePath(uri).build().toUriString();
+                StringBuffer linkHeader = new StringBuffer();
+                String currTypeId = apiResponse.getTypeId().orElse("missingId");
+                String uriSelf = uriBuilder.path("/" + currTypeId).build().toUriString();
+                linkHeader.append(getSelfLink(uriSelf));
+                if (linkHeader.length() > 0) {
+                    linkHeader.append(", ");
+                }
+                linkHeader.append(getAllLink(uriAll));
+                response.addHeader("Link", linkHeader.toString());
             }
         } catch (BlueprintParseException e) {
             response.setStatus(HttpStatus.SC_BAD_REQUEST);
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "DCAE Inventory");
-            MDC.put("TargetServiceName", "DCAE Inventory");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Updating service type failed!");
-            logger.error(EELFLoggerDelegate.errorLogger,
-                "updateServiceTypeBlueprint caught exception");
+            MDC.put(SystemProperties.STATUS_CODE, ERROR_RESPONSE);
+            MDC.put(TARGET_ENTITY_KEY, INV_BP_ENTITY);
+            MDC.put(TARGET_SERVICE_KEY, INV_TARGET_SERVICE);
+            MDC.put(ERROR_CODE_KEY, ERROR_CODE);
+            MDC.put(ERROR_CATEGORY_KEY, ERROR_CATEGORY);
+            MDC.put(ERROR_DESCRIPTION_KEY, errDescrStr);
+            logger.error(EELFLoggerDelegate.errorLogger, errLogStr);
             json = objectMapper
                 .writeValueAsString(new RestResponseError("Invalid blueprint format.", e));
         } catch (HttpStatusCodeException e) {
             response.setStatus(HttpStatus.SC_BAD_GATEWAY);
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "DCAE Inventory");
-            MDC.put("TargetServiceName", "DCAE Inventory");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Updating service type failed!");
-            logger.error(EELFLoggerDelegate.errorLogger,
-                "updateServiceTypeBlueprint caught exception");
+            MDC.put(SystemProperties.STATUS_CODE, ERROR_RESPONSE);
+            MDC.put(TARGET_ENTITY_KEY, INV_BP_ENTITY);
+            MDC.put(TARGET_SERVICE_KEY, INV_TARGET_SERVICE);
+            MDC.put(ERROR_CODE_KEY, ERROR_CODE);
+            MDC.put(ERROR_CATEGORY_KEY, ERROR_CATEGORY);
+            MDC.put(ERROR_DESCRIPTION_KEY, errDescrStr);
+            logger.error(EELFLoggerDelegate.errorLogger, errLogStr);
             json =
                 objectMapper.writeValueAsString(new RestResponseError(e.getResponseBodyAsString()));
-        } catch (Throwable t) {
+        } catch (Exception t) {
             response.setStatus(HttpStatus.SC_BAD_REQUEST);
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "DCAE Inventory");
-            MDC.put("TargetServiceName", "DCAE Inventory");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Updating service type failed!");
-            logger.error(EELFLoggerDelegate.errorLogger,
-                "updateServiceTypeBlueprint caught exception");
+            MDC.put(SystemProperties.STATUS_CODE, ERROR_RESPONSE);
+            MDC.put(TARGET_ENTITY_KEY, INV_BP_ENTITY);
+            MDC.put(TARGET_SERVICE_KEY, INV_TARGET_SERVICE);
+            MDC.put(ERROR_CODE_KEY, ERROR_CODE);
+            MDC.put(ERROR_CATEGORY_KEY, ERROR_CATEGORY);
+            MDC.put(ERROR_DESCRIPTION_KEY, errDescrStr);
+            logger.error(EELFLoggerDelegate.errorLogger, errLogStr);
             json = objectMapper
                 .writeValueAsString(new RestResponseError("updateServiceTypeBlueprint failed", t));
         } finally {
@@ -275,17 +314,26 @@ public class NbApiController extends ApiBaseController {
         return json;
     }
 
-    @SuppressWarnings("unchecked")
-    @RequestMapping(
-        value = {SERVICE_TYPES_PATH},
-        method = RequestMethod.GET,
-        produces = "application/json")
+    /**
+     * Query all blueprints from inventory, follows pagination.
+     * 
+     * @param request
+     * @param page
+     * @param size
+     * @param uriBuilder
+     * @param response
+     * @return
+     */
+    @GetMapping(value = {SERVICE_TYPES_PATH}, produces = "application/json")
     public String getBlueprintsByPage(HttpServletRequest request,
         @RequestParam(value = "page", required = false) Integer page,
         @RequestParam(value = "size", required = false) Integer size,
         ServletUriComponentsBuilder uriBuilder, HttpServletResponse response) {
         preLogAudit(request);
         String json = null;
+        RestResponseError result = null;
+        final String errDescrStr = "Getting page of blueprints items failed!";
+        final String errLogStr = "getBlueprintsByPage caught exception";
         if (page == null || page == 0) {
             page = 1;
         }
@@ -296,152 +344,121 @@ public class NbApiController extends ApiBaseController {
         int totalItems = 0;
         List itemList = null;
         try {
-            itemList = getItemListForPageWrapper(request, InventoryDataItem.BLUEPRINTS);
+            itemList = getItemListForPageWrapper(request);
             // Shrink if needed
             if (itemList != null) {
                 totalItems = itemList.size();
             }
             final int pageCount = (int) Math.ceil((double) totalItems / size);
-            if (totalItems > size)
+            if (totalItems > size) {
                 itemList = getPageOfList(pageNum, size, itemList);
-
+            }
             RestResponsePage<List> model = new RestResponsePage<>(totalItems, pageCount, itemList);
             json = objectMapper.writeValueAsString(model);
-
-            try {
-            uriBuilder = ServletUriComponentsBuilder.fromCurrentRequest();
-            eventPub.publishEvent(new PaginatedResultsRetrievedEvent<String>(String.class,
-                uriBuilder, response, page, pageCount, size));
-            } catch (Exception e) {
-                // skip exception
-            }
-        } catch (Exception e) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "API Controller");
-            MDC.put("TargetServiceName", "API Controller");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Getting page of blueprints items failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "getBlueprintsByPage caught exception");
-            RestResponseError result = null;
-            if (e instanceof HttpStatusCodeException)
-                result =
-                new RestResponseError(((HttpStatusCodeException) e).getResponseBodyAsString());
-            else
-                result = new RestResponseError("Failed to get blueprints", e);
+            publishResponseHeader(uriBuilder, response, page, pageCount, size);
+        } catch (HttpStatusCodeException e) {
+            MDC.put(SystemProperties.STATUS_CODE, ERROR_RESPONSE);
+            MDC.put(TARGET_ENTITY_KEY, INV_BP_ENTITY);
+            MDC.put(TARGET_SERVICE_KEY, INV_TARGET_SERVICE);
+            MDC.put(ERROR_CODE_KEY, ERROR_CODE);
+            MDC.put(ERROR_CATEGORY_KEY, ERROR_CATEGORY);
+            MDC.put(ERROR_DESCRIPTION_KEY, errDescrStr);
+            logger.error(EELFLoggerDelegate.errorLogger, errLogStr);
+            result = new RestResponseError((e).getResponseBodyAsString());
             try {
                 json = objectMapper.writeValueAsString(result);
             } catch (JsonProcessingException jpe) {
                 // Should never, ever happen
-                json = "{ \"error\" : \"" + jpe.toString() + "\"}";
+                json = getJsonErr(jpe.toString());
             }
-            return json;
+        } catch (Exception e) {
+            MDC.put(SystemProperties.STATUS_CODE, ERROR_RESPONSE);
+            MDC.put(TARGET_ENTITY_KEY, INV_BP_ENTITY);
+            MDC.put(TARGET_SERVICE_KEY, INV_TARGET_SERVICE);
+            MDC.put(ERROR_CODE_KEY, ERROR_CODE);
+            MDC.put(ERROR_CATEGORY_KEY, ERROR_CATEGORY);
+            MDC.put(ERROR_DESCRIPTION_KEY, errDescrStr);
+            logger.error(EELFLoggerDelegate.errorLogger, errLogStr);
+            result = new RestResponseError("Failed to get blueprints", e);
+            try {
+                json = objectMapper.writeValueAsString(result);
+            } catch (JsonProcessingException jpe) {
+                json = getJsonErr(jpe.toString());
+            }
         } finally {
             postLogAudit(request);
         }
         return json;
     }
 
-    private List getItemListForPageWrapper(HttpServletRequest request, InventoryDataItem option) {
-        Set<String> userRoleSet = (Set<String>) request.getAttribute("userRoles");
-        Set<String> userApps = (Set<String>) request.getAttribute("userApps");
-        String sort = request.getParameter("sort");
-
-        Predicate<String> adminPred =
-            p -> p.contains("System_Administrator") || p.contains("Write_Access");
-
-            Predicate<String> ecompSuperPred =
-                p -> p.contains("ECOMPC_WRITE") || p.contains("ECOMPC_READ");
-
-                ReadWriteLock lock = new ReentrantReadWriteLock();
-                List itemList = null;
-                try {
-                    lock.readLock().lock();
-                    itemList = (List<ServiceTypeSummary>) getCacheManager().getObject("dcae-service-types");
-                    lock.readLock().unlock();
-                    if (itemList == null) {
-                        ServiceTypeQueryParams serviceQueryParams = null;
-                        itemList = inventoryClient.getServiceTypes().collect(Collectors.toList());
-                    }
-                    if (userRoleSet != null) {
-                        if (userRoleSet.stream().noneMatch(adminPred)) {
-                            if (userRoleSet.stream().noneMatch(ecompSuperPred)) {
-                                itemList = (List<ServiceTypeSummary>) itemList.stream()
-                                    .filter(s -> userApps.stream()
-                                        .anyMatch(appFilter -> (((ServiceTypeSummary) s).getComponent() != null
-                                        && ((ServiceTypeSummary) s).getComponent()
-                                        .equalsIgnoreCase(appFilter))))
-                                    .collect(Collectors.<ServiceTypeSummary>toList());
-                            } else {
-                                Predicate<ServiceTypeSummary> appFilter =
-                                    p -> p.getComponent() != null && !p.getComponent().equalsIgnoreCase("dcae");
-                                    itemList = (List<ServiceTypeSummary>) itemList.stream().filter(appFilter)
-                                        .collect(Collectors.toList());
-                            }
-                        }
-                    }
-                    // Handle request filter object
-                    String filters = request.getParameter("filters");
-                    if (filters != null) {
-                        JSONObject filterJson = new JSONObject(filters);
-
-                        if (filterJson.has("owner")) {
-                            String ownFilter = filterJson.getString("owner");
-                            Predicate<ServiceTypeSummary> ownPred =
-                                p -> p.getOwner() != null && p.getOwner().contains(ownFilter);
-                                itemList = (List<ServiceTypeSummary>) itemList.stream().filter(ownPred)
-                                    .collect(Collectors.toList());
-                        }
-
-                        if (filterJson.has("name")) {
-                            String bpNameFilter = filterJson.getString("name");
-                            Predicate<ServiceTypeSummary> bpNamePred =
-                                p -> p.getTypeName() != null && p.getTypeName().contains(bpNameFilter);
-                                itemList = (List<ServiceTypeSummary>) itemList.stream().filter(bpNamePred)
-                                    .collect(Collectors.toList());
-                        }
-
-                        if (filterJson.has("id")) {
-                            String bpIdFilter = filterJson.getString("id");
-                            Predicate<ServiceTypeSummary> bpIdPred =
-                                p -> p.getTypeId().get().contains(bpIdFilter);
-                                itemList = (List<ServiceTypeSummary>) itemList.stream().filter(bpIdPred)
-                                    .collect(Collectors.toList());
-                        }
-                    }
-                    if (sort != null) {
-                        if (sort.equals("owner")) {
-                            ((List<ServiceTypeSummary>) itemList).sort((ServiceTypeSummary o1,
-                                ServiceTypeSummary o2) -> o1.getOwner().compareTo(o2.getOwner()));
-                        } else if (sort.equals("typeId")) {
-                            ((List<ServiceTypeSummary>) itemList)
-                            .sort((ServiceTypeSummary o1, ServiceTypeSummary o2) -> o1.getTypeId().get()
-                                .compareTo(o2.getTypeId().get()));
-                        } else if (sort.equals("typeName")) {
-                            ((List<ServiceTypeSummary>) itemList).sort((ServiceTypeSummary o1,
-                                ServiceTypeSummary o2) -> o1.getTypeName().compareTo(o2.getTypeName()));
-                        } else if (sort.equals("typeVersion")) {
-                            ((List<ServiceTypeSummary>) itemList)
-                            .sort((ServiceTypeSummary o1, ServiceTypeSummary o2) -> o1.getTypeVersion()
-                                .compareTo(o2.getTypeVersion()));
-                        } else if (sort.equals("created")) {
-                            ((List<ServiceTypeSummary>) itemList)
-                            .sort((ServiceTypeSummary o1, ServiceTypeSummary o2) -> o1.getCreated()
-                                .get().compareTo(o2.getCreated().get()));
-                        }
-                    }
-                } catch (Exception e) {
-                    throw e;
-                } finally {
-                    postLogAudit(request);
-                }
-                return itemList;
+    private List<ServiceTypeSummary> processRequestFilters(HttpServletRequest request,
+        List<ServiceTypeSummary> itemList) {
+        String filters = request.getParameter("filters");
+        final String ownerStr = "owner";
+        if (filters != null) {
+            JSONObject filterJson = new JSONObject(filters);
+            if (filterJson.has(ownerStr)) {
+                String ownFilter = filterJson.getString(ownerStr);
+                Predicate<ServiceTypeSummary> ownPred =
+                    p -> p.getOwner() != null && p.getOwner().contains(ownFilter);
+                itemList = itemList.stream().filter(ownPred).collect(Collectors.toList());
+            }
+            if (filterJson.has("name")) {
+                String bpNameFilter = filterJson.getString("name");
+                Predicate<ServiceTypeSummary> bpNamePred =
+                    p -> p.getTypeName() != null && p.getTypeName().contains(bpNameFilter);
+                itemList = itemList.stream().filter(bpNamePred).collect(Collectors.toList());
+            }
+            if (filterJson.has("id")) {
+                String bpIdFilter = filterJson.getString("id");
+                Predicate<ServiceTypeSummary> bpIdPred =
+                    p -> p.getTypeId().get().contains(bpIdFilter);
+                itemList = itemList.stream().filter(bpIdPred).collect(Collectors.toList());
+            }
+        }
+        return itemList;
     }
 
-    @RequestMapping(
-        value = {DEPLOYMENTS_PATH + "/{deploymentId}"},
-        method = RequestMethod.GET,
-        produces = "application/json")
+    @SuppressWarnings("unchecked")
+    private List getItemListForPageWrapper(HttpServletRequest request) throws Exception {
+        String sort = request.getParameter("sort");
+        ReadWriteLock lock = new ReentrantReadWriteLock();
+        List<ServiceTypeSummary> itemList = null;
+        try {
+            lock.readLock().lock();
+            itemList = (List<ServiceTypeSummary>) getCacheManager().getObject("dcae-service-types");
+            lock.readLock().unlock();
+            if (itemList == null) {
+                itemList = inventoryClient.getServiceTypes().collect(Collectors.toList());
+            }
+            // Handle request filter object
+            itemList = processRequestFilters(request, itemList);
+
+            if (sort != null) {
+                if (sort.equals("owner")) {
+                    (itemList).sort((ServiceTypeSummary o1, ServiceTypeSummary o2) -> o1.getOwner()
+                        .compareTo(o2.getOwner()));
+                } else if (sort.equals("typeId")) {
+                    (itemList).sort((ServiceTypeSummary o1, ServiceTypeSummary o2) -> o1.getTypeId()
+                        .get().compareTo(o2.getTypeId().get()));
+                } else if (sort.equals("typeName")) {
+                    (itemList).sort((ServiceTypeSummary o1, ServiceTypeSummary o2) -> o1
+                        .getTypeName().compareTo(o2.getTypeName()));
+                } else if (sort.equals("typeVersion")) {
+                    (itemList).sort((ServiceTypeSummary o1, ServiceTypeSummary o2) -> o1
+                        .getTypeVersion().compareTo(o2.getTypeVersion()));
+                } else if (sort.equals("created")) {
+                    (itemList).sort((ServiceTypeSummary o1, ServiceTypeSummary o2) -> o1
+                        .getCreated().get().compareTo(o2.getCreated().get()));
+                }
+            }
+        } finally {
+            postLogAudit(request);
+        }
+        return itemList;
+    }
+
+    @GetMapping(value = {DEPLOYMENTS_PATH + "/{deploymentId}"}, produces = "application/json")
     public String getDeployment(@PathVariable("deploymentId") String deploymentId,
         HttpServletRequest request) {
         preLogAudit(request);
@@ -449,19 +466,25 @@ public class NbApiController extends ApiBaseController {
         try {
             List<CloudifyDeployment> items = cloudifyClient.getDeployment(deploymentId).items;
             json = objectMapper.writeValueAsString(items);
-        } catch (Exception gen) {
+        } catch (HttpStatusCodeException gen) {
             logger.error(EELFLoggerDelegate.errorLogger, "getDeployment caught exception");
             RestResponseError result = null;
-            if (gen instanceof HttpStatusCodeException)
-                result = new RestResponseError(
-                    ((HttpStatusCodeException) gen).getResponseBodyAsString());
-            else
-                result = new RestResponseError("Failed to get deployment", gen);
+            result = new RestResponseError(gen.getResponseBodyAsString());
             try {
                 json = objectMapper.writeValueAsString(result);
             } catch (JsonProcessingException jpe) {
                 // Should never, ever happen
-                json = "{ \"error\" : \"" + jpe.toString() + "\"}";
+                json = getJsonErr(jpe.toString());
+            }
+        } catch (Exception gen) {
+            logger.error(EELFLoggerDelegate.errorLogger, "getDeployment caught exception");
+            RestResponseError result = null;
+            result = new RestResponseError("Failed to get deployment", gen);
+            try {
+                json = objectMapper.writeValueAsString(result);
+            } catch (JsonProcessingException jpe) {
+                // Should never, ever happen
+                json = getJsonErr(jpe.toString());
             }
         } finally {
             postLogAudit(request);
@@ -470,10 +493,7 @@ public class NbApiController extends ApiBaseController {
     }
 
     @SuppressWarnings("unchecked")
-    @RequestMapping(
-        value = {DEPLOYMENTS_PATH},
-        method = RequestMethod.GET,
-        produces = "application/json")
+    @GetMapping(value = {DEPLOYMENTS_PATH}, produces = "application/json")
     public String getDeploymentsByPage(HttpServletRequest request,
         @RequestParam(value = "page", required = false) Integer page,
         @RequestParam(value = "size", required = false) Integer size,
@@ -502,42 +522,47 @@ public class NbApiController extends ApiBaseController {
             }
             RestResponsePage<List> model = new RestResponsePage<>(totalItems, pageCount, itemList);
             outboundJson = objectMapper.writeValueAsString(model);
-            try {
-                uriBuilder = ServletUriComponentsBuilder.fromCurrentRequest();
-                eventPub.publishEvent(new PaginatedResultsRetrievedEvent<String>(String.class,
-                    uriBuilder, response, page, pageCount, size));
-            } catch (Exception e) {
-                // skip the pagination links logic
-            }
-            return outboundJson;
-        } catch (Exception e) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "API Controller");
-            MDC.put("TargetServiceName", "API Controller");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Getting page of deployments items failed!");
+            publishResponseHeader(uriBuilder, response, page, pageCount, size);
+        } catch (HttpStatusCodeException e) {
+            MDC.put(SystemProperties.STATUS_CODE, ERROR_RESPONSE);
+            MDC.put(TARGET_ENTITY_KEY, CFY_DEP_ENTITY);
+            MDC.put(TARGET_SERVICE_KEY, CFY_TARGET_SERVICE);
+            MDC.put(ERROR_CODE_KEY, ERROR_CODE);
+            MDC.put(ERROR_CATEGORY_KEY, ERROR_CATEGORY);
+            MDC.put(ERROR_DESCRIPTION_KEY, "Getting page of deployments items failed!");
             logger.error(EELFLoggerDelegate.errorLogger,
                 "getAllDeploymentsByPage caught exception");
             RestResponseError result = null;
-            if (e instanceof HttpStatusCodeException)
-                result =
-                new RestResponseError(((HttpStatusCodeException) e).getResponseBodyAsString());
-            else
-                result = new RestResponseError("Failed to get deployments", e);
+            result = new RestResponseError(e.getResponseBodyAsString());
             try {
                 outboundJson = objectMapper.writeValueAsString(result);
             } catch (JsonProcessingException jpe) {
                 // Should never, ever happen
-                outboundJson = "{ \"error\" : \"" + jpe.toString() + "\"}";
+                outboundJson = getJsonErr(jpe.toString());
             }
-            return outboundJson;
+        } catch (Exception e) {
+            MDC.put(SystemProperties.STATUS_CODE, ERROR_RESPONSE);
+            MDC.put(TARGET_ENTITY_KEY, CFY_DEP_ENTITY);
+            MDC.put(TARGET_SERVICE_KEY, CFY_TARGET_SERVICE);
+            MDC.put(ERROR_CODE_KEY, ERROR_CODE);
+            MDC.put(ERROR_CATEGORY_KEY, ERROR_CATEGORY);
+            MDC.put(ERROR_DESCRIPTION_KEY, "Getting page of deployments items failed!");
+            logger.error(EELFLoggerDelegate.errorLogger,
+                "getAllDeploymentsByPage caught exception");
+            RestResponseError result = null;
+            result = new RestResponseError("Failed to get deployments", e);
+            try {
+                outboundJson = objectMapper.writeValueAsString(result);
+            } catch (JsonProcessingException jpe) {
+                // Should never, ever happen
+                outboundJson = getJsonErr(jpe.toString());
+            }
         } finally {
             postLogAudit(request);
         }
+        return outboundJson;
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     private ServiceTypeSummary getBlueprintItem(String searchBy, Optional<Integer> version,
         String typeId) throws Exception {
         ServiceTypeQueryParams serviceQueryParams = null;
@@ -549,16 +574,15 @@ public class NbApiController extends ApiBaseController {
             serviceQueryParams = new ServiceTypeQueryParams.Builder().typeName(searchBy).build();
         }
 
-        List itemList =
+        List<ServiceTypeSummary> itemList =
             inventoryClient.getServiceTypes(serviceQueryParams).collect(Collectors.toList());
 
         if (version.isPresent()) {
-            itemList = (List) itemList.stream()
-                .filter(s -> ((ServiceTypeSummary) s).contains(version.get().toString()))
+            itemList = itemList.stream().filter(s -> (s).contains(version.get().toString()))
                 .collect(Collectors.toList());
         }
         if (typeId != null && typeId.equals("typeId")) {
-            item = (ServiceTypeSummary) ((List) itemList).get(0);
+            item = itemList.get(0);
         }
         return item;
     }
@@ -572,46 +596,40 @@ public class NbApiController extends ApiBaseController {
      * @return
      * @throws Exception
      */
-    @RequestMapping(
+    @GetMapping(
         value = {DEPLOYMENTS_PATH + "/{deploymentId}/inputs"},
-        method = RequestMethod.GET,
         produces = "application/json")
     public String getDeploymentInputs(@PathVariable("deploymentId") String deploymentId,
         @RequestParam(value = "tenant", required = true) String tenant, HttpServletRequest request)
-            throws Exception {
+        throws Exception {
         preLogAudit(request);
         ECTransportModel result = null;
         String json = "";
+        String errDescrStr = "Getting inputs for deployment failed: " + deploymentId;
+        String errLogStr = "getDeploymentInputs caught exception";
         try {
-            if (tenant == null) {
-                throw new Exception("tenant name is missing");
-            }
             List<CloudifyDeployment> response =
                 cloudifyClient.getDeploymentInputs(deploymentId, tenant).items;
             json = objectMapper.writeValueAsString(response);
         } catch (HttpStatusCodeException e) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "API controller");
-            MDC.put("TargetServiceName", "API controller");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription",
-                "Getting executions for deployment " + deploymentId + " failed!");
-            logger.error(EELFLoggerDelegate.errorLogger,
-                "getExecutionByIdAndDeploymentId caught exception");
+            MDC.put(SystemProperties.STATUS_CODE, ERROR_RESPONSE);
+            MDC.put(TARGET_ENTITY_KEY, CFY_DEP_ENTITY);
+            MDC.put(TARGET_SERVICE_KEY, CFY_TARGET_SERVICE);
+            MDC.put(ERROR_CODE_KEY, ERROR_CODE);
+            MDC.put(ERROR_CATEGORY_KEY, ERROR_RESPONSE);
+            MDC.put(ERROR_DESCRIPTION_KEY, errDescrStr);
+            logger.error(EELFLoggerDelegate.errorLogger, errLogStr);
             result = new RestResponseError(e.getResponseBodyAsString());
             json = objectMapper.writeValueAsString(result);
-        } catch (Throwable t) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "API controller");
-            MDC.put("TargetServiceName", "API controller");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription",
-                "Getting executions for deployment " + deploymentId + " failed!");
-            logger.error(EELFLoggerDelegate.errorLogger,
-                "getExecutionByIdAndDeploymentId caught exception");
-            result = new RestResponseError("getExecutionByIdAndDeploymentId failed", t);
+        } catch (Exception t) {
+            MDC.put(SystemProperties.STATUS_CODE, ERROR_RESPONSE);
+            MDC.put(TARGET_ENTITY_KEY, CFY_DEP_ENTITY);
+            MDC.put(TARGET_SERVICE_KEY, CFY_TARGET_SERVICE);
+            MDC.put(ERROR_CODE_KEY, ERROR_CODE);
+            MDC.put(ERROR_CATEGORY_KEY, ERROR_RESPONSE);
+            MDC.put(ERROR_DESCRIPTION_KEY, errDescrStr);
+            logger.error(EELFLoggerDelegate.errorLogger, errLogStr);
+            result = new RestResponseError("getDeploymentInputs failed", t);
             json = objectMapper.writeValueAsString(result);
         } finally {
             postLogAudit(request);
@@ -627,14 +645,13 @@ public class NbApiController extends ApiBaseController {
      * @return Information about the execution
      * @throws Exception on serialization failure
      */
-    @RequestMapping(
-        value = {DEPLOYMENTS_PATH + "/{deploymentId}"},
-        method = RequestMethod.PUT,
-        produces = "application/json")
+    @PutMapping(value = {DEPLOYMENTS_PATH + "/{deploymentId}"}, produces = "application/json")
     public String modifyDeployment(@PathVariable("deploymentId") String deploymentId,
         HttpServletRequest request, InputStream upgParams) throws Exception {
         preLogAudit(request);
         ECTransportModel result = null;
+        final String errDescStr = "Updating deployment failed!";
+        final String errLogStr = "updateDeployment caught exception";
         try {
             String nodeInstId = "";
             Map<String, Object> parameters =
@@ -651,32 +668,32 @@ public class NbApiController extends ApiBaseController {
             }
             parameters.put("node_instance_id", nodeInstId);
             if (workflow.equals("upgrade")) {
-                String repo_user = cloudifyClient.getSecret("controller_helm_user", tenant).value;
-                String repo_user_password =
+                String repoUser = cloudifyClient.getSecret("controller_helm_user", tenant).value;
+                String repoUserPassword =
                     cloudifyClient.getSecret("controller_helm_password", tenant).value;
-                parameters.put("repo_user", repo_user);
-                parameters.put("repo_user_password", repo_user_password);
+                parameters.put("repo_user", repoUser);
+                parameters.put("repo_user_password", repoUserPassword);
             }
             CloudifyExecutionRequest execution = new CloudifyExecutionRequest(deploymentId,
                 workflow, false, false, tenant, parameters);
             result = cloudifyClient.startExecution(execution);
         } catch (HttpStatusCodeException e) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "API controller");
-            MDC.put("TargetServiceName", "API controller");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Updating deployment failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "updateDeployment caught exception");
+            MDC.put(SystemProperties.STATUS_CODE, ERROR_RESPONSE);
+            MDC.put(TARGET_ENTITY_KEY, CFY_EXEC_ENTITY);
+            MDC.put(TARGET_SERVICE_KEY, CFY_TARGET_SERVICE);
+            MDC.put(ERROR_CODE_KEY, ERROR_CODE);
+            MDC.put(ERROR_CATEGORY_KEY, ERROR_CATEGORY);
+            MDC.put(ERROR_DESCRIPTION_KEY, errDescStr);
+            logger.error(EELFLoggerDelegate.errorLogger, errLogStr);
             result = new RestResponseError(e.getResponseBodyAsString());
-        } catch (Throwable t) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "API controller");
-            MDC.put("TargetServiceName", "API controller");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Updating Deployment failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "updateDeployment caught exception");
+        } catch (Exception t) {
+            MDC.put(SystemProperties.STATUS_CODE, ERROR_RESPONSE);
+            MDC.put(TARGET_ENTITY_KEY, CFY_EXEC_ENTITY);
+            MDC.put(TARGET_SERVICE_KEY, CFY_TARGET_SERVICE);
+            MDC.put(ERROR_CODE_KEY, ERROR_CODE);
+            MDC.put(ERROR_CATEGORY_KEY, ERROR_CATEGORY);
+            MDC.put(ERROR_DESCRIPTION_KEY, errDescStr);
+            logger.error(EELFLoggerDelegate.errorLogger, errLogStr);
             result = new RestResponseError("updateDeployment failed", t);
         } finally {
             postLogAudit(request);
@@ -684,14 +701,13 @@ public class NbApiController extends ApiBaseController {
         return objectMapper.writeValueAsString(result);
     }
 
-    @RequestMapping(
+    @GetMapping(
         value = {SERVICE_TYPES_PATH + "/{typeid}" + "/deployments"},
-        method = RequestMethod.GET,
         produces = "application/json")
     public String getServicesForType(HttpServletRequest request,
         @PathVariable("typeid") String typeId) throws Exception {
         preLogAudit(request);
-        List<ServiceTypeServiceMap> result = new ArrayList<ServiceTypeServiceMap>();
+        List<ServiceTypeServiceMap> result = new ArrayList<>();
         ServiceQueryParams qryParams = new ServiceQueryParams.Builder().typeId(typeId).build();
         ServiceRefList srvcRefs = inventoryClient.getServicesForType(qryParams);
         ServiceTypeServiceMap srvcMap = new ServiceTypeServiceMap(typeId, srvcRefs);
@@ -722,17 +738,12 @@ public class NbApiController extends ApiBaseController {
             } else {
                 dataSet.put(key, val);
             }
-        } catch (NumberFormatException ne) {
-            dataSet.put(key, val);
-        } catch (Exception e) {
+        } catch (Exception ne) {
             dataSet.put(key, val);
         }
     }
 
-    @RequestMapping(
-        value = {DEPLOYMENTS_PATH},
-        method = RequestMethod.POST,
-        produces = "application/json")
+    @PostMapping(value = {DEPLOYMENTS_PATH}, produces = "application/json")
     public String createDeployment(HttpServletRequest request, HttpServletResponse response,
         @RequestBody DeploymentInput deploymentRequestObject) throws Exception {
         preLogAudit(request);
@@ -747,6 +758,7 @@ public class NbApiController extends ApiBaseController {
         String tag = deploymentRequestObject.getTag();
         String depName = cName + "_" + tag;
         Map<String, BlueprintInput> bpInputDefs = null;
+        final String errLogStr = "createDeployment caught exception";
 
         if (cName == null || cName.isEmpty()) {
             json = objectMapper.writeValueAsString(
@@ -755,85 +767,23 @@ public class NbApiController extends ApiBaseController {
                 "Component name missing in deployment request body");
             return json;
         }
-
-        if (!isAuthorized(request, cName)) {
-            response.setStatus(HttpStatus.SC_FORBIDDEN);
-            json = objectMapper.writeValueAsString(
-                new RestResponseError("Un-authorized to perform this operation"));
-            return json;
-        }
-
-        if (deploymentRequestObject.getBlueprintVersion().isPresent()) {
-            bpVersion = deploymentRequestObject.getBlueprintVersion();
-        }
-        if (deploymentRequestObject.getBlueprintId().isPresent()) {
-            srvcTypeId = deploymentRequestObject.getBlueprintId().get();
-        }
-        if (srvcTypeId == null) {
-            // get the serviceTypeId from inventory using the blueprint name
-            try {
-                bpSummItem = getBlueprintItem(bpName, bpVersion, "typeId");
-                srvcTypeId = bpSummItem.getTypeId().get();
-                bpItem = inventoryClient.getServiceType(srvcTypeId).get();
-            } catch (Exception ex) {
-                MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-                MDC.put("TargetEntity", "API controller");
-                MDC.put("TargetServiceName", "API controller");
-                MDC.put("ErrorCode", "300");
-                MDC.put("ErrorCategory", "ERROR");
-                MDC.put("ErrorDescription", "Getting blueprint ID failed!");
-                logger.error(EELFLoggerDelegate.errorLogger,
-                    "getItemListForPageWrapper caught exception");
-                RestResponseError result = null;
-                if (ex instanceof HttpStatusCodeException)
-                    result = new RestResponseError(
-                        ((HttpStatusCodeException) ex).getResponseBodyAsString());
-                else
-                    result = new RestResponseError("Failed to get blueprint", ex);
-                try {
-                    json = objectMapper.writeValueAsString(result);
-                } catch (JsonProcessingException jpe) {
-                    // Should never, ever happen
-                    json = "{ \"error\" : \"" + jpe.toString() + "\"}";
-                }
-                return json;
-            } finally {
-                postLogAudit(request);
-            }
-        } else {
-            try {
-                bpItem = inventoryClient.getServiceType(srvcTypeId).get();
-            } catch (Exception ex) {
-                MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-                MDC.put("TargetEntity", "API controller");
-                MDC.put("TargetServiceName", "API controller");
-                MDC.put("ErrorCode", "300");
-                MDC.put("ErrorCategory", "ERROR");
-                MDC.put("ErrorDescription", "Getting blueprint failed!");
-                logger.error(EELFLoggerDelegate.errorLogger, "createDeployment caught exception");
-                RestResponseError result = null;
-                if (ex instanceof HttpStatusCodeException)
-                    result = new RestResponseError(
-                        ((HttpStatusCodeException) ex).getResponseBodyAsString());
-                else
-                    result = new RestResponseError("Failed to get blueprint", ex);
-                try {
-                    json = objectMapper.writeValueAsString(result);
-                } catch (JsonProcessingException jpe) {
-                    // Should never, ever happen
-                    json = "{ \"error\" : \"" + jpe.toString() + "\"}";
-                }
-                return json;
-            } finally {
-                postLogAudit(request);
-            }
-        }
         try {
+            bpVersion = Optional.of(deploymentRequestObject.getBlueprintVersion().orElse(1));
+            srvcTypeId = deploymentRequestObject.getBlueprintId().orElse("");
+            if (srvcTypeId.isEmpty()) {
+                // get the serviceTypeId from inventory using the blueprint name
+                bpSummItem = getBlueprintItem(bpName, bpVersion, "typeId");
+                if (bpSummItem != null && bpSummItem.getTypeId().isPresent()) {
+                    srvcTypeId = bpSummItem.getTypeId().get();
+                }
+            }
+            bpItem = inventoryClient.getServiceType(srvcTypeId).orElseThrow();
+
             // process the JSON inputs
-            Map<String, Object> processedInputs = new HashMap<String, Object>();
-            Map<String, Object> mergedInputs = new HashMap<String, Object>();
+            Map<String, Object> processedInputs = new HashMap<>();
+            Map<String, Object> mergedInputs = new HashMap<>();
             deploymentRequestObject.getInputs()
-            .forEach((k, v) -> translateInputData(processedInputs, k, v));
+                .forEach((k, v) -> translateInputData(processedInputs, k, v));
             // merge the user inputs with BP input list
             bpInputDefs = bpItem.getBlueprintInputs();
             bpInputDefs.forEach((k, v) -> mergeInputData(mergedInputs, processedInputs, k, v));
@@ -847,56 +797,30 @@ public class NbApiController extends ApiBaseController {
             }
             String self = request.getRequestURL().append("/").append(depName).toString();
             status.append(self).append("/executions?tenant=")
-            .append(deploymentRequestObject.getTenant());
+                .append(deploymentRequestObject.getTenant());
             DeploymentResource deplRsrc = new DeploymentResource(depName,
                 new DeploymentResourceLinks(self, deplStatus, status.toString()));
             JSONObject statObj = new JSONObject(deplRsrc);
             json = statObj.toString();
             response.setStatus(HttpStatus.SC_ACCEPTED);
-        } catch (BadRequestException e) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "API controller");
-            MDC.put("TargetServiceName", "API controller");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Deployment failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "createDeployment caught exception");
+        } catch (HttpStatusCodeException | BadRequestException | ServiceAlreadyExistsException
+            | ServerErrorException | DownstreamException e) {
+            MDC.put(SystemProperties.STATUS_CODE, ERROR_RESPONSE);
+            MDC.put(TARGET_ENTITY_KEY, CFY_DEP_ENTITY);
+            MDC.put(TARGET_SERVICE_KEY, CFY_TARGET_SERVICE);
+            MDC.put(ERROR_CODE_KEY, ERROR_CODE);
+            MDC.put(ERROR_CATEGORY_KEY, ERROR_RESPONSE);
+            MDC.put(ERROR_DESCRIPTION_KEY, errLogStr);
+            logger.error(EELFLoggerDelegate.errorLogger, errLogStr);
             json = objectMapper.writeValueAsString(new RestResponseError(e.getMessage()));
-        } catch (ServiceAlreadyExistsException e) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "API controller");
-            MDC.put("TargetServiceName", "API controller");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Deployment failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "createDeployment caught exception");
-            json = objectMapper.writeValueAsString(new RestResponseError(e.getMessage()));
-        } catch (ServerErrorException e) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "API controller");
-            MDC.put("TargetServiceName", "API controller");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Deployment failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "createDeployment caught exception");
-            json = objectMapper.writeValueAsString(new RestResponseError(e.getMessage()));
-        } catch (DownstreamException e) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "API controller");
-            MDC.put("TargetServiceName", "API controller");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Deployment failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "createDeployment caught exception");
-            json = objectMapper.writeValueAsString(new RestResponseError(e.getMessage()));
-        } catch (Throwable t) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "API controller");
-            MDC.put("TargetServiceName", "API controller");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Deployment failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "createDeployment caught exception");
+        } catch (Exception t) {
+            MDC.put(SystemProperties.STATUS_CODE, ERROR_RESPONSE);
+            MDC.put(TARGET_ENTITY_KEY, CFY_DEP_ENTITY);
+            MDC.put(TARGET_SERVICE_KEY, CFY_TARGET_SERVICE);
+            MDC.put(ERROR_CODE_KEY, ERROR_CODE);
+            MDC.put(ERROR_CATEGORY_KEY, ERROR_RESPONSE);
+            MDC.put(ERROR_DESCRIPTION_KEY, errLogStr);
+            logger.error(EELFLoggerDelegate.errorLogger, errLogStr);
             json =
                 objectMapper.writeValueAsString(new RestResponseError("putDeployment failed", t));
         } finally {
@@ -914,42 +838,35 @@ public class NbApiController extends ApiBaseController {
      * @return CloudifyExecutionList
      * @throws Exception on serialization failure
      */
-    @RequestMapping(
+    @GetMapping(
         value = {DEPLOYMENTS_PATH + "/{deploymentId}" + "/" + EXECUTIONS_PATH},
-        method = RequestMethod.GET,
         produces = "application/json")
-    @ResponseBody
     public String getExecutionByDeploymentId(@PathVariable("deploymentId") String deploymentId,
         @RequestParam(value = "tenant", required = true) String tenant, HttpServletRequest request)
-            throws Exception {
+        throws Exception {
         preLogAudit(request);
         ECTransportModel result = null;
+        final String errDescStr = "Get execution failed for deployment: " + deploymentId;
+        final String errLogStr = "getExecutionByIdAndDeploymentId caught exception";
         try {
-            if (tenant == null) {
-                throw new Exception("tenant name is missing");
-            }
             result = cloudifyClient.getExecutionsSummary(deploymentId, tenant);
         } catch (HttpStatusCodeException e) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "API Controller");
-            MDC.put("TargetServiceName", "API Controller");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription",
-                "Getting executions for deployment " + deploymentId + " failed!");
-            logger.error(EELFLoggerDelegate.errorLogger,
-                "getExecutionByIdAndDeploymentId caught exception");
+            MDC.put(SystemProperties.STATUS_CODE, ERROR_RESPONSE);
+            MDC.put(TARGET_ENTITY_KEY, CFY_EXEC_ENTITY);
+            MDC.put(TARGET_SERVICE_KEY, CFY_TARGET_SERVICE);
+            MDC.put(ERROR_CODE_KEY, ERROR_CODE);
+            MDC.put(ERROR_CATEGORY_KEY, ERROR_CATEGORY);
+            MDC.put(ERROR_DESCRIPTION_KEY, errDescStr);
+            logger.error(EELFLoggerDelegate.errorLogger, errLogStr);
             result = new RestResponseError(e.getResponseBodyAsString());
-        } catch (Throwable t) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "API Controller");
-            MDC.put("TargetServiceName", "API Controller");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription",
-                "Getting executions for deployment " + deploymentId + " failed!");
-            logger.error(EELFLoggerDelegate.errorLogger,
-                "getExecutionByIdAndDeploymentId caught exception");
+        } catch (Exception t) {
+            MDC.put(SystemProperties.STATUS_CODE, ERROR_RESPONSE);
+            MDC.put(TARGET_ENTITY_KEY, CFY_EXEC_ENTITY);
+            MDC.put(TARGET_SERVICE_KEY, CFY_TARGET_SERVICE);
+            MDC.put(ERROR_CODE_KEY, ERROR_CODE);
+            MDC.put(ERROR_CATEGORY_KEY, ERROR_CATEGORY);
+            MDC.put(ERROR_DESCRIPTION_KEY, errDescStr);
+            logger.error(EELFLoggerDelegate.errorLogger, errLogStr);
             result = new RestResponseError("getExecutionByIdAndDeploymentId failed", t);
         } finally {
             postLogAudit(request);
@@ -966,39 +883,34 @@ public class NbApiController extends ApiBaseController {
      * @return String
      * @throws Exception on serialization failure
      */
-    @RequestMapping(
+    @GetMapping(
         value = {DEPLOYMENTS_PATH + "/{deploymentId}" + "/" + SERVICE_HEALTH_PATH},
-        method = RequestMethod.GET,
         produces = "application/json")
-    @ResponseBody
     public String getServiceHealthByDeploymentId(@PathVariable("deploymentId") String deploymentId,
         HttpServletRequest request) throws Exception {
         preLogAudit(request);
         Object result = null;
+        final String errStr = "Getting service health for deployment failed: " + deploymentId;
         try {
             result = consulClient.getServiceHealthByDeploymentId(deploymentId);
         } catch (HttpStatusCodeException e) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "API Controller");
-            MDC.put("TargetServiceName", "API Controller");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription",
-                "Getting executions for deployment " + deploymentId + " failed!");
-            logger.error(EELFLoggerDelegate.errorLogger,
-                "getExecutionByIdAndDeploymentId caught exception");
+            MDC.put(SystemProperties.STATUS_CODE, ERROR_RESPONSE);
+            MDC.put(TARGET_ENTITY_KEY, CNSL_SVC_ENTITY);
+            MDC.put(TARGET_SERVICE_KEY, CNSL_TARGET_SERVICE);
+            MDC.put(ERROR_CODE_KEY, ERROR_CODE);
+            MDC.put(ERROR_CATEGORY_KEY, ERROR_CATEGORY);
+            MDC.put(ERROR_DESCRIPTION_KEY, errStr);
+            logger.error(EELFLoggerDelegate.errorLogger, errStr);
             result = new RestResponseError(e.getResponseBodyAsString());
-        } catch (Throwable t) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "API Controller");
-            MDC.put("TargetServiceName", "API Controller");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription",
-                "Getting executions for deployment " + deploymentId + " failed!");
-            logger.error(EELFLoggerDelegate.errorLogger,
-                "getExecutionByIdAndDeploymentId caught exception");
-            result = new RestResponseError("getExecutionByIdAndDeploymentId failed", t);
+        } catch (Exception t) {
+            MDC.put(SystemProperties.STATUS_CODE, ERROR_RESPONSE);
+            MDC.put(TARGET_ENTITY_KEY, CNSL_SVC_ENTITY);
+            MDC.put(TARGET_SERVICE_KEY, CNSL_TARGET_SERVICE);
+            MDC.put(ERROR_CODE_KEY, ERROR_CODE);
+            MDC.put(ERROR_CATEGORY_KEY, ERROR_CATEGORY);
+            MDC.put(ERROR_DESCRIPTION_KEY, errStr);
+            logger.error(EELFLoggerDelegate.errorLogger, errStr);
+            result = new RestResponseError("getServiceHealthByDeploymentId failed", t);
         } finally {
             postLogAudit(request);
         }
@@ -1015,15 +927,12 @@ public class NbApiController extends ApiBaseController {
      * @throws Exception On serialization failure
      */
     @SuppressWarnings("unchecked")
-    @RequestMapping(
-        value = {SERVICE_TYPES_PATH + "/{typeid}"},
-        method = RequestMethod.GET,
-        produces = "application/json")
-    @ResponseBody
+    @GetMapping(value = {SERVICE_TYPES_PATH + "/{typeid}"}, produces = "application/json")
     public String queryBlueprint(@PathVariable("typeid") String typeId, HttpServletRequest request,
         HttpServletResponse response, ServletUriComponentsBuilder uriBuilder) throws Exception {
         String json = "";
         Optional<ServiceType> resultItem = null;
+        final String errStr = "Failed to get blueprint for ID: " + typeId;
         try {
             resultItem = inventoryClient.getServiceType(typeId);
             if (resultItem.isPresent()) {
@@ -1031,33 +940,33 @@ public class NbApiController extends ApiBaseController {
             }
             String uri = request.getRequestURI();
             if (uri != null && !uri.isEmpty()) {
-            String uri_depl =
-                uriBuilder.replacePath(uri).path("/deployments").build().toUriString();
-            StringBuffer linkHeader = new StringBuffer();
-            String linkStr_depl = "<" + uri_depl + ">; rel=\"" + "deployments" + "\"";
-            linkHeader.append(linkStr_depl);
-            response.addHeader("Link", linkHeader.toString());
+                String uriDepl =
+                    uriBuilder.replacePath(uri).path("/deployments").build().toUriString();
+                StringBuffer linkHeader = new StringBuffer();
+                String linkStrDepl = "<" + uriDepl + ">; rel=\"" + DEPLOYMENTS_PATH + "\"";
+                linkHeader.append(linkStrDepl);
+                response.addHeader("Link", linkHeader.toString());
             }
+        } catch (HttpStatusCodeException e) {
+            MDC.put(SystemProperties.STATUS_CODE, ERROR_RESPONSE);
+            MDC.put(TARGET_ENTITY_KEY, INV_BP_ENTITY);
+            MDC.put(TARGET_SERVICE_KEY, INV_TARGET_SERVICE);
+            MDC.put(ERROR_CODE_KEY, ERROR_CODE);
+            MDC.put(ERROR_CATEGORY_KEY, ERROR_CATEGORY);
+            MDC.put(ERROR_DESCRIPTION_KEY, errStr);
+            logger.error(EELFLoggerDelegate.errorLogger, errStr);
+            RestResponseError result = new RestResponseError(e.getResponseBodyAsString());
+            json = objectMapper.writeValueAsString(result);
         } catch (Exception e) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "API Controller");
-            MDC.put("TargetServiceName", "API Controller");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Getting page of blueprints items failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "getBlueprintsByPage caught exception");
-            RestResponseError result = null;
-            if (e instanceof HttpStatusCodeException)
-                result =
-                new RestResponseError(((HttpStatusCodeException) e).getResponseBodyAsString());
-            else
-                result = new RestResponseError("Failed to get blueprints", e);
-            try {
-                json = objectMapper.writeValueAsString(result);
-            } catch (JsonProcessingException jpe) {
-                // Should never, ever happen
-                json = "{ \"error\" : \"" + jpe.toString() + "\"}";
-            }
+            MDC.put(SystemProperties.STATUS_CODE, ERROR_RESPONSE);
+            MDC.put(TARGET_ENTITY_KEY, INV_BP_ENTITY);
+            MDC.put(TARGET_SERVICE_KEY, INV_TARGET_SERVICE);
+            MDC.put(ERROR_CODE_KEY, ERROR_CODE);
+            MDC.put(ERROR_CATEGORY_KEY, ERROR_CATEGORY);
+            MDC.put(ERROR_DESCRIPTION_KEY, errStr);
+            logger.error(EELFLoggerDelegate.errorLogger, errStr);
+            RestResponseError result = new RestResponseError("Failed to get blueprints", e);
+            json = objectMapper.writeValueAsString(result);
         }
         return json;
     }
@@ -1072,70 +981,53 @@ public class NbApiController extends ApiBaseController {
      * @throws Exception On serialization failure
      */
     @SuppressWarnings("unchecked")
-    @RequestMapping(
-        value = {SERVICE_TYPES_PATH + "/{typeid}"},
-        method = RequestMethod.DELETE,
+    @DeleteMapping(
+        value = {SERVICE_TYPES_PATH + "/{typeId:.+}"},
         produces = "application/json")
-    @ResponseBody
-    public String deleteBlueprint(@PathVariable("typeid") String typeId, HttpServletRequest request,
+    public String deleteBlueprint(@PathVariable("typeId") String typeId, HttpServletRequest request,
         HttpServletResponse response, ServletUriComponentsBuilder uriBuilder) throws Exception {
         preLogAudit(request);
         String json = "{\"204\": \"Blueprint deleted\"}";
-        String bpComp = "";
+        final String errStr = "Deleting service type failed: " + typeId;
         boolean allow = true;
         ReadWriteLock lock = new ReentrantReadWriteLock();
         lock.readLock().lock();
-        @SuppressWarnings("unchecked")
-        List itemList =
-        (List<ServiceTypeSummary>) getCacheManager().getObject("dcae-service-types");
+        List<ServiceTypeSummary> itemList =
+            (List<ServiceTypeSummary>) getCacheManager().getObject("dcae-service-types");
         lock.readLock().unlock();
+        ServiceType itemFull = null;
+        ServiceTypeSummary item = null;
         try {
             if (itemList != null) {
                 Predicate<ServiceTypeSummary> idFilter = p -> p.getTypeId().get().equals(typeId);
-
-                itemList = (List<ServiceTypeSummary>) itemList.stream().filter(idFilter)
-                    .collect(Collectors.toList());
-                bpComp = ((ServiceTypeSummary) itemList.get(0)).getComponent();
-            } else {
-                try {
-                    ServiceType item = inventoryClient.getServiceType(typeId).get();
-                    bpComp = ((ServiceType) item).getComponent();
-                } catch (NoSuchElementException nse) {
-                    throw new ServiceTypeNotFoundException("invalid blueprint ID given in query");
+                itemList = itemList.stream().filter(idFilter).collect(Collectors.toList());
+                if (!itemList.isEmpty()) { 
+                    item = itemList.get(0);
                 }
+            } else {
+                itemFull = inventoryClient.getServiceType(typeId).get();
             }
-            if (!isAuthorized(request, bpComp)) {
-                response.setStatus(HttpStatus.SC_FORBIDDEN);
-                json = objectMapper.writeValueAsString(
-                    new RestResponseError("Un-authorized to perform this operation"));
-                return json;
-            }
-            /*
-            ServiceQueryParams qryParams = new ServiceQueryParams.Builder().typeId(typeId).build();
-            ServiceRefList srvcRefs = inventoryClient.getServicesForType(qryParams);
-            if (srvcRefs != null && srvcRefs.totalCount > 0) {
-                throw new Exception(
-                    "Services exist for the service type template, delete not permitted");
-            }
-            */
-            
-            // check if these dep_ids exist in cloudify
-            List<CloudifyDeployedTenant> deplForBp = 
-                cloudifyClient.getDeploymentForBlueprint("TID-"+typeId);
-            if (deplForBp.size() > 0 ) {
-                allow = false;
-            } else {                        
-                ServiceQueryParams qryParams = 
-                    new ServiceQueryParams.Builder().typeId(typeId).build();
-                ServiceRefList srvcRefs = inventoryClient.getServicesForType(qryParams);
-                Set<String> dep_ids = srvcRefs.items.stream().map(x -> ((ServiceRef)x).id).collect(Collectors.toSet());  
-                if (dep_ids.size() > 0) {
-                    // now check again if these dep_ids still exist in cloudify
-                    List<String> allDepNames = cloudifyClient.getDeploymentNamesWithFilter(request);
-                    for (String str: dep_ids) {
-                        if (allDepNames.stream().anyMatch(s->s.equalsIgnoreCase(str))) {
-                            allow = false;
-                            break;
+            if (item != null || itemFull != null) {
+                // check if these dep_ids exist in cloudify
+                List<CloudifyDeployedTenant> deplForBp =
+                    cloudifyClient.getDeploymentForBlueprint("TID-" + typeId);
+                if (!deplForBp.isEmpty()) {
+                    allow = false;
+                } else {
+                    ServiceQueryParams qryParams =
+                        new ServiceQueryParams.Builder().typeId(typeId).build();
+                    ServiceRefList srvcRefs = inventoryClient.getServicesForType(qryParams);
+                    Set<String> depIds =
+                        srvcRefs.items.stream().map(x -> x.id).collect(Collectors.toSet());
+                    if (!depIds.isEmpty()) {
+                        // now check again if these dep_ids still exist in cloudify
+                        List<String> allDepNames =
+                            cloudifyClient.getDeploymentNamesWithFilter(request);
+                        for (String str : depIds) {
+                            if (allDepNames.stream().anyMatch(s -> s.equalsIgnoreCase(str))) {
+                                allow = false;
+                                break;
+                            }
                         }
                     }
                 }
@@ -1144,55 +1036,37 @@ public class NbApiController extends ApiBaseController {
                 response.setStatus(HttpStatus.SC_BAD_REQUEST);
                 json = objectMapper.writeValueAsString(
                     new RestResponseError("ERROR: Deployments exist for this blueprint"));
-                /*
-                PrintWriter out = response.getWriter();
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-                out.print(json);
-                out.flush();
-                */
                 return json;
             } else {
                 inventoryClient.deleteServiceType(typeId);
                 String uri = request.getRequestURI();
                 if (uri != null && !uri.isEmpty()) {
-                    String uri_str = uri.substring(0, uri.lastIndexOf("/"));
-                    String uri_all = uriBuilder.replacePath(uri_str).build().toUriString();
+                    String uriStr = uri.substring(0, uri.lastIndexOf("/"));
+                    String uriAll = uriBuilder.replacePath(uriStr).build().toUriString();
                     StringBuffer linkHeader = new StringBuffer();
-                    String linkStr = "<" + uri_all + ">; rel=\"" + "current" + "\"";
+                    String linkStr = "<" + uriAll + ">; rel=\"" + "current" + "\"";
                     linkHeader.append(linkStr);
                     response.addHeader("Link", linkHeader.toString());
                 }
             }
-        } catch (ServiceTypeNotFoundException e) {
+        } catch (ServiceTypeNotFoundException | ServiceTypeAlreadyDeactivatedException e) {
             response.setStatus(HttpStatus.SC_GONE);
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "API Controller");
-            MDC.put("TargetServiceName", "API Controller");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Deleting service type " + typeId + " failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "deleteBlueprint caught exception");
+            MDC.put(SystemProperties.STATUS_CODE, ERROR_RESPONSE);
+            MDC.put(TARGET_ENTITY_KEY, INV_BP_ENTITY);
+            MDC.put(TARGET_SERVICE_KEY, INV_TARGET_SERVICE);
+            MDC.put(ERROR_CODE_KEY, ERROR_CODE);
+            MDC.put(ERROR_CATEGORY_KEY, ERROR_CATEGORY);
+            MDC.put(ERROR_DESCRIPTION_KEY, errStr);
+            logger.error(EELFLoggerDelegate.errorLogger, errStr);
             json = objectMapper.writeValueAsString(new RestResponseError(e.getMessage()));
-        } catch (ServiceTypeAlreadyDeactivatedException e) {
-            response.setStatus(HttpStatus.SC_GONE);
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "API Controller");
-            MDC.put("TargetServiceName", "API Controller");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Deleting service type " + typeId + " failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "deleteBlueprint caught exception");
-            json = objectMapper.writeValueAsString(new RestResponseError(e.getMessage()));
-        } catch (Throwable t) {
-            response.setStatus(HttpStatus.SC_BAD_GATEWAY);
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "API Controller");
-            MDC.put("TargetServiceName", "API Controller");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Deleting service type " + typeId + " failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "deleteBlueprint caught exception");
+        } catch (Exception t) {
+            MDC.put(SystemProperties.STATUS_CODE, ERROR_RESPONSE);
+            MDC.put(TARGET_ENTITY_KEY, INV_BP_ENTITY);
+            MDC.put(TARGET_SERVICE_KEY, INV_TARGET_SERVICE);
+            MDC.put(ERROR_CODE_KEY, ERROR_CODE);
+            MDC.put(ERROR_CATEGORY_KEY, ERROR_CATEGORY);
+            MDC.put(ERROR_DESCRIPTION_KEY, errStr);
+            logger.error(EELFLoggerDelegate.errorLogger, errStr);
             json =
                 objectMapper.writeValueAsString(new RestResponseError("deleteBlueprint failed", t));
         } finally {
@@ -1212,30 +1086,23 @@ public class NbApiController extends ApiBaseController {
      * @throws Exception
      */
     @SuppressWarnings("unchecked")
-    @RequestMapping(
-        value = {DEPLOYMENTS_PATH + "/{deploymentId}"},
-        method = RequestMethod.DELETE,
-        produces = "application/json")
+    @DeleteMapping(value = {DEPLOYMENTS_PATH + "/{deploymentId:.+}"}, produces = "application/json")
     public String deleteDeployment(@PathVariable("deploymentId") String deploymentId,
         HttpServletRequest request, @RequestParam(value = "tenant", required = true) String tenant,
         HttpServletResponse response) throws Exception {
         preLogAudit(request);
         String json = null;
+        final String errStr = "Deleting deployment failed: " + deploymentId;
         StringBuffer status = new StringBuffer();
         try {
-            if (tenant == null) {
-                throw new Exception("tenant name is missing");
-            }
             ReadWriteLock lock = new ReentrantReadWriteLock();
             lock.readLock().lock();
-            @SuppressWarnings("unchecked")
-            List itemList = (List<CloudifyDeployment>) getCacheManager()
-            .getObject("service-list" + ":" + tenant);
+            List<CloudifyDeployment> itemList = (List<CloudifyDeployment>) getCacheManager()
+                .getObject("service-list" + ":" + tenant);
             lock.readLock().unlock();
             if (itemList != null) {
                 Predicate<CloudifyDeployment> idFilter = p -> p.id.equals(deploymentId);
-                itemList = (List<CloudifyDeployment>) itemList.stream().filter(idFilter)
-                    .collect(Collectors.toList());
+                itemList = itemList.stream().filter(idFilter).collect(Collectors.toList());
             } else {
                 CloudifyDeploymentList cfyDeplList =
                     cloudifyClient.getDeployment(deploymentId, tenant);
@@ -1246,11 +1113,10 @@ public class NbApiController extends ApiBaseController {
             if (itemList != null && !itemList.isEmpty()) {
                 String depItem = ((CloudifyDeployment) itemList.get(0)).id;
                 if (depItem.contains("_")) {
-                    String depComp = depItem.split("_")[0];
-                    if (!isAuthorized(request, depComp)) {
+                    if (!isAuthorized()) {
                         response.setStatus(HttpStatus.SC_FORBIDDEN);
-                        json = objectMapper.writeValueAsString(
-                            new RestResponseError("Un-authorized to perform this operation"));
+                        json =
+                            objectMapper.writeValueAsString(new RestResponseError("UNAUTH_ERROR"));
                         return json;
                     }
                     deploymentHandlerClient.deleteDeployment(deploymentId, tenant);
@@ -1262,50 +1128,24 @@ public class NbApiController extends ApiBaseController {
                     json = statObj.toString();
                 }
             }
-        } catch (BadRequestException e) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "API Controller");
-            MDC.put("TargetServiceName", "API Controller");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Deleting deployment " + deploymentId + " failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "deleteDeployment caught exception");
+        } catch (BadRequestException | ServerErrorException | DownstreamException
+            | DeploymentNotFoundException e) {
+            MDC.put(SystemProperties.STATUS_CODE, ERROR_RESPONSE);
+            MDC.put(TARGET_ENTITY_KEY, CFY_DEP_ENTITY);
+            MDC.put(TARGET_SERVICE_KEY, CFY_TARGET_SERVICE);
+            MDC.put(ERROR_CODE_KEY, ERROR_CODE);
+            MDC.put(ERROR_CATEGORY_KEY, ERROR_CATEGORY);
+            MDC.put(ERROR_DESCRIPTION_KEY, errStr);
+            logger.error(EELFLoggerDelegate.errorLogger, errStr);
             json = objectMapper.writeValueAsString(new RestResponseError(e.getMessage()));
-        } catch (ServerErrorException e) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "API Controller");
-            MDC.put("TargetServiceName", "API Controller");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Deleting deployment " + deploymentId + " failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "deleteDeployment caught exception");
-            json = objectMapper.writeValueAsString(new RestResponseError(e.getMessage()));
-        } catch (DownstreamException e) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "API Controller");
-            MDC.put("TargetServiceName", "API Controller");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Deleting deployment " + deploymentId + " failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "deleteDeployment caught exception");
-            json = objectMapper.writeValueAsString(new RestResponseError(e.getMessage()));
-        } catch (DeploymentNotFoundException e) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "API Controller");
-            MDC.put("TargetServiceName", "API Controller");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Deleting deployment " + deploymentId + " failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "deleteDeployment caught exception");
-            json = objectMapper.writeValueAsString(new RestResponseError(e.getMessage()));
-        } catch (Throwable t) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "API Controller");
-            MDC.put("TargetServiceName", "API Controller");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Deleting deployment " + deploymentId + " failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "deleteDeployment caught exception");
+        } catch (Exception t) {
+            MDC.put(SystemProperties.STATUS_CODE, ERROR_RESPONSE);
+            MDC.put(TARGET_ENTITY_KEY, CFY_DEP_ENTITY);
+            MDC.put(TARGET_SERVICE_KEY, CFY_TARGET_SERVICE);
+            MDC.put(ERROR_CODE_KEY, ERROR_CODE);
+            MDC.put(ERROR_CATEGORY_KEY, ERROR_CATEGORY);
+            MDC.put(ERROR_DESCRIPTION_KEY, errStr);
+            logger.error(EELFLoggerDelegate.errorLogger, errStr);
             json = objectMapper
                 .writeValueAsString(new RestResponseError("deleteDeployment failed", t));
         } finally {
@@ -1325,67 +1165,64 @@ public class NbApiController extends ApiBaseController {
      * @return Passes thru HTTP status code from remote endpoint; no body on success
      * @throws Exception on serialization failure
      */
-    @RequestMapping(
-        value = {EXECUTIONS_PATH + "/{id}"},
-        method = RequestMethod.POST,
-        produces = "application/json")
-    @ResponseBody
+    @PostMapping(value = {EXECUTIONS_PATH + "/{id}"}, produces = "application/json")
     public String cancelExecution(@RequestHeader HttpHeaders headers, @PathVariable("id") String id,
         @RequestBody Map<String, String> parameters, HttpServletRequest request,
         HttpServletResponse response) throws Exception {
         preLogAudit(request);
         ECTransportModel result = null;
         List<String> tenant = null;
+        String errStr = "Cancelling execution failed: " + id;
         try {
             tenant = headers.get("tenant");
             result = cloudifyClient.cancelExecution(id, parameters, tenant.get(0));
         } catch (HttpStatusCodeException e) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "API Controller");
-            MDC.put("TargetServiceName", "API Controller");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Cancelling execution " + id + " failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "cancelExecution caught exception");
+            MDC.put(SystemProperties.STATUS_CODE, ERROR_RESPONSE);
+            MDC.put(TARGET_ENTITY_KEY, CFY_EXEC_ENTITY);
+            MDC.put(TARGET_SERVICE_KEY, CFY_TARGET_SERVICE);
+            MDC.put(ERROR_CODE_KEY, ERROR_CODE);
+            MDC.put(ERROR_CATEGORY_KEY, ERROR_CATEGORY);
+            MDC.put(ERROR_DESCRIPTION_KEY, errStr);
+            logger.error(EELFLoggerDelegate.errorLogger, errStr);
             result = new RestResponseError(e.getResponseBodyAsString());
-        } catch (Throwable t) {
-            MDC.put(SystemProperties.STATUS_CODE, "ERROR");
-            MDC.put("TargetEntity", "API Controller");
-            MDC.put("TargetServiceName", "API Controller");
-            MDC.put("ErrorCode", "300");
-            MDC.put("ErrorCategory", "ERROR");
-            MDC.put("ErrorDescription", "Cancelling execution " + id + " failed!");
-            logger.error(EELFLoggerDelegate.errorLogger, "cancelExecution caught exception");
-            result = new RestResponseError("cancelExecution failed on ID " + id, t);
+        } catch (Exception t) {
+            MDC.put(SystemProperties.STATUS_CODE, ERROR_RESPONSE);
+            MDC.put(TARGET_ENTITY_KEY, CFY_EXEC_ENTITY);
+            MDC.put(TARGET_SERVICE_KEY, CFY_TARGET_SERVICE);
+            MDC.put(ERROR_CODE_KEY, ERROR_CODE);
+            MDC.put(ERROR_CATEGORY_KEY, ERROR_CATEGORY);
+            MDC.put(ERROR_DESCRIPTION_KEY, errStr);
+            logger.error(EELFLoggerDelegate.errorLogger, errStr);
+            result = new RestResponseError(errStr, t);
         } finally {
             postLogAudit(request);
         }
-        if (result == null)
+        if (result == null) {
             return null;
-        else
+        } else {
             return objectMapper.writeValueAsString(result);
+        }
     }
 
     private void preLogAudit(HttpServletRequest request) {
-        begin = new Date();
+        Date begin = new Date();
         MDC.put(SystemProperties.AUDITLOG_BEGIN_TIMESTAMP, logDateFormat.format(begin));
         MDC.put(SystemProperties.METRICSLOG_BEGIN_TIMESTAMP, logDateFormat.format(begin));
         MDC.put(SystemProperties.STATUS_CODE, "COMPLETE");
         String user = null;
         if (request instanceof CadiWrap) {
             user = ((CadiWrap) request).getUser();
-        } 
+        }
         logger.setRequestBasedDefaultsIntoGlobalLoggingContext(request, APP_NAME, user, user);
     }
 
     private void postLogAudit(HttpServletRequest request) {
-        end = new Date();
+        Date end = new Date();
         MDC.put("AlertSeverity", "0");
-        MDC.put("TargetEntity", "API Controller");
-        MDC.put("TargetServiceName", "API Controller");
+        MDC.put(TARGET_ENTITY_KEY, "API Controller");
+        MDC.put(TARGET_SERVICE_KEY, "API Controller");
         MDC.put(SystemProperties.AUDITLOG_END_TIMESTAMP, logDateFormat.format(end));
         MDC.put(SystemProperties.METRICSLOG_END_TIMESTAMP, logDateFormat.format(end));
-        // MDC.put(SystemProperties.MDC_TIMER, Long.toString((end.getTime() - begin.getTime())));
         logger.info(EELFLoggerDelegate.auditLogger,
             request.getMethod() + " " + request.getRequestURI());
         logger.info(EELFLoggerDelegate.metricsLogger,

@@ -2,22 +2,22 @@
  * =============LICENSE_START=========================================================
  *
  * =================================================================================
- *  Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
+ * Copyright (c) 2019 AT&T Intellectual Property. All rights reserved.
  * ================================================================================
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *  
- *      http://www.apache.org/licenses/LICENSE-2.0
- *  
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  * ============LICENSE_END=========================================================
  *
- *  ECOMP is a trademark and service mark of AT&T Intellectual Property.
+ * ECOMP is a trademark and service mark of AT&T Intellectual Property.
  *******************************************************************************/
 package org.onap.ccsdk.dashboard.model.inventory;
 
@@ -55,8 +55,9 @@ public class BlueprintInput {
     }
 
     @JsonCreator
-    public BlueprintInput(@JsonProperty("type") String type, @JsonProperty("default") Object defaultValue,
-            @JsonProperty("description") String description) {
+    public BlueprintInput(@JsonProperty("type") String type,
+        @JsonProperty("default") Object defaultValue,
+        @JsonProperty("description") String description) {
 
         // Case where there is no default and no type --> Type should be ANY
         if (defaultValue == null && type == null) {
@@ -77,27 +78,33 @@ public class BlueprintInput {
         // Cases where there is a default and a type
         else {
             switch (BlueprintInput.Type.valueOf(type.toString().toUpperCase())) {
-            case ANY:
-                throw new IllegalArgumentException("Cannot specify type ANY (leave blank instead to get ANY type)");
-            case BOOLEAN:
-                if (defaultValue != null && !(defaultValue instanceof Boolean))
-                    throw new IllegalArgumentException("default value does not match specified type");
-                this.type = BlueprintInput.Type.BOOLEAN;
-                break;
-            case INTEGER:
-                if (defaultValue != null && !(defaultValue instanceof Integer))
-                    throw new IllegalArgumentException("default value does not match specified type");
-                this.type = BlueprintInput.Type.INTEGER;
-                break;
-            case STRING:
-                if (defaultValue != null && !(defaultValue instanceof String))
-                    throw new IllegalArgumentException("default value does not match specified type");
-
-                this.type = BlueprintInput.Type.STRING;
-                break;
-            default:
-                this.type = Type.ANY;
-                break;
+                case ANY:
+                    throw new IllegalArgumentException(
+                        "Cannot specify type ANY (leave blank instead to get ANY type)");
+                case BOOLEAN:
+                    if (defaultValue != null && !(defaultValue instanceof Boolean)) {
+                        throw new IllegalArgumentException(
+                            "default value does not match specified type");
+                    }
+                    this.type = BlueprintInput.Type.BOOLEAN;
+                    break;
+                case INTEGER:
+                    if (defaultValue != null && !(defaultValue instanceof Integer)) {
+                        throw new IllegalArgumentException(
+                            "default value does not match specified type");
+                    }
+                    this.type = BlueprintInput.Type.INTEGER;
+                    break;
+                case STRING:
+                    if (defaultValue != null && !(defaultValue instanceof String)) {
+                        throw new IllegalArgumentException(
+                            "default value does not match specified type");
+                    }
+                    this.type = BlueprintInput.Type.STRING;
+                    break;
+                default:
+                    this.type = Type.ANY;
+                    break;
             }
         }
 
@@ -135,7 +142,8 @@ public class BlueprintInput {
             final BlueprintInput obj = (BlueprintInput) o;
 
             return obj.getDefaultValue().equals(getDefaultValue())
-                    && obj.getDescriptionValue().equals(getDescriptionValue()) && obj.getType().equals(getType());
+                && obj.getDescriptionValue().equals(getDescriptionValue())
+                && obj.getType().equals(getType());
         }
 
         return false;
@@ -143,6 +151,7 @@ public class BlueprintInput {
 
     @Override
     public String toString() {
-        return "{" + "type: " + getType() + ",default: " + getDefault() + ",description: " + getDescription() + "}";
+        return "{" + "type: " + getType() + ",default: " + getDefault() + ",description: "
+            + getDescription() + "}";
     }
 }
