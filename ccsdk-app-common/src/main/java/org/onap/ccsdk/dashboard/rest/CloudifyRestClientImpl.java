@@ -1103,8 +1103,9 @@ public class CloudifyRestClientImpl extends RestClientBase implements CloudifyCl
     public CloudifyPluginList getPlugins() throws Exception {
         String url = buildUrl(new String[] {baseUrl, PLUGINS}, null);
         logger.debug(EELFLoggerDelegate.debugLogger, "getPlugins: url {}", url);
+        HttpEntity<String> entity = getTenantHeader("default_tenant");
         ResponseEntity<CloudifyPluginList> response = restTemplate.exchange(url, HttpMethod.GET,
-            null, new ParameterizedTypeReference<CloudifyPluginList>() {});
+            entity, new ParameterizedTypeReference<CloudifyPluginList>() {});
         CloudifyPluginList result = response.getBody();
         return result;
     }
