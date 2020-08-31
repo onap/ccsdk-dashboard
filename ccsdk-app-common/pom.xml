@@ -29,6 +29,9 @@
 		<skipTests>false</skipTests>
 		<jacocoVersion>0.7.6.201602180812</jacocoVersion>
 		<jackson.version>2.9.8</jackson.version>
+		<sonar.coverage.jacoco.xmlReportPaths> 
+			${project.reporting.outputDirectory}/jacoco-ut/jacoco.xml 
+    	</sonar.coverage.jacoco.xmlReportPaths>
 	</properties>
 
 	<repositories>
