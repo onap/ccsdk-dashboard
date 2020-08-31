@@ -1011,7 +1011,7 @@ Insert into dashboard_pg_db_common.fn_role_function (ROLE_ID,FUNCTION_CD) values
 Insert into dashboard_pg_db_common.fn_user 
 	(USER_ID,ORG_ID,MANAGER_ID,FIRST_NAME,MIDDLE_NAME,LAST_NAME,PHONE,FAX,CELLULAR,EMAIL,ADDRESS_ID,ALERT_METHOD_CD,HRID,ORG_USER_ID,ORG_CODE,LOGIN_ID,LOGIN_PWD,LAST_LOGIN_DATE,ACTIVE_YN,CREATED_ID,CREATED_DATE,MODIFIED_ID,MODIFIED_DATE,IS_INTERNAL_YN,ADDRESS_LINE_1,ADDRESS_LINE_2,CITY,STATE_CD,ZIP_CODE,COUNTRY_CD,LOCATION_CLLI,ORG_MANAGER_USERID,COMPANY,DEPARTMENT_NAME,JOB_TITLE,TIMEZONE,DEPARTMENT,BUSINESS_UNIT,BUSINESS_UNIT_NAME,COST_CENTER,FIN_LOC_CODE,SILO_STATUS) 
 	values 
-	(1,null,null,'Super',null,'User','908-901-2494',null,null,'email@om.ops.com',null,null,null,'su1234',null,'su','fusion',to_date('21-AUG-14','%d-%M-%Y'),'Y',null,to_date('15-DEC-05','%d-%M-%Y'),1,to_date('21-AUG-14','%d-%M-%Y'),'N',null,null,null,'NJ',null,'US',null,null,null,null,null,10,null,null,null,null,null,null)
+	(1,null,null,'Super',null,'User','908-901-2494',null,null,'email@om.ops.com',null,null,null,'su1234',null,'su1234','fusion',to_date('21-AUG-14','%d-%M-%Y'),'Y',null,to_date('15-DEC-05','%d-%M-%Y'),1,to_date('21-AUG-14','%d-%M-%Y'),'N',null,null,null,'NJ',null,'US',null,null,null,null,null,10,null,null,null,null,null,null)
 	;
 
 -- fn_app

@@ -772,7 +772,7 @@ public class CloudifyRestClientImplTest extends MockitoTestSuite {
         ResponseEntity<CloudifyPluginList> response =
             new ResponseEntity<CloudifyPluginList>(cfyPluginList, HttpStatus.OK);
 
-        when(mockRest.exchange(anyString(), eq(HttpMethod.GET), isNull(),
+        when(mockRest.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class),
             eq(new ParameterizedTypeReference<CloudifyPluginList>() {}))).thenReturn(response);
 
         CloudifyPluginList actuals = subject.getPlugins();
