@@ -69,7 +69,7 @@ then
     mv $CATALINA_HOME/conf/server-https.xml $CATALINA_HOME/conf/server.xml
 fi
 
-echo 'CATALINA_OPTS="-Djavax.net.ssl.trustStore=/opt/app/osaaf/truststore.jks --illegal-access=permit"' > $CATALINA_HOME/bin/setenv.sh
+echo 'CATALINA_OPTS="-Djavax.net.ssl.trustStore=/opt/app/osaaf/trust.jks --illegal-access=permit"' > $CATALINA_HOME/bin/setenv.sh
 
 # Start the tomcat server
 catalina.sh run
