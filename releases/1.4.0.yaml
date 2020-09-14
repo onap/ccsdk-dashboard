@@ -1,0 +1,4 @@
+distribution_type: 'maven'
+version: '1.4.0'
+project: 'ccsdk-dashboard'
+log_dir: 'ccsdk-dashboard-maven-stage-master/240'
