@@ -19,7 +19,7 @@
 
 	<properties>
 		<encoding>UTF-8</encoding>
-		<springframework.version>4.3.22.RELEASE</springframework.version>
+		<springframework.version>5.2.7.RELEASE</springframework.version>
 		<hibernate.version>4.3.11.Final</hibernate.version>
 		<epsdk.version>2.6.0</epsdk.version>
 		<ccsdk.version>${project.version}</ccsdk.version>
