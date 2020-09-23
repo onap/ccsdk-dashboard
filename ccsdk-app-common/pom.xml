@@ -18,7 +18,7 @@
 
 	<properties>
 		<encoding>UTF-8</encoding>
-		<springframework.version>4.3.22.RELEASE</springframework.version>
+		<springframework.version>5.2.7.RELEASE</springframework.version>
 		<hibernate.version>4.3.11.Final</hibernate.version>
 		<eelf.version>1.0.0</eelf.version>
 		<epsdk.version>2.6.0</epsdk.version>
@@ -27,7 +27,7 @@
 		<releaseNexusPath>content/repositories/releases/</releaseNexusPath>
 		<stagingNexusPath>/content/repositories/staging/</stagingNexusPath>
 		<skipTests>false</skipTests>
-		<jackson.version>2.9.8</jackson.version>
+		<jackson.version>2.11.0</jackson.version>
 		<sonar.coverage.jacoco.xmlReportPaths> 
 			${project.reporting.outputDirectory}/jacoco-ut/jacoco.xml
     	</sonar.coverage.jacoco.xmlReportPaths>
@@ -241,7 +241,7 @@
 		<dependency>
 			<groupId>com.mchange</groupId>
 			<artifactId>c3p0</artifactId>
-			<version>0.9.5.3</version>
+			<version>0.9.5.5</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
