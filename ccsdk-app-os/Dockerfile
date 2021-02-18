@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk11:jre-11.0.8_10-alpine
+FROM nexus3.onap.org:10001/onap/integration-java11:7.2.0
 #FROM tomcat:jdk11-adoptopenjdk-openj9
 
 USER root
