@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk11:jre-11.0.8_10-alpine
+FROM nexus3.onap.org:10001/onap/integration-java11:8.0.0
 #FROM tomcat:jdk11-adoptopenjdk-openj9
 
 USER root
@@ -12,8 +12,8 @@ COPY target/ccsdk*.war /tmp/ccsdk-app.war
 ARG user=onap
 ARG group=onap
 
-RUN apk update \
- && apk add wget zip dos2unix postgresql \
+RUN apk add --update --no-cache --virtual .setup-deps wget zip dos2unix \
+ && apk add postgresql \
  && wget -q http://archive.apache.org/dist/tomcat/tomcat-9/v9.0.37/bin/apache-tomcat-9.0.37.tar.gz \
  && tar -xzf apache-tomcat-9.0.37.tar.gz \
  && rm -f apache-tomcat-9.0.37.tar.gz \
@@ -25,10 +25,10 @@ RUN apk update \
  && dos2unix /tmp/docker-dashboard-installation.sh \
  && chmod +x /tmp/create_table.sql \
  && chmod +x /tmp/docker-dashboard-installation.sh \
- && addgroup -S $group && adduser -G $group -D $user \
  && chown -R $user:$group ${CATALINA_HOME} \
  && chown -R $user:$group /tmp \
- && chown -R $user:$group /opt/logs/dcae/dashboard
+ && chown -R $user:$group /opt/logs/dcae/dashboard \
+ && apk del .setup-deps
 
 USER ${user}
 WORKDIR $CATALINA_HOME
