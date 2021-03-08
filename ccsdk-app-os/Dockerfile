@@ -12,8 +12,8 @@ COPY target/ccsdk*.war /tmp/ccsdk-app.war
 ARG user=onap
 ARG group=onap
 
-RUN apk add --update --no-cache --virtual .setup-deps wget zip dos2unix \
- && apk add postgresql \
+RUN apk add --update --no-cache --virtual .setup-deps wget dos2unix \
+ && apk add postgresql zip \
  && wget -q http://archive.apache.org/dist/tomcat/tomcat-9/v9.0.37/bin/apache-tomcat-9.0.37.tar.gz \
  && tar -xzf apache-tomcat-9.0.37.tar.gz \
  && rm -f apache-tomcat-9.0.37.tar.gz \
