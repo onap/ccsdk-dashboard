@@ -6,19 +6,19 @@
 	<parent>
 		<groupId>org.onap.ccsdk.dashboard</groupId>
 		<artifactId>ccsdk-app-parent</artifactId>
-		<version>1.4.1-SNAPSHOT</version>
+		<version>1.4.2-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.onap.ccsdk.dashboard</groupId>
 	<artifactId>ccsdk-app-common</artifactId>
-	<version>1.4.1-SNAPSHOT</version>
+	<version>1.4.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>DCAE Dashboard common</name>
 	<description>CCSDK Dashboard common Java code</description>
 
 	<properties>
 		<encoding>UTF-8</encoding>
-		<springframework.version>5.2.7.RELEASE</springframework.version>
+		<springframework.version>4.3.22.RELEASE</springframework.version>
 		<hibernate.version>4.3.11.Final</hibernate.version>
 		<eelf.version>1.0.0</eelf.version>
 		<epsdk.version>2.6.0</epsdk.version>
@@ -27,7 +27,7 @@
 		<releaseNexusPath>content/repositories/releases/</releaseNexusPath>
 		<stagingNexusPath>/content/repositories/staging/</stagingNexusPath>
 		<skipTests>false</skipTests>
-		<jackson.version>2.11.0</jackson.version>
+		<jackson.version>2.9.8</jackson.version>
 		<sonar.coverage.jacoco.xmlReportPaths> 
 			${project.reporting.outputDirectory}/jacoco-ut/jacoco.xml
     	</sonar.coverage.jacoco.xmlReportPaths>
