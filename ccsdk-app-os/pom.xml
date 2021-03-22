@@ -7,19 +7,19 @@
 	<parent>
 		<groupId>org.onap.ccsdk.dashboard</groupId>
 		<artifactId>ccsdk-app-parent</artifactId>
-		<version>1.4.1-SNAPSHOT</version>
+		<version>1.4.2-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.onap.ccsdk.dashboard</groupId>
 	<artifactId>ccsdk-app-os</artifactId>
-	<version>1.4.1-SNAPSHOT</version>
+	<version>1.4.2-SNAPSHOT</version>
 	<packaging>war</packaging>
 	<name>DCAE Dashboard</name>
 	<description>CCSDK Dashboard Web Application for external release</description>
 
 	<properties>
 		<encoding>UTF-8</encoding>
-		<springframework.version>5.2.7.RELEASE</springframework.version>
+		<springframework.version>4.3.22.RELEASE</springframework.version>
 		<hibernate.version>4.3.11.Final</hibernate.version>
 		<epsdk.version>2.6.0</epsdk.version>
 		<ccsdk.version>${project.version}</ccsdk.version>
