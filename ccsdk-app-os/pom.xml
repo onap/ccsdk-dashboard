@@ -7,12 +7,20 @@
 	<parent>
 		<groupId>org.onap.ccsdk.dashboard</groupId>
 		<artifactId>ccsdk-app-parent</artifactId>
+<<<<<<< HEAD   (f0fc1e Readd zip to be avaliable in Docker)
 		<version>1.4.1-SNAPSHOT</version>
+=======
+		<version>1.4.3-SNAPSHOT</version>
+>>>>>>> CHANGE (e20974 Fix issues with inserting dashboard user into database)
 	</parent>
 
 	<groupId>org.onap.ccsdk.dashboard</groupId>
 	<artifactId>ccsdk-app-os</artifactId>
+<<<<<<< HEAD   (f0fc1e Readd zip to be avaliable in Docker)
 	<version>1.4.1-SNAPSHOT</version>
+=======
+	<version>1.4.3-SNAPSHOT</version>
+>>>>>>> CHANGE (e20974 Fix issues with inserting dashboard user into database)
 	<packaging>war</packaging>
 	<name>DCAE Dashboard</name>
 	<description>CCSDK Dashboard Web Application for external release</description>
