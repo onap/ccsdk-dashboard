@@ -3,7 +3,7 @@
  # =============LICENSE_START=====================================================
  # 
  # ===============================================================================
- #  Copyright (c) 2020 AT&T Intellectual Property. All rights reserved.
+ #  Copyright (c) 2020-2021 AT&T Intellectual Property. All rights reserved.
  # ===============================================================================
  #  Licensed under the Apache License, Version 2.0 (the "License");
  #  you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ cat /tmp/ccsdk-app/WEB-INF/conf/system.properties | \
 sed "s/^db.encrypt_flag.*$/db.encrypt_flag=false/g" | \
 sed "s/postgresql:\/\/.*$/postgresql:\/\/${postgres_ip}:${postgres_port}\/${postgres_db_name}/g" | \
 sed "s/^db.userName.*$/db.userName=${postgres_user_dashboard}/g" | \
-sed "s/^db.password.*$/db.password=${postgres_password_dashboard}/g"  > /tmp/sys.prop
+sed "s~^db.password.*$~db.password=${postgres_password_dashboard}~g"  > /tmp/sys.prop
 mv /tmp/sys.prop /tmp/ccsdk-app/WEB-INF/conf/system.properties
 
 # Repackage the war file
