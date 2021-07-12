@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "74ca4ab0_9b68699d",
+        "filename": "ccsdk-app-os/docker-dashboard-installation.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 93
+      },
+      "writtenOn": "2021-07-12T18:43:35Z",
+      "side": 1,
+      "message": "2020-2021",
+      "range": {
+        "startLine": 6,
+        "startChar": 18,
+        "endLine": 6,
+        "endChar": 22
+      },
+      "revId": "2be1a54486aa128c153d43751d636ccdbc81acae",
+      "serverId": "14b4e41f-c4e3-4fb9-9955-6a9b5656895a",
+      "unresolved": true
+    }
+  ]
+}
