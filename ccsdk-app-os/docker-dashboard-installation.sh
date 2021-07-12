@@ -42,7 +42,7 @@ cat /tmp/ccsdk-app/WEB-INF/conf/system.properties | \
 sed "s/^db.encrypt_flag.*$/db.encrypt_flag=false/g" | \
 sed "s/postgresql:\/\/.*$/postgresql:\/\/${postgres_ip}:${postgres_port}\/${postgres_db_name}/g" | \
 sed "s/^db.userName.*$/db.userName=${postgres_user_dashboard}/g" | \
-sed "s/^db.password.*$/db.password=${postgres_password_dashboard}/g"  > /tmp/sys.prop
+sed "s~^db.password.*$~db.password=${postgres_password_dashboard}~g"  > /tmp/sys.prop
 mv /tmp/sys.prop /tmp/ccsdk-app/WEB-INF/conf/system.properties
 
 # Repackage the war file
