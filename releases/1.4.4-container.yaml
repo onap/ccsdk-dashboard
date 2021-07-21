@@ -1,0 +1,8 @@
+distribution_type: 'container'
+container_release_tag: '1.4.4'
+project: 'ccsdk/dashboard'
+log_dir: 'ccsdk-dashboard-maven-docker-stage-master/5'
+ref: 355cf4099273cbd1049b6b111cca2b6638bc57f6
+containers:
+    - name: 'org.onap.ccsdk.dashboard.ccsdk-app-os'
+      version: '1.4.4-STAGING-20210713T174335Z'
