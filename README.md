@@ -49,7 +49,12 @@ The web application requires these resources:
 
 Build all artifacts by invoking maven in the parent directory:
 
-    mvn clean install or mvn clean install docker:build
+    mvn clean install
+
+Then build docker images:
+    
+    cd ccsdk-app-os
+    mvn -Pdocker docker:build
   
 ### Deployment steps - as an application docker container
 

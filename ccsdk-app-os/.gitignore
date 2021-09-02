@@ -5,3 +5,4 @@
 /target/
 /catalina.base_IS_UNDEFINED/
 ccsdk-app-os.iml
+/overlays/
